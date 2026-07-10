@@ -8,6 +8,10 @@
   animation: nav-indicator-flow 4s ease-in-out infinite;
 }
 
+.bottom-nav-pill {
+  background: var(--nav-pill-bg);
+}
+
 .pb-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

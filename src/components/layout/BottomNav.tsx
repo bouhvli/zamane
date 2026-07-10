@@ -41,7 +41,7 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
             to={tab.href}
             className={cn(
               "bottom-nav-link relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 outline-none transition-colors active:opacity-60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset",
-              isActive ? "text-foreground" : "text-muted-foreground",
+              isActive ? "text-[var(--nav-active-foreground)]" : "text-muted-foreground",
             )}
           >
             <span
@@ -50,13 +50,28 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 isActive ? "opacity-100" : "opacity-0",
               )}
             />
-            <span
-              role="img"
-              aria-label={tab.label}
-              className={cn("doodle-icon", isActive && "is-active")}
-              style={{ "--icon-mask": `url(${tab.icon})` } as CSSProperties}
-            />
-            <span className="text-xs font-medium">{tab.label}</span>
+            {/* The selected tab's whole icon+label group sits on a soft
+                brand-tinted pill — ties the moving gradient icon and the
+                (now on-brand, not plain-black) label into one cohesive
+                "selected" shape instead of two disconnected signals. */}
+            <span className="relative flex flex-col items-center gap-0.5">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "bottom-nav-pill pointer-events-none absolute -inset-x-3 -inset-y-1.5 -z-10 rounded-2xl transition-[opacity,transform] duration-200 ease-out",
+                  isActive ? "scale-100 opacity-100" : "scale-90 opacity-0",
+                )}
+              />
+              <span
+                role="img"
+                aria-label={tab.label}
+                className={cn("doodle-icon", isActive && "is-active")}
+                style={{ "--icon-mask": `url(${tab.icon})` } as CSSProperties}
+              />
+              <span className={cn("text-xs transition-[color,font-weight]", isActive ? "font-semibold" : "font-medium")}>
+                {tab.label}
+              </span>
+            </span>
           </Link>
         );
       })}

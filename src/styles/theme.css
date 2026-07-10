@@ -199,6 +199,17 @@
 
 :root {
   --nav-gradient: linear-gradient(90deg, #5A27FF, #C026D3, #FF2D78, #C026D3, #5A27FF);
+  /* The active bottom-nav label's color — plain --primary at small bold
+     sizes only clears 4.5:1 in light mode; dark mode reuses the lighter
+     violet already established for small text on dark surfaces in
+     page-hero.css's --page-hero-pill-primary (10:1+, comfortably AA). */
+  --nav-active-foreground: var(--primary);
+  --nav-pill-bg: rgba(90, 39, 255, 0.08);
+}
+
+.dark {
+  --nav-active-foreground: #C9B3FF;
+  --nav-pill-bg: rgba(201, 179, 255, 0.14);
 }
 
 /*
