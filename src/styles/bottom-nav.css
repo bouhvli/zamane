@@ -1,0 +1,54 @@
+.bottom-nav {
+  border-top: 1px solid var(--border);
+}
+
+.bottom-nav-indicator {
+  background-image: var(--nav-gradient);
+  background-size: 300% 100%;
+  animation: nav-indicator-flow 4s ease-in-out infinite;
+}
+
+.pb-safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pb-bottom-nav {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+/*
+ * The doodle icon set is solid-fill artwork (not stroke-based like
+ * lucide), so it can't be recolored via `stroke`/`color`. Instead each
+ * icon is used as a CSS mask over a plain color layer — for the active
+ * tab that "color" is the same animated --nav-gradient used by the
+ * border indicator, so the icon and the border move in lockstep using
+ * one shared animation instead of two different techniques.
+ */
+.doodle-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon-mask);
+  mask-image: var(--icon-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.doodle-icon.is-active {
+  background-color: transparent;
+  background-image: var(--nav-gradient);
+  background-size: 300% 100%;
+  animation: nav-indicator-flow 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav-indicator,
+  .doodle-icon.is-active {
+    animation: none;
+  }
+}

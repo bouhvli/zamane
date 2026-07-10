@@ -1,0 +1,108 @@
+/*
+ * PageHero — the dark, glowing header card shown at the top of every page.
+ * See the token comment in theme.css for the color rationale.
+ */
+
+.page-hero {
+  background: var(--hero-bg);
+  box-shadow: var(--hero-shadow);
+}
+
+.page-hero-glow-tr {
+  background: var(--hero-glow-tr);
+}
+
+.page-hero-glow-bl {
+  background: var(--hero-glow-bl);
+}
+
+.page-hero-dots {
+  background-image: var(--hero-dot-grid);
+  background-size: 24px 24px;
+}
+
+.page-hero-label {
+  color: rgba(199, 163, 255, 0.65);
+}
+
+.page-hero-value {
+  color: #ffffff;
+}
+
+.page-hero-description {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* Status pill */
+
+.page-hero-pill {
+  border: 1px solid transparent;
+}
+
+.page-hero-pill-primary {
+  background: rgba(90, 39, 255, 0.18);
+  color: #c9b3ff;
+  border-color: rgba(90, 39, 255, 0.32);
+}
+
+.page-hero-pill-accent {
+  background: rgba(191, 99, 130, 0.2);
+  color: #ffb8cb;
+  border-color: rgba(191, 99, 130, 0.32);
+}
+
+.page-hero-pill-neutral {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Stat chips */
+
+.page-hero-chip {
+  background: var(--hero-glass);
+  border: 1px solid var(--hero-glass-border);
+}
+
+.page-hero-chip-label {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Action buttons */
+
+.page-hero-action {
+  transition: opacity 0.15s ease;
+}
+
+.page-hero-action:hover {
+  opacity: 0.9;
+}
+
+.page-hero-action-primary {
+  background: #ffffff;
+  color: #2a0a5c;
+}
+
+.page-hero-action-ghost {
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Minimal-variant icon (placeholder pages) — same CSS-mask technique as
+ * .doodle-icon in bottom-nav.css, but static (no gradient/animation) since
+ * this isn't an active-tab affordance. */
+.page-hero-icon {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.85);
+  -webkit-mask-image: var(--icon-mask);
+  mask-image: var(--icon-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}

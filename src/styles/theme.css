@@ -1,0 +1,249 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #F5EFF2;
+  --foreground: #1A0F14;
+  --card: #FDFAFC;
+  --card-foreground: #1A0F14;
+  --popover: #FDFAFC;
+  --popover-foreground: #1A0F14;
+  --primary: #5A27FF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EBE0E3;
+  --secondary-foreground: #1A0F14;
+  --muted: #F0E8EC;
+  /* Darkened from #8B6B78 (4.14:1 on --background, 3.9:1 on
+     --input-background — both fail WCAG AA's 4.5:1 for body/placeholder
+     text) to clear 4.5:1 against every surface it's read on, same hue. */
+  --muted-foreground: #7A5566;
+  --accent: #BF6382;
+  --accent-foreground: #FFFFFF;
+  --destructive: #D4183D;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(191, 99, 130, 0.15);
+  /* Was `transparent` — every other bordered surface (Card, list rows) uses
+     --border at rest, so a fully invisible input border read as broken,
+     not intentional. Matches --border so inputs join the same visual
+     language instead of floating with no boundary at all. */
+  --input: rgba(191, 99, 130, 0.15);
+  --input-background: #F0E8EC;
+  --switch-background: #D4B8C4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --ring: #5A27FF;
+  --chart-1: #5A27FF;
+  --chart-2: #BF6382;
+  --chart-3: #8B6B78;
+  --chart-4: #EBE0E3;
+  --chart-5: #1A0F14;
+  --radius: 0.75rem;
+  --sidebar: #FDFAFC;
+  --sidebar-foreground: #1A0F14;
+  --sidebar-primary: #5A27FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0E8EC;
+  --sidebar-accent-foreground: #1A0F14;
+  --sidebar-border: rgba(191, 99, 130, 0.15);
+  --sidebar-ring: #5A27FF;
+}
+
+.dark {
+  --background: #0F0A0D;
+  --foreground: #F5EFF2;
+  --card: #1A1015;
+  --card-foreground: #F5EFF2;
+  --popover: #1A1015;
+  --popover-foreground: #F5EFF2;
+  --primary: #7B52FF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2A1E23;
+  --secondary-foreground: #F5EFF2;
+  --muted: #221519;
+  --muted-foreground: #9B7B88;
+  --accent: #BF6382;
+  --accent-foreground: #FFFFFF;
+  --destructive: #D4183D;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(191, 99, 130, 0.2);
+  --input: rgba(191, 99, 130, 0.1);
+  --input-background: #221519;
+  --switch-background: #4A3040;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --ring: #7B52FF;
+  --chart-1: #7B52FF;
+  --chart-2: #BF6382;
+  --chart-3: #9B7B88;
+  --chart-4: #2A1E23;
+  --chart-5: #F5EFF2;
+  --sidebar: #1A1015;
+  --sidebar-foreground: #F5EFF2;
+  --sidebar-primary: #7B52FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2A1E23;
+  --sidebar-accent-foreground: #F5EFF2;
+  --sidebar-border: rgba(191, 99, 130, 0.2);
+  --sidebar-ring: #7B52FF;
+}
+
+@theme inline {
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Not applied via `font-serif` anywhere in this app today — kept in sync
+     with the sibling Design System project (this repo's source of truth for
+     tokens) rather than removed, and it doubles as the metric fallback for
+     --font-heading below while Cintarini loads. */
+  --font-serif: "Oi", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-heading: "Cintarini", "Oi", ui-serif, Georgia, serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-family: var(--font-heading);
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-family: var(--font-heading);
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.2;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+:root {
+  --nav-gradient: linear-gradient(90deg, #5A27FF, #C026D3, #FF2D78, #C026D3, #5A27FF);
+}
+
+/*
+ * Semantic z-index scale. Only --z-nav has a consumer today (BottomNav),
+ * but the gap between steps is deliberate — the next overlay component
+ * (a dropdown, a modal, a sheet) has a real precedent to slot into instead
+ * of guessing a number that happens to beat whatever's already on screen.
+ */
+:root {
+  --z-nav: 40;
+  --z-dropdown: 50;
+  --z-sticky: 60;
+  --z-modal-backdrop: 70;
+  --z-modal: 80;
+  --z-toast: 90;
+  --z-tooltip: 100;
+}
+
+/*
+ * PageHero tokens — the dark "hero card" header shown at the top of every
+ * page. Colors are drawn from tokens Zamane already owns rather than
+ * invented: the top-right glow is the dark-mode --primary violet (#7B52FF),
+ * the bottom-left glow is #FF2D78, the hot-pink stop already inside
+ * --nav-gradient — so the hero visually rhymes with the same animated
+ * gradient identity as the active bottom-nav tab/icon. Kept identical in
+ * both light and dark app themes (not duplicated under .dark): the whole
+ * effect depends on a dark surface for contrast, so it's treated as a
+ * fixed brand-colored "island" rather than a page-background-following
+ * surface.
+ */
+:root {
+  --hero-bg: radial-gradient(140% 120% at 15% -10%, #3A1470 0%, #1D0B38 55%, #120722 100%);
+  --hero-shadow: 0 20px 40px -12px rgba(90, 39, 255, 0.45);
+  --hero-glow-tr: radial-gradient(circle, rgba(123, 82, 255, 0.55) 0%, rgba(123, 82, 255, 0) 70%);
+  --hero-glow-bl: radial-gradient(circle, rgba(255, 45, 120, 0.35) 0%, rgba(255, 45, 120, 0) 70%);
+  --hero-dot-grid: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
+  --hero-glass: rgba(255, 255, 255, 0.06);
+  --hero-glass-border: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes nav-indicator-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* .bottom-nav-indicator (bottom-nav.css) is the only consumer of
+   nav-indicator-flow — its own prefers-reduced-motion override lives there
+   alongside it. */
