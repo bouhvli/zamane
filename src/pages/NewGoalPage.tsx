@@ -104,7 +104,7 @@ export default function NewGoalPage() {
                 aria-checked={goalType === "financial"}
                 onClick={() => form.setValue("goalType", "financial", { shouldValidate: true })}
                 className={cn(
-                  "flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  "flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium outline-none transition-[color,background-color,border-color,transform] active:scale-[0.98] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
                   goalType === "financial"
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:bg-muted",
@@ -118,7 +118,7 @@ export default function NewGoalPage() {
                 aria-checked={goalType === "general"}
                 onClick={() => form.setValue("goalType", "general", { shouldValidate: true })}
                 className={cn(
-                  "flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  "flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium outline-none transition-[color,background-color,border-color,transform] active:scale-[0.98] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
                   goalType === "general"
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border text-muted-foreground hover:bg-muted",

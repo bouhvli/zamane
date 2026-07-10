@@ -87,7 +87,7 @@ export function PageHero({ label, value, description, status, stats, actions, ic
                         key={action.label}
                         to={action.to}
                         className={cn(
-                          "page-hero-action flex-1 rounded-lg py-3 text-center text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-white/50",
+                          "page-hero-action flex-1 rounded-lg py-3 text-center text-sm font-semibold outline-none active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-white/50",
                           `page-hero-action-${action.variant ?? "primary"}`,
                         )}
                       >
@@ -99,7 +99,7 @@ export function PageHero({ label, value, description, status, stats, actions, ic
                         type="button"
                         onClick={action.onClick}
                         className={cn(
-                          "page-hero-action flex-1 rounded-lg py-3 text-sm font-semibold outline-none focus-visible:ring-[3px] focus-visible:ring-white/50",
+                          "page-hero-action flex-1 rounded-lg py-3 text-sm font-semibold outline-none active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-white/50",
                           `page-hero-action-${action.variant ?? "primary"}`,
                         )}
                       >

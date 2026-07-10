@@ -15,7 +15,7 @@ export function GoalCard({ goal }: { goal: Goal }) {
   return (
     <Link
       to={`/goals/${goal.id}`}
-      className="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
+      className="block rounded-lg border border-border bg-card p-4 transition-[color,background-color,border-color,transform] active:scale-[0.98] hover:border-primary/40"
     >
       <div className="mb-2 flex items-start justify-between gap-3">
         <h3 className="line-clamp-2 min-w-0 text-balance font-heading text-lg leading-snug text-foreground">{goal.title}</h3>
