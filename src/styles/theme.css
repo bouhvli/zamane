@@ -19,6 +19,12 @@
   --muted-foreground: #7A5566;
   --accent: #BF6382;
   --accent-foreground: #FFFFFF;
+  /* --accent itself only reaches ~3.4:1 as small text on a light card —
+     even against a pure white card it tops out at ~3.8:1, short of AA's
+     4.5:1 — because the hue is too light at any tint. Same rationale as
+     --muted-foreground above: a darkened, same-hue shade purely for text
+     read at small sizes over light surfaces (e.g. the "Financial" badge). */
+  --accent-strong: #8A3F58;
   --destructive: #D4183D;
   --destructive-foreground: #FFFFFF;
   --border: rgba(191, 99, 130, 0.15);
@@ -64,6 +70,9 @@
   --muted-foreground: #9B7B88;
   --accent: #BF6382;
   --accent-foreground: #FFFFFF;
+  /* Unlike light mode, plain --accent already clears 4.5:1 against the
+     near-black dark card, so there's nothing to darken further here. */
+  --accent-strong: #BF6382;
   --destructive: #D4183D;
   --destructive-foreground: #FFFFFF;
   --border: rgba(191, 99, 130, 0.2);
@@ -92,12 +101,21 @@
 @theme inline {
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   /* Not applied via `font-serif` anywhere in this app today — kept in sync
-     with the sibling Design System project (this repo's source of truth for
-     tokens) rather than removed, and it doubles as the metric fallback for
-     --font-heading below while Cintarini loads. */
-  --font-serif: "Oi", ui-serif, Georgia, serif;
+     with the sibling Design System project's token (this repo's source of
+     truth for tokens) rather than removed. Same family as --font-heading
+     below. */
+  --font-serif: "Fraunces", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-heading: "Cintarini", "Oi", ui-serif, Georgia, serif;
+  /* Fraunces — a soft, variable serif with SOFT/WONK/opsz axes tuned in
+     the `.font-display` rule below for exactly this job: a large, one-off
+     "signature" moment, not dense UI. Replaces Oi (a heavy, condensed
+     display face that read loud rather than calm) and the earlier
+     Transcity/Cintarini attempts. Applied ONLY via the opt-in `.font-display`
+     class at one-per-page moments — the PageHero greeting (Home), auth-screen
+     titles, and the error headline — never repeated UI chrome. Card titles
+     and section labels (e.g. "Account", "Contribute") use --font-sans at a
+     heavier weight instead; headings no longer default to this face. */
+  --font-heading: "Fraunces", ui-serif, Georgia, serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -112,6 +130,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-strong: var(--accent-strong);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -151,22 +170,37 @@
     font-size: var(--font-size);
   }
 
-  h1 {
+  /* The display serif (Fraunces) is opt-in via `.font-display`, NOT applied
+     to every heading. Headings default to the UI sans (inherited from body);
+     Fraunces is reserved for one-per-page signature moments — the Home hero
+     greeting, auth-screen titles, the error headline — never repeated UI
+     chrome like card titles or section labels. Applying it to every h1-h3
+     turned a signature into wallpaper and forced every section h2 to opt out
+     with `font-sans`. */
+  .font-display {
     font-family: var(--font-heading);
+    font-optical-sizing: auto;
+    /* Fraunces ships a SOFT axis (0-100) built for exactly this brief —
+       a calm, warm, personal signature moment — instead of the sharper,
+       more traditional serif cut it defaults to at SOFT 0. WONK 0 keeps
+       the quirkier alternate letterforms off; a couples' finance app
+       wants warm, not novelty. */
+    font-variation-settings: "SOFT" 60, "WONK" 0;
+  }
+
+  h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-semibold);
     line-height: 1.15;
   }
 
   h2 {
-    font-family: var(--font-heading);
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
     line-height: 1.2;
   }
 
   h3 {
-    font-family: var(--font-heading);
     font-size: var(--text-lg);
     font-weight: var(--font-weight-medium);
     line-height: 1.2;
@@ -198,11 +232,10 @@
 }
 
 :root {
-  --nav-gradient: linear-gradient(90deg, #5A27FF, #C026D3, #FF2D78, #C026D3, #5A27FF);
   /* The active bottom-nav label's color — plain --primary at small bold
-     sizes only clears 4.5:1 in light mode; dark mode reuses the lighter
-     violet already established for small text on dark surfaces in
-     page-hero.css's --page-hero-pill-primary (10:1+, comfortably AA). */
+     sizes only clears 4.5:1 in light mode; dark mode (below) reuses a
+     lighter violet (#C9B3FF) for small text on dark surfaces (10:1+,
+     comfortably AA). */
   --nav-active-foreground: var(--primary);
   --nav-pill-bg: rgba(90, 39, 255, 0.08);
 }
@@ -232,17 +265,29 @@
  * PageHero tokens — the dark "hero card" header shown at the top of every
  * page. Colors are drawn from tokens Zamane already owns rather than
  * invented: the top-right glow is the dark-mode --primary violet (#7B52FF),
- * the bottom-left glow is #FF2D78, the hot-pink stop already inside
- * --nav-gradient — so the hero visually rhymes with the same animated
- * gradient identity as the active bottom-nav tab/icon. Kept identical in
+ * the bottom-left glow is #FF2D78, a hot-pink accent used only on this Home
+ * hero — the app's one drenched brand moment — so everything else stays on a
+ * single pink family (the dusty rose --accent). Kept identical in
  * both light and dark app themes (not duplicated under .dark): the whole
  * effect depends on a dark surface for contrast, so it's treated as a
  * fixed brand-colored "island" rather than a page-background-following
  * surface.
+ *
+ * --hero-bg layers a faint top sheen (a glass-like highlight, not a new
+ * color) over a deepened version of the original radial — an added near-
+ * black fourth stop pushes the edges darker for more contrast/depth
+ * ("luxurious") without touching the violet the brand is built on.
+ * --hero-shadow gained a second, pink-tinted pass using the same #FF2D78
+ * already established above, so the card's cast shadow reads as part of
+ * the same two-color brand identity rather than a flat single-hue glow.
  */
 :root {
-  --hero-bg: radial-gradient(140% 120% at 15% -10%, #3A1470 0%, #1D0B38 55%, #120722 100%);
-  --hero-shadow: 0 20px 40px -12px rgba(90, 39, 255, 0.45);
+  --hero-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 20%),
+    radial-gradient(150% 130% at 15% -10%, #4A1F8C 0%, #2B1154 42%, #180B30 75%, #0B0416 100%);
+  --hero-shadow:
+    0 28px 56px -16px rgba(42, 12, 94, 0.55),
+    0 10px 22px -6px rgba(255, 45, 120, 0.16);
   --hero-glow-tr: radial-gradient(circle, rgba(123, 82, 255, 0.55) 0%, rgba(123, 82, 255, 0) 70%);
   --hero-glow-bl: radial-gradient(circle, rgba(255, 45, 120, 0.35) 0%, rgba(255, 45, 120, 0) 70%);
   --hero-dot-grid: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
@@ -250,11 +295,22 @@
   --hero-glass-border: rgba(255, 255, 255, 0.12);
 }
 
-@keyframes nav-indicator-flow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+/*
+ * Global reduced-motion safety net. Individual components also carry
+ * `motion-reduce:` variants where a bespoke alternative matters (e.g. the
+ * status pill and progress bar), but this collapses every remaining
+ * animation and transition — spinners, the flicker loader's CSS, the FAB
+ * and button press scales — to effectively instant for users who ask the OS
+ * for less motion. Kept outside @layer so the !important overrides win.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-/* .bottom-nav-indicator (bottom-nav.css) is the only consumer of
-   nav-indicator-flow — its own prefers-reduced-motion override lives there
-   alongside it. */

@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
           </p>
           {result.resetLinkDevOnly && (
             <div className="w-full border-t border-dashed border-accent/40 pt-3 text-left">
-              <p className="text-xs font-medium uppercase tracking-wider text-accent">Dev only — no email vendor configured</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-accent-strong">Dev only — no email vendor configured</p>
               <Link
                 to={result.resetLinkDevOnly.replace(window.location.origin, "")}
                 className="mt-1 block truncate rounded-sm text-xs text-primary outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"

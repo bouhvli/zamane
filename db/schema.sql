@@ -114,3 +114,58 @@ create table if not exists goal_contributions (
 create index if not exists goal_contributions_goal_id_idx on goal_contributions (goal_id);
 create index if not exists goal_contributions_user_id_idx on goal_contributions (user_id);
 create index if not exists goal_contributions_created_at_idx on goal_contributions (created_at);
+
+-- Trips belong to a group, same rationale as goals above. The itinerary is
+-- a flat append-only list of dated/undated entries rather than a nested
+-- day structure — grouping by item_date happens in the app layer, which
+-- keeps this table simple and lets an entry be undated (e.g. "book hotel").
+create table if not exists trips (
+  id            uuid primary key default gen_random_uuid(),
+  title         text not null,
+  destination   text,
+  start_date    date,
+  end_date      date,
+  budget        numeric(12,2),
+  notes         text,
+  created_by    uuid not null references users(id) on delete cascade,
+  group_id      uuid not null references groups(id) on delete cascade,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists trips_group_id_idx on trips (group_id);
+create index if not exists trips_start_date_idx on trips (start_date);
+
+create table if not exists trip_itinerary_items (
+  id            uuid primary key default gen_random_uuid(),
+  trip_id       uuid not null references trips(id) on delete cascade,
+  title         text not null,
+  item_date     date,
+  item_time     time,
+  location      text,
+  notes         text,
+  created_by    uuid not null references users(id) on delete cascade,
+  created_at    timestamptz not null default now()
+);
+
+create index if not exists trip_itinerary_items_trip_id_idx on trip_itinerary_items (trip_id);
+
+-- One shared shopping list per group (not per user, not multiple named
+-- lists) — mirrors the "a couple is one shared space" model used by goals
+-- and trips.
+create table if not exists shopping_items (
+  id            uuid primary key default gen_random_uuid(),
+  group_id      uuid not null references groups(id) on delete cascade,
+  name          text not null,
+  quantity      integer not null default 1 check (quantity > 0),
+  category      text,
+  price         numeric(12,2),
+  notes         text,
+  is_checked    boolean not null default false,
+  created_by    uuid not null references users(id) on delete cascade,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists shopping_items_group_id_idx on shopping_items (group_id);
+create index if not exists shopping_items_is_checked_idx on shopping_items (is_checked);

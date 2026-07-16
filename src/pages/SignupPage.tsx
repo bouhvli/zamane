@@ -37,7 +37,7 @@ export default function SignupPage() {
   return (
     <AuthLayout
       title="Create your account"
-      description="Shared trips, finances, and goals — just for the two of you."
+      description="Shared trips, shopping, and goals — just for the two of you."
       footer={
         <>
           Already have an account?{" "}

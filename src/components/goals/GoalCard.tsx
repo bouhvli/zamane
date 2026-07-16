@@ -17,15 +17,15 @@ export function GoalCard({ goal }: { goal: Goal }) {
       to={`/goals/${goal.id}`}
       className="block rounded-lg border border-border bg-card p-4 transition-[color,background-color,border-color,transform] active:scale-[0.98] hover:border-primary/40"
     >
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <h3 className="line-clamp-2 min-w-0 text-balance font-heading text-lg leading-snug text-foreground">{goal.title}</h3>
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <h3 className="line-clamp-2 min-w-0 text-balance text-lg font-semibold leading-snug text-foreground">{goal.title}</h3>
         <span
           className={
             "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wider " +
             (goal.isCompleted
               ? "bg-primary/10 text-primary"
               : isFinancial
-                ? "bg-accent/10 text-accent"
+                ? "bg-accent/10 text-accent-strong"
                 : "bg-muted text-muted-foreground")
           }
         >
@@ -33,7 +33,7 @@ export function GoalCard({ goal }: { goal: Goal }) {
         </span>
       </div>
 
-      <ProgressBar percent={percent} className="mb-2" />
+      <ProgressBar percent={percent} className="mb-2" label={goal.title} />
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>

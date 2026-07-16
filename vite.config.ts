@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: 'Zamane',
         short_name: 'Zamane',
-        description: 'Shared trips, finances, and goals for you and your partner.',
+        description: 'Shared trips, shopping, and goals for you and your partner.',
         theme_color: '#5A27FF',
         background_color: '#F5EFF2',
         display: 'standalone',

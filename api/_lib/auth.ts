@@ -126,3 +126,11 @@ export async function deleteSessionFromRequest(req: VercelRequest): Promise<void
 export async function deleteAllSessionsForUser(userId: string): Promise<void> {
   await sql`delete from sessions where user_id = ${userId}`;
 }
+
+// Used after an in-session password change: signs out every other device
+// without also killing the session making the request, unlike
+// deleteAllSessionsForUser (right for the "forgot password" recovery flow,
+// where the requester isn't necessarily on a device they trust).
+export async function deleteOtherSessionsForUser(userId: string, exceptTokenHash: string): Promise<void> {
+  await sql`delete from sessions where user_id = ${userId} and token_hash != ${exceptTokenHash}`;
+}

@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import type { CreateGoalRequest, ContributeRequest } from "@shared/validation";
+import type { CreateGoalRequest, UpdateGoalRequest, ContributeRequest } from "@shared/validation";
 
 export type GoalType = "financial" | "general";
 
@@ -51,9 +51,21 @@ export function createGoal(data: CreateGoalRequest) {
   return apiFetch<{ goal: Goal }>("/api/goals/create", { method: "POST", body: data });
 }
 
+export function updateGoal(data: UpdateGoalRequest) {
+  return apiFetch<{ ok: true }>("/api/goals/update", { method: "POST", body: data });
+}
+
+export function deleteGoal(id: string) {
+  return apiFetch<{ ok: true }>("/api/goals/delete", { method: "POST", body: { id } });
+}
+
 export function contributeToGoal(data: ContributeRequest) {
   return apiFetch<{ goal: Goal; contribution: Contribution }>("/api/goals/contribute", {
     method: "POST",
     body: data,
   });
+}
+
+export function deleteContribution(id: string) {
+  return apiFetch<{ ok: true }>("/api/goals/contribution-delete", { method: "POST", body: { id } });
 }

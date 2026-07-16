@@ -1,8 +1,11 @@
 import { useLoaderData } from "react-router";
+import { Target } from "lucide-react";
 
 import type { Goal, GoalsSummary } from "@/lib/goals-api";
 import { formatAmount } from "@/lib/format";
-import { PageHero } from "@/components/layout/PageHero";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Fab } from "@/components/layout/Fab";
+import { EmptyState } from "@/components/layout/EmptyState";
 import { GoalCard } from "@/components/goals/GoalCard";
 
 export default function GoalsPage() {
@@ -10,31 +13,34 @@ export default function GoalsPage() {
 
   return (
     <div>
-      <PageHero
-        label="GOALS"
-        value={`${summary.activeCount} active`}
+      <PageHeader
+        title="Goals"
         description={
           summary.activeCount === 0
             ? "No active goals yet — start one together."
             : "Keep going, you're making progress."
         }
         stats={[
-          { label: "Active", value: String(summary.activeCount) },
-          { label: "Saved this month", value: formatAmount(summary.totalSavedThisMonth) },
-          { label: "Completed", value: String(summary.completedCount) },
+          { label: "active", value: String(summary.activeCount) },
+          { label: "saved this month", value: formatAmount(summary.totalSavedThisMonth) },
+          { label: "completed", value: String(summary.completedCount) },
         ]}
-        actions={[{ label: "New goal", to: "/goals/new" }]}
       />
 
       <div className="mx-auto max-w-md space-y-3 px-4 pb-12">
         {goals.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-            No goals yet — create the first one.
-          </div>
+          <EmptyState
+            icon={Target}
+            title="No goals yet"
+            description="Start saving toward something together."
+            action={{ to: "/goals/new", label: "Create a goal" }}
+          />
         ) : (
           goals.map((goal) => <GoalCard key={goal.id} goal={goal} />)
         )}
       </div>
+
+      <Fab to="/goals/new" label="New goal" />
     </div>
   );
 }

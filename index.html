@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Shared trips, finances, and goals for you and your partner, in one calm, mobile-first app." />
+    <meta name="description" content="Shared trips, shopping, and goals for you and your partner, in one calm, mobile-first app." />
     <meta name="theme-color" content="#5A27FF" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0F0A0D" media="(prefers-color-scheme: dark)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -14,17 +14,19 @@
     <title>Zamane</title>
 
     <!-- Discovered immediately during HTML parsing, unlike a CSS @import
-         (see src/styles/fonts.css) — connection setup for Google Fonts
-         starts before any stylesheet has even downloaded. -->
+         — connection setup for Google Fonts starts before any stylesheet
+         has even downloaded. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fraunces is the one display font (--font-heading, see theme.css),
+         used sparingly for the per-page hero greeting (PageHero), auth
+         titles, and card titles — not for dense/repeated UI chrome like
+         section labels, which use Geist. opsz/wght ranges cover the
+         optical-sizing + weight variants theme.css pulls from it. -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Oi&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
     />
-    <!-- Self-hosted display font used by every page's h1-h3 (see PageHero) —
-         preloaded so it doesn't compete with the Google Fonts request above. -->
-    <link rel="preload" href="/fonts/Cintarini.ttf" as="font" type="font/ttf" crossorigin />
   </head>
   <body>
     <div id="root"></div>

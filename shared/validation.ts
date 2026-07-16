@@ -147,6 +147,33 @@ export const goalIdQuerySchema = z.object({
 });
 export type GoalIdQuery = z.infer<typeof goalIdQuerySchema>;
 
+export const contributionIdSchema = z.object({
+  id: z.string().uuid("Invalid contribution id"),
+});
+export type ContributionIdQuery = z.infer<typeof contributionIdSchema>;
+
+// Editing never changes a goal's type (financial ↔ general would invalidate
+// its contribution history), so goalType is carried only to re-validate the
+// mutable fields; the server rejects a type that doesn't match the stored row.
+export const updateGoalRequestSchema = z.discriminatedUnion("goalType", [
+  z.object({
+    goalType: z.literal("financial"),
+    id: z.string().uuid("Invalid goal id"),
+    title: goalTitleSchema,
+    description: goalDescriptionSchema,
+    targetAmount: moneyAmountSchema,
+    targetDate: goalTargetDateSchema,
+  }),
+  z.object({
+    goalType: z.literal("general"),
+    id: z.string().uuid("Invalid goal id"),
+    title: goalTitleSchema,
+    description: goalDescriptionSchema,
+    targetDate: goalTargetDateSchema,
+  }),
+]);
+export type UpdateGoalRequest = z.infer<typeof updateGoalRequestSchema>;
+
 export const contributeRequestSchema = z.discriminatedUnion("goalType", [
   z.object({
     goalType: z.literal("financial"),
@@ -162,3 +189,178 @@ export const contributeRequestSchema = z.discriminatedUnion("goalType", [
   }),
 ]);
 export type ContributeRequest = z.infer<typeof contributeRequestSchema>;
+
+// ---- Trips ----
+// A trip belongs to a group, same sharing model as goals. Its itinerary is
+// a flat, optionally-dated list of entries (not a nested day structure) —
+// grouping by date happens client-side.
+
+const tripTitleSchema = z.string().trim().min(1, "Title is required").max(120);
+const tripDestinationSchema = z
+  .string()
+  .trim()
+  .max(160)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const tripDateSchema = z
+  .string()
+  .date("Enter a valid date")
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const tripBudgetSchema = z.coerce
+  .number()
+  .positive("Budget must be greater than 0")
+  .max(MAX_MONEY_AMOUNT, "Amount is too large")
+  .optional();
+const tripNotesSchema = z
+  .string()
+  .trim()
+  .max(2000)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+export const createTripRequestSchema = z
+  .object({
+    title: tripTitleSchema,
+    destination: tripDestinationSchema,
+    startDate: tripDateSchema,
+    endDate: tripDateSchema,
+    budget: tripBudgetSchema,
+    notes: tripNotesSchema,
+  })
+  .refine((data) => !data.startDate || !data.endDate || data.endDate >= data.startDate, {
+    message: "End date must be on or after the start date",
+    path: ["endDate"],
+  });
+export type CreateTripRequest = z.infer<typeof createTripRequestSchema>;
+
+export const updateTripRequestSchema = z
+  .object({
+    id: z.string().uuid("Invalid trip id"),
+    title: tripTitleSchema,
+    destination: tripDestinationSchema,
+    startDate: tripDateSchema,
+    endDate: tripDateSchema,
+    budget: tripBudgetSchema,
+    notes: tripNotesSchema,
+  })
+  .refine((data) => !data.startDate || !data.endDate || data.endDate >= data.startDate, {
+    message: "End date must be on or after the start date",
+    path: ["endDate"],
+  });
+export type UpdateTripRequest = z.infer<typeof updateTripRequestSchema>;
+
+export const tripIdQuerySchema = z.object({
+  id: z.string().uuid("Invalid trip id"),
+});
+export type TripIdQuery = z.infer<typeof tripIdQuerySchema>;
+
+const itineraryTitleSchema = z.string().trim().min(1, "Title is required").max(120);
+const itineraryLocationSchema = z
+  .string()
+  .trim()
+  .max(160)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const itineraryNotesSchema = z
+  .string()
+  .trim()
+  .max(1000)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const itineraryDateSchema = z
+  .string()
+  .date("Enter a valid date")
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const itineraryTimeSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Enter a valid time")
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+export const createItineraryItemRequestSchema = z.object({
+  tripId: z.string().uuid(),
+  title: itineraryTitleSchema,
+  itemDate: itineraryDateSchema,
+  itemTime: itineraryTimeSchema,
+  location: itineraryLocationSchema,
+  notes: itineraryNotesSchema,
+});
+export type CreateItineraryItemRequest = z.infer<typeof createItineraryItemRequestSchema>;
+
+export const itineraryItemIdSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+});
+export type ItineraryItemIdQuery = z.infer<typeof itineraryItemIdSchema>;
+
+// ---- Shopping ----
+// A single shared list per group, not per-user and not multiple named
+// lists — same "one shared space" model as goals and trips.
+
+const shoppingItemNameSchema = z.string().trim().min(1, "Name is required").max(120);
+const shoppingItemCategorySchema = z
+  .string()
+  .trim()
+  .max(60)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const shoppingItemNotesSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const shoppingItemQuantitySchema = z.coerce
+  .number()
+  .int()
+  .min(1, "Quantity must be at least 1")
+  .max(9999, "Quantity is too large");
+const shoppingItemPriceSchema = z.coerce
+  .number()
+  .nonnegative("Price can't be negative")
+  .max(MAX_MONEY_AMOUNT, "Amount is too large")
+  .optional();
+
+export const createShoppingItemRequestSchema = z.object({
+  name: shoppingItemNameSchema,
+  quantity: shoppingItemQuantitySchema,
+  category: shoppingItemCategorySchema,
+  price: shoppingItemPriceSchema,
+  notes: shoppingItemNotesSchema,
+});
+export type CreateShoppingItemRequest = z.infer<typeof createShoppingItemRequestSchema>;
+
+export const shoppingItemIdSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+});
+export type ShoppingItemIdQuery = z.infer<typeof shoppingItemIdSchema>;
+
+export const toggleShoppingItemRequestSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+  isChecked: z.boolean(),
+});
+export type ToggleShoppingItemRequest = z.infer<typeof toggleShoppingItemRequestSchema>;
+
+// ---- Profile ----
+
+export const updateProfileRequestSchema = z.object({
+  displayName: displayNameSchema,
+});
+export type UpdateProfileRequest = z.infer<typeof updateProfileRequestSchema>;
+
+export const changePasswordRequestSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: passwordSchema,
+});
+export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
+
+export const changePasswordFormSchema = changePasswordRequestSchema
+  .extend({
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;

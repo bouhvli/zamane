@@ -7,9 +7,9 @@ import { cn } from "@/components/ui/utils";
 // URIs silently fail as a CSS mask-image source, while real URLs work.
 import homeIcon from "@/assets/icons/home.svg?url";
 import tripsIcon from "@/assets/icons/trips.svg?url";
-import financeIcon from "@/assets/icons/finance.svg?url";
 import shoppingIcon from "@/assets/icons/shopping.svg?url";
 import goalsIcon from "@/assets/icons/goals.svg?url";
+import profileIcon from "@/assets/icons/profile.svg?url";
 
 type BottomNavTab = {
   id: string;
@@ -21,60 +21,56 @@ type BottomNavTab = {
 export const DEFAULT_BOTTOM_NAV_TABS: BottomNavTab[] = [
   { id: "home", label: "Home", href: "/home", icon: homeIcon },
   { id: "trips", label: "Trips", href: "/trips", icon: tripsIcon },
-  { id: "finance", label: "Finance", href: "/finance", icon: financeIcon },
   { id: "shopping", label: "Shopping", href: "/shopping", icon: shoppingIcon },
   { id: "goals", label: "Goals", href: "/goals", icon: goalsIcon },
+  { id: "profile", label: "Profile", href: "/profile", icon: profileIcon },
 ];
 
 export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNavTab[] }) {
   const { pathname } = useLocation();
 
   return (
-    <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex justify-center">
-      <div className="bottom-nav pb-safe-bottom pointer-events-auto flex w-full max-w-md bg-card/95 backdrop-blur-sm">
-      {tabs.map((tab) => {
-        const isActive = pathname === tab.href;
+    <nav className="bottom-nav pb-safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex justify-center bg-card/95 backdrop-blur-sm">
+      <div className="flex w-full max-w-md">
+        {tabs.map((tab) => {
+          // Match nested routes too, so /goals/123 and /goals/123/edit keep the
+          // Goals tab lit — exact-match left detail pages with no active tab.
+          const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 
-        return (
-          <Link
-            key={tab.id}
-            to={tab.href}
-            className={cn(
-              "bottom-nav-link relative flex flex-1 flex-col items-center justify-center gap-0.5 py-2 outline-none transition-colors active:opacity-60 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset",
-              isActive ? "text-[var(--nav-active-foreground)]" : "text-muted-foreground",
-            )}
-          >
-            <span
+          return (
+            <Link
+              key={tab.id}
+              to={tab.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "bottom-nav-indicator pointer-events-none absolute inset-x-4 -top-px h-[3px] rounded-full transition-opacity duration-300",
-                isActive ? "opacity-100" : "opacity-0",
+                "relative flex flex-1 flex-col items-center gap-1 py-2.5 outline-none transition-colors duration-150 active:opacity-70 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset",
+                isActive ? "text-[var(--nav-active-foreground)]" : "text-muted-foreground",
               )}
-            />
-            {/* The selected tab's whole icon+label group sits on a soft
-                brand-tinted pill — ties the moving gradient icon and the
-                (now on-brand, not plain-black) label into one cohesive
-                "selected" shape instead of two disconnected signals. */}
-            <span className="relative flex flex-col items-center gap-0.5">
+            >
+              {/* One flat top-edge bar marks the active tab — a plain
+                  200ms fade tied to the route change, not a perpetual
+                  animation. */}
               <span
                 aria-hidden="true"
                 className={cn(
-                  "bottom-nav-pill pointer-events-none absolute -inset-x-3 -inset-y-1.5 -z-10 rounded-2xl transition-[opacity,transform] duration-200 ease-out",
-                  isActive ? "scale-100 opacity-100" : "scale-90 opacity-0",
+                  "bottom-nav-indicator pointer-events-none absolute inset-x-0 top-0 h-0.5 transition-opacity duration-200 ease-out",
+                  isActive ? "opacity-100" : "opacity-0",
                 )}
               />
               <span
-                role="img"
-                aria-label={tab.label}
-                className={cn("doodle-icon", isActive && "is-active")}
-                style={{ "--icon-mask": `url(${tab.icon})` } as CSSProperties}
+                aria-hidden="true"
+                className={cn(
+                  "bottom-nav-active-bg pointer-events-none absolute inset-x-1.5 inset-y-1 -z-10 transition-opacity duration-200 ease-out",
+                  isActive ? "opacity-100" : "opacity-0",
+                )}
               />
-              <span className={cn("text-xs transition-[color,font-weight]", isActive ? "font-semibold" : "font-medium")}>
+              <span aria-hidden="true" className="doodle-icon" style={{ "--icon-mask": `url(${tab.icon})` } as CSSProperties} />
+              <span className={cn("text-[11px] leading-none transition-[font-weight] duration-150", isActive && "font-semibold")}>
                 {tab.label}
               </span>
-            </span>
-          </Link>
-        );
-      })}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

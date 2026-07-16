@@ -162,7 +162,7 @@ export default function OnboardingGroupPage() {
           onClick={() => setMode("create")}
           className="rounded-lg border border-border bg-card p-4 text-left outline-none transition-[color,background-color,border-color,transform] active:scale-[0.98] hover:border-primary/40 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
-          <p className="font-heading text-lg text-foreground">Create a group</p>
+          <p className="font-sans text-lg font-semibold text-foreground">Create a group</p>
           <p className="mt-1 text-sm text-muted-foreground">Start fresh and invite your partner with a code.</p>
         </button>
         <button
@@ -170,7 +170,7 @@ export default function OnboardingGroupPage() {
           onClick={() => setMode("join")}
           className="rounded-lg border border-border bg-card p-4 text-left outline-none transition-[color,background-color,border-color,transform] active:scale-[0.98] hover:border-primary/40 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
-          <p className="font-heading text-lg text-foreground">Join a group</p>
+          <p className="font-sans text-lg font-semibold text-foreground">Join a group</p>
           <p className="mt-1 text-sm text-muted-foreground">Already got a code from your partner? Enter it here.</p>
         </button>
       </div>
