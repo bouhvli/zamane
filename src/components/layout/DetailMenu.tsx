@@ -17,7 +17,17 @@ export type DetailMenuItem = {
 // Escape and outside-click close, and focus returns to the trigger on close
 // so keyboard users are never stranded. Rendered inside the page header, which
 // is not overflow-clipped, so the absolutely-positioned panel escapes cleanly.
-export function DetailMenu({ items, label = "More actions" }: { items: DetailMenuItem[]; label?: string }) {
+export function DetailMenu({
+  items,
+  label = "More actions",
+  triggerClassName,
+}: {
+  items: DetailMenuItem[];
+  label?: string;
+  /** Override the trigger's look — e.g. a frosted-glass variant when the menu
+   *  sits over a photo hero rather than a light header. */
+  triggerClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -96,7 +106,10 @@ export function DetailMenu({ items, label = "More actions" }: { items: DetailMen
         aria-label={label}
         onClick={() => setOpen((value) => !value)}
         onKeyDown={onTriggerKeyDown}
-        className="flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className={cn(
+          "flex size-9 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50",
+          triggerClassName,
+        )}
       >
         <MoreVertical className="size-5" />
       </button>

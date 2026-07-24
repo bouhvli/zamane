@@ -11,6 +11,10 @@ export type Trip = {
   endDate: string | null;
   budget: string | null;
   notes: string | null;
+  /** Public URL of the trip's cover photo (e.g. from Vercel Blob). Optional
+   *  until the upload flow + `cover_image_url` column land; the card falls
+   *  back to a branded gradient cover when it's absent. */
+  coverImageUrl?: string | null;
   itineraryCount: number;
   createdBy?: string;
   createdByName?: string | null;

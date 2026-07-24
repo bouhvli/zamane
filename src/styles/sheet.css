@@ -1,0 +1,55 @@
+/*
+ * Bottom-sheet dialog — a native <dialog> (focus trap + Escape + backdrop for
+ * free, like ConfirmDialog) pinned to the bottom of the viewport and sliding
+ * up on open. showModal() flips the element from display:none to shown, which
+ * restarts the keyframes each time it opens; the global reduced-motion net in
+ * theme.css collapses the animation to instant for users who ask for it.
+ */
+.sheet-dialog {
+  /* Override the UA's centered modal placement: pin to the bottom, centered
+     horizontally, capped at the app's phone column width. */
+  margin: auto auto 0;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 92dvh;
+  border: 0;
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 -12px 40px -12px rgba(12, 30, 21, 0.35);
+}
+
+.sheet-dialog[open] {
+  animation: sheet-slide-up 280ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.sheet-dialog::backdrop {
+  background: rgba(8, 20, 14, 0.5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.sheet-dialog[open]::backdrop {
+  animation: sheet-backdrop-in 280ms ease;
+}
+
+@keyframes sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

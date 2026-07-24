@@ -1,13 +1,14 @@
-.bottom-nav {
-  border-top: 1px solid var(--border);
+/* The floating pill: a fixed dark-forest-green island (see --nav-* in
+   theme.css), the same in light and dark themes. A faint blur lets whatever
+   scrolls beneath it read through the edges without muddying the green. */
+.bottom-nav-pill {
+  background: var(--nav-bg);
+  box-shadow: var(--nav-shadow);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
-/* Sharp-cornered by design, not an oversight — the tab bar reads as one
-   flat structural strip, not a floating rounded card. */
-.bottom-nav-indicator {
-  background-color: var(--nav-active-foreground);
-}
-
+/* Soft lime-tinted highlight behind the active tab. */
 .bottom-nav-active-bg {
   background: var(--nav-pill-bg);
 }
@@ -16,16 +17,19 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Clears the floating pill: its bottom offset (0.75rem + safe area) plus the
+   pill's own height, with breathing room so the last row never hides behind
+   it. */
 .pb-bottom-nav {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
 
 /*
  * The doodle icon set is solid-fill artwork (not stroke-based like
  * lucide), so it can't be recolored via `stroke`. Instead each icon is
  * used as a CSS mask over `currentColor` — active vs inactive state comes
- * entirely from the parent Link's text color utility (text-muted-foreground
- * vs text-[--nav-active-foreground]), so there's no separate active variant
+ * entirely from the parent Link's text color (--nav-fg-active lime vs
+ * --nav-fg-inactive translucent white), so there's no separate active variant
  * to keep in sync here.
  */
 .doodle-icon {

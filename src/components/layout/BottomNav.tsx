@@ -30,8 +30,11 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
   const { pathname } = useLocation();
 
   return (
-    <nav className="bottom-nav pb-safe-bottom fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex justify-center bg-card/95 backdrop-blur-sm">
-      <div className="flex w-full max-w-md">
+    // A floating rounded pill, inset from the screen edges and lifted above
+    // the safe area — the travel-app nav pattern. The outer wrapper is
+    // click-through; only the pill itself takes pointer events.
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <nav className="bottom-nav-pill pointer-events-auto flex w-full max-w-md items-stretch gap-1 rounded-full p-1.5">
         {tabs.map((tab) => {
           // Match nested routes too, so /goals/123 and /goals/123/edit keep the
           // Goals tab lit — exact-match left detail pages with no active tab.
@@ -43,24 +46,18 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
               to={tab.href}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "relative flex flex-1 flex-col items-center gap-1 py-2.5 outline-none transition-colors duration-150 active:opacity-70 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset",
-                isActive ? "text-[var(--nav-active-foreground)]" : "text-muted-foreground",
+                "relative flex flex-1 flex-col items-center justify-center gap-1 rounded-full py-2 outline-none transition-colors duration-150 active:scale-[0.96] focus-visible:ring-[3px] focus-visible:ring-[var(--nav-fg-active)]/60",
+                isActive
+                  ? "text-[var(--nav-fg-active)]"
+                  : "text-[var(--nav-fg-inactive)]",
               )}
             >
-              {/* One flat top-edge bar marks the active tab — a plain
-                  200ms fade tied to the route change, not a perpetual
-                  animation. */}
+              {/* Soft lime-tinted pill behind the active tab — a plain 200ms
+                  fade tied to the route change, not a perpetual animation. */}
               <span
                 aria-hidden="true"
                 className={cn(
-                  "bottom-nav-indicator pointer-events-none absolute inset-x-0 top-0 h-0.5 transition-opacity duration-200 ease-out",
-                  isActive ? "opacity-100" : "opacity-0",
-                )}
-              />
-              <span
-                aria-hidden="true"
-                className={cn(
-                  "bottom-nav-active-bg pointer-events-none absolute inset-x-1.5 inset-y-1 -z-10 transition-opacity duration-200 ease-out",
+                  "bottom-nav-active-bg pointer-events-none absolute inset-0 -z-10 rounded-full transition-opacity duration-200 ease-out",
                   isActive ? "opacity-100" : "opacity-0",
                 )}
               />
@@ -71,7 +68,7 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
             </Link>
           );
         })}
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

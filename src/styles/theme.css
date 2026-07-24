@@ -2,120 +2,128 @@
 
 :root {
   --font-size: 16px;
-  --background: #F5EFF2;
-  --foreground: #1A0F14;
-  --card: #FDFAFC;
-  --card-foreground: #1A0F14;
-  --popover: #FDFAFC;
-  --popover-foreground: #1A0F14;
-  --primary: #5A27FF;
+  /* Nature palette (from the travel-app design language): a pale sage-cream
+     canvas, deep-forest-green primary, and a bright lime "spark" accent.
+     Neutrals are tinted cool/green to match the accent temperature rather
+     than left pure grey (Refactoring UI). */
+  --background: #EEF2E9;
+  --foreground: #16241C;
+  --card: #FBFCF9;
+  --card-foreground: #16241C;
+  --popover: #FBFCF9;
+  --popover-foreground: #16241C;
+  /* Deep forest green — the "Hiking" pill / hero / nav colour. Very dark, so
+     it carries white text at ~9:1 and reads as forest text on light surfaces
+     at ~8:1 (text-primary chips, links). */
+  --primary: #1E4634;
   --primary-foreground: #FFFFFF;
-  --secondary: #EBE0E3;
-  --secondary-foreground: #1A0F14;
-  --muted: #F0E8EC;
-  /* Darkened from #8B6B78 (4.14:1 on --background, 3.9:1 on
-     --input-background — both fail WCAG AA's 4.5:1 for body/placeholder
-     text) to clear 4.5:1 against every surface it's read on, same hue. */
-  --muted-foreground: #7A5566;
-  --accent: #BF6382;
-  --accent-foreground: #FFFFFF;
-  /* --accent itself only reaches ~3.4:1 as small text on a light card —
-     even against a pure white card it tops out at ~3.8:1, short of AA's
-     4.5:1 — because the hue is too light at any tint. Same rationale as
-     --muted-foreground above: a darkened, same-hue shade purely for text
-     read at small sizes over light surfaces (e.g. the "Financial" badge). */
-  --accent-strong: #8A3F58;
-  --destructive: #D4183D;
+  --secondary: #DEE7D6;
+  --secondary-foreground: #1E4634;
+  --muted: #E4EBDC;
+  /* Medium green-grey for secondary/placeholder text; darkened to clear WCAG
+     AA's 4.5:1 against both --background and --muted, same green hue. */
+  --muted-foreground: #4C6753;
+  /* The lime spark. Used as a BACKGROUND with dark text (active states,
+     highlights, the hero progress fill) — never as small text on light, where
+     a light chartreuse can't reach 4.5:1. */
+  --accent: #C4E76B;
+  --accent-foreground: #16341F;
+  /* A darkened olive of the same lime family, for the rare case where accent
+     must render as small text on a light surface (e.g. an "accent"-tone
+     status pill). Clears ~9:1 on white. */
+  --accent-strong: #3C5A1C;
+  --destructive: #C43D2E;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(191, 99, 130, 0.15);
-  /* Was `transparent` — every other bordered surface (Card, list rows) uses
-     --border at rest, so a fully invisible input border read as broken,
-     not intentional. Matches --border so inputs join the same visual
-     language instead of floating with no boundary at all. */
-  --input: rgba(191, 99, 130, 0.15);
-  --input-background: #F0E8EC;
-  --switch-background: #D4B8C4;
+  --border: rgba(30, 70, 52, 0.14);
+  /* Matches --border so inputs join the same hairline language instead of
+     floating with no boundary (every other bordered surface uses --border
+     at rest). */
+  --input: rgba(30, 70, 52, 0.16);
+  --input-background: #E7EEDF;
+  --switch-background: #C3D2B8;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-  --ring: #5A27FF;
-  --chart-1: #5A27FF;
-  --chart-2: #BF6382;
-  --chart-3: #8B6B78;
-  --chart-4: #EBE0E3;
-  --chart-5: #1A0F14;
-  --radius: 0.75rem;
-  --sidebar: #FDFAFC;
-  --sidebar-foreground: #1A0F14;
-  --sidebar-primary: #5A27FF;
+  --ring: #1E4634;
+  --chart-1: #1E4634;
+  --chart-2: #6FA368;
+  --chart-3: #C4E76B;
+  --chart-4: #B7C9A8;
+  --chart-5: #16241C;
+  /* Large, soft rounding to match the travel-app cards (was 0.75rem). */
+  --radius: 1.25rem;
+  --sidebar: #FBFCF9;
+  --sidebar-foreground: #16241C;
+  --sidebar-primary: #1E4634;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F0E8EC;
-  --sidebar-accent-foreground: #1A0F14;
-  --sidebar-border: rgba(191, 99, 130, 0.15);
-  --sidebar-ring: #5A27FF;
+  --sidebar-accent: #E4EBDC;
+  --sidebar-accent-foreground: #16241C;
+  --sidebar-border: rgba(30, 70, 52, 0.14);
+  --sidebar-ring: #1E4634;
 }
 
 .dark {
-  --background: #0F0A0D;
-  --foreground: #F5EFF2;
-  --card: #1A1015;
-  --card-foreground: #F5EFF2;
-  --popover: #1A1015;
-  --popover-foreground: #F5EFF2;
-  --primary: #7B52FF;
-  --primary-foreground: #FFFFFF;
-  --secondary: #2A1E23;
-  --secondary-foreground: #F5EFF2;
-  --muted: #221519;
-  --muted-foreground: #9B7B88;
-  --accent: #BF6382;
-  --accent-foreground: #FFFFFF;
-  /* Unlike light mode, plain --accent already clears 4.5:1 against the
-     near-black dark card, so there's nothing to darken further here. */
-  --accent-strong: #BF6382;
-  --destructive: #D4183D;
+  --background: #0E1512;
+  --foreground: #EAF1E4;
+  --card: #14201A;
+  --card-foreground: #EAF1E4;
+  --popover: #14201A;
+  --popover-foreground: #EAF1E4;
+  /* Inverted from light mode: on dark, primary is a bright grass-green that
+     reads as text on the near-black surface (~5.5:1) AND carries dark text on
+     button fills (~10:1) — so --primary-foreground flips to near-black here,
+     the same dark-text-on-green pattern the lime accent uses. */
+  --primary: #6FBB86;
+  --primary-foreground: #0E1512;
+  --secondary: #23332A;
+  --secondary-foreground: #EAF1E4;
+  --muted: #1A2720;
+  --muted-foreground: #93AC9C;
+  --accent: #C4E76B;
+  --accent-foreground: #14261C;
+  /* On the near-black dark card the lime already clears 4.5:1 as small text,
+     so there's nothing to darken further here. */
+  --accent-strong: #C4E76B;
+  --destructive: #E06253;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(191, 99, 130, 0.2);
-  --input: rgba(191, 99, 130, 0.1);
-  --input-background: #221519;
-  --switch-background: #4A3040;
+  --border: rgba(150, 200, 130, 0.16);
+  --input: rgba(150, 200, 130, 0.1);
+  --input-background: #1A2720;
+  --switch-background: #3A4C40;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-  --ring: #7B52FF;
-  --chart-1: #7B52FF;
-  --chart-2: #BF6382;
-  --chart-3: #9B7B88;
-  --chart-4: #2A1E23;
-  --chart-5: #F5EFF2;
-  --sidebar: #1A1015;
-  --sidebar-foreground: #F5EFF2;
-  --sidebar-primary: #7B52FF;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #2A1E23;
-  --sidebar-accent-foreground: #F5EFF2;
-  --sidebar-border: rgba(191, 99, 130, 0.2);
-  --sidebar-ring: #7B52FF;
+  --ring: #6FBB86;
+  --chart-1: #6FBB86;
+  --chart-2: #4E9E6E;
+  --chart-3: #C4E76B;
+  --chart-4: #23332A;
+  --chart-5: #EAF1E4;
+  --sidebar: #14201A;
+  --sidebar-foreground: #EAF1E4;
+  --sidebar-primary: #6FBB86;
+  --sidebar-primary-foreground: #0E1512;
+  --sidebar-accent: #23332A;
+  --sidebar-accent-foreground: #EAF1E4;
+  --sidebar-border: rgba(150, 200, 130, 0.16);
+  --sidebar-ring: #6FBB86;
 }
 
 @theme inline {
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  /* Not applied via `font-serif` anywhere in this app today — kept in sync
-     with the sibling Design System project's token (this repo's source of
-     truth for tokens) rather than removed. Same family as --font-heading
-     below. */
-  --font-serif: "Fraunces", ui-serif, Georgia, serif;
+  /* Plus Jakarta Sans — a warm, geometric humanist sans that matches the
+     travel-app design language: clean and modern, with enough personality in
+     its bolder weights to carry big headlines. One family for the whole UI
+     (body + headings) keeps the surface cohesive, exactly as the reference
+     screenshots read. */
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Unused in-app; kept as a generic-serif fallback token only. */
+  --font-serif: ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  /* Fraunces — a soft, variable serif with SOFT/WONK/opsz axes tuned in
-     the `.font-display` rule below for exactly this job: a large, one-off
-     "signature" moment, not dense UI. Replaces Oi (a heavy, condensed
-     display face that read loud rather than calm) and the earlier
-     Transcity/Cintarini attempts. Applied ONLY via the opt-in `.font-display`
-     class at one-per-page moments — the PageHero greeting (Home), auth-screen
-     titles, and the error headline — never repeated UI chrome. Card titles
-     and section labels (e.g. "Account", "Contribute") use --font-sans at a
-     heavier weight instead; headings no longer default to this face. */
-  --font-heading: "Fraunces", ui-serif, Georgia, serif;
+  /* The display face is the same family, just heavier + tighter (see the
+     `.font-display` rule below). Applied via the opt-in `.font-display` class
+     at signature moments — the PageHero greeting/number (Home), auth-screen
+     titles, the error headline — not repeated UI chrome. */
+  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -170,22 +178,18 @@
     font-size: var(--font-size);
   }
 
-  /* The display serif (Fraunces) is opt-in via `.font-display`, NOT applied
-     to every heading. Headings default to the UI sans (inherited from body);
-     Fraunces is reserved for one-per-page signature moments — the Home hero
-     greeting, auth-screen titles, the error headline — never repeated UI
-     chrome like card titles or section labels. Applying it to every h1-h3
-     turned a signature into wallpaper and forced every section h2 to opt out
-     with `font-sans`. */
+  /* The display treatment is opt-in via `.font-display`, reserved for
+     one-per-page signature moments — the Home hero greeting/number,
+     auth-screen titles, the error headline — never repeated UI chrome like
+     card titles or section labels. It's the same family as body text, set
+     heavier and with tighter tracking so big headlines read bold and
+     confident like the reference screenshots, without introducing a second
+     typeface. */
   .font-display {
     font-family: var(--font-heading);
     font-optical-sizing: auto;
-    /* Fraunces ships a SOFT axis (0-100) built for exactly this brief —
-       a calm, warm, personal signature moment — instead of the sharper,
-       more traditional serif cut it defaults to at SOFT 0. WONK 0 keeps
-       the quirkier alternate letterforms off; a couples' finance app
-       wants warm, not novelty. */
-    font-variation-settings: "SOFT" 60, "WONK" 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   h1 {
@@ -231,18 +235,19 @@
   }
 }
 
+/*
+ * BottomNav tokens — the floating rounded pill nav (see the travel-app
+ * reference). Like the hero, it's a fixed dark-forest-green "island" that
+ * looks the same in both light and dark themes, so the tokens are NOT
+ * duplicated under .dark. Inactive items are a translucent white; the active
+ * item lights up in the lime accent inside a soft lime-tinted pill.
+ */
 :root {
-  /* The active bottom-nav label's color — plain --primary at small bold
-     sizes only clears 4.5:1 in light mode; dark mode (below) reuses a
-     lighter violet (#C9B3FF) for small text on dark surfaces (10:1+,
-     comfortably AA). */
-  --nav-active-foreground: var(--primary);
-  --nav-pill-bg: rgba(90, 39, 255, 0.08);
-}
-
-.dark {
-  --nav-active-foreground: #C9B3FF;
-  --nav-pill-bg: rgba(201, 179, 255, 0.14);
+  --nav-bg: #1E4634;
+  --nav-fg-inactive: rgba(255, 255, 255, 0.6);
+  --nav-fg-active: #C4E76B;
+  --nav-pill-bg: rgba(196, 231, 107, 0.16);
+  --nav-shadow: 0 12px 28px -8px rgba(12, 30, 21, 0.5), 0 4px 10px -4px rgba(12, 30, 21, 0.4);
 }
 
 /*
@@ -262,34 +267,28 @@
 }
 
 /*
- * PageHero tokens — the dark "hero card" header shown at the top of every
- * page. Colors are drawn from tokens Zamane already owns rather than
- * invented: the top-right glow is the dark-mode --primary violet (#7B52FF),
- * the bottom-left glow is #FF2D78, a hot-pink accent used only on this Home
- * hero — the app's one drenched brand moment — so everything else stays on a
- * single pink family (the dusty rose --accent). Kept identical in
- * both light and dark app themes (not duplicated under .dark): the whole
- * effect depends on a dark surface for contrast, so it's treated as a
- * fixed brand-colored "island" rather than a page-background-following
- * surface.
+ * PageHero tokens — the deep-forest-green "hero card" header on Home, the
+ * app's one drenched brand surface (echoing the dark-green "Nature Power" /
+ * "Tyrolean Alps" cards in the reference screenshots). Colours come from the
+ * nature palette: a rich pine radial deepening to near-black at the edges,
+ * a lime glow top-right (the accent), and a soft mid-green glow bottom-left.
+ * Kept identical in both light and dark app themes (not duplicated under
+ * .dark): the effect depends on a dark surface for contrast, so it's a fixed
+ * brand-coloured "island" rather than a page-background-following surface.
  *
- * --hero-bg layers a faint top sheen (a glass-like highlight, not a new
- * color) over a deepened version of the original radial — an added near-
- * black fourth stop pushes the edges darker for more contrast/depth
- * ("luxurious") without touching the violet the brand is built on.
- * --hero-shadow gained a second, pink-tinted pass using the same #FF2D78
- * already established above, so the card's cast shadow reads as part of
- * the same two-color brand identity rather than a flat single-hue glow.
+ * --hero-bg layers a faint top sheen (a glass-like highlight) over the pine
+ * radial. --hero-shadow adds a second, lime-tinted pass so the cast shadow
+ * reads as part of the two-colour forest+lime brand identity.
  */
 :root {
   --hero-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 20%),
-    radial-gradient(150% 130% at 15% -10%, #4A1F8C 0%, #2B1154 42%, #180B30 75%, #0B0416 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 20%),
+    radial-gradient(150% 130% at 15% -10%, #2E5E43 0%, #1E4634 42%, #143528 75%, #0C1E15 100%);
   --hero-shadow:
-    0 28px 56px -16px rgba(42, 12, 94, 0.55),
-    0 10px 22px -6px rgba(255, 45, 120, 0.16);
-  --hero-glow-tr: radial-gradient(circle, rgba(123, 82, 255, 0.55) 0%, rgba(123, 82, 255, 0) 70%);
-  --hero-glow-bl: radial-gradient(circle, rgba(255, 45, 120, 0.35) 0%, rgba(255, 45, 120, 0) 70%);
+    0 28px 56px -16px rgba(12, 30, 21, 0.55),
+    0 10px 22px -6px rgba(196, 231, 107, 0.16);
+  --hero-glow-tr: radial-gradient(circle, rgba(196, 231, 107, 0.42) 0%, rgba(196, 231, 107, 0) 70%);
+  --hero-glow-bl: radial-gradient(circle, rgba(46, 94, 67, 0.5) 0%, rgba(46, 94, 67, 0) 70%);
   --hero-dot-grid: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
   --hero-glass: rgba(255, 255, 255, 0.06);
   --hero-glass-border: rgba(255, 255, 255, 0.12);

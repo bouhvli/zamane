@@ -71,7 +71,7 @@ function HeaderStatus({ status }: { status: PageHeaderStatus }) {
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
         tone === "primary" && "bg-primary/10 text-primary",
-        // --accent-strong is the AA-safe rose for small text on light surfaces.
+        // --accent-strong is the AA-safe olive for small text on light surfaces.
         tone === "accent" && "bg-accent/10 text-accent-strong",
         tone === "neutral" && "bg-muted text-muted-foreground",
       )}

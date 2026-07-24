@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import type { Goal, GoalsSummary } from "@/lib/goals-api";
 import type { Group } from "@/lib/groups-api";
-import { formatAmount } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHero } from "@/components/layout/PageHero";
@@ -32,6 +31,9 @@ export default function HomePage() {
 
   if (!user) return null;
 
+  const memberName = (m: { displayName: string | null; email: string }) =>
+    m.displayName || m.email.split("@")[0];
+
   const members = group?.members ?? [];
   const partner = members.find((member) => member.id !== user.id);
   const greetName = user.displayName || user.email.split("@")[0];
@@ -40,27 +42,44 @@ export default function HomePage() {
     month: "long",
     day: "numeric",
   });
-  // A brand-new couple has nothing to summarize yet — three "0" stat chips
-  // teach nothing and read as filler, so the row is dropped entirely rather
-  // than shown empty. The Goals section's CTA card below carries the
-  // "here's what to do next" job instead.
-  const isBrandNew = goals.length === 0;
+
+  // The app's headline figure, computed from the goals already loaded (no
+  // extra API call): the money the couple has pooled toward their *active*
+  // financial goals, and how close that is to the combined target. Completed
+  // goals are excluded so a reached goal doesn't drag the "how close are we"
+  // story downward. General (percentage) goals carry no dollar amount and so
+  // don't feed the money headline.
+  const activeFinancial = goals.filter((g) => g.goalType === "financial" && !g.isCompleted);
+  const combinedSaved = activeFinancial.reduce((sum, g) => sum + Number(g.currentAmount), 0);
+  const combinedTarget = activeFinancial.reduce((sum, g) => sum + Number(g.targetAmount ?? 0), 0);
+  const savedThisMonth = Number(summary.totalSavedThisMonth) || 0;
+
+  // Lead with the number only once there's a real figure to show. A brand-new
+  // couple (or one tracking only non-financial goals) sees the warm greeting
+  // as the headline instead of a hollow "$0". The Goals CTA card below carries
+  // the "here's what to do next" job.
+  const metric =
+    combinedSaved > 0 || combinedTarget > 0
+      ? {
+          saved: combinedSaved,
+          target: combinedTarget,
+          goalCount: activeFinancial.length,
+          savedThisMonth,
+        }
+      : undefined;
+
+  const heroMembers = (members.length > 0 ? members : [user]).map((m) => ({
+    id: m.id,
+    name: memberName(m),
+  }));
 
   return (
     <div>
       <PageHero
-        label="HOME"
-        value={`Hi, ${greetName}`}
-        description={partner ? `You and ${partner.displayName || partner.email.split("@")[0]}` : formattedDate}
-        stats={
-          isBrandNew
-            ? undefined
-            : [
-                { label: "Active", value: String(summary.activeCount) },
-                { label: "Saved this month", value: formatAmount(summary.totalSavedThisMonth) },
-                { label: "Completed", value: String(summary.completedCount) },
-              ]
-        }
+        greeting={`Hi, ${greetName}`}
+        subline={partner ? `You and ${memberName(partner)}` : formattedDate}
+        members={heroMembers}
+        metric={metric}
       />
 
       <div className="mx-auto max-w-md space-y-6 px-4 pb-12">

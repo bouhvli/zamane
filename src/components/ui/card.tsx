@@ -7,7 +7,10 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-lg border",
+        // Soft floating card of the travel-app language: large radius, a
+        // hairline border kept faint, and a low green-tinted shadow doing the
+        // real separation work (Refactoring UI: prefer shadow over border).
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-lg border border-border/60 shadow-[0_1px_2px_rgba(16,32,24,0.04),0_10px_28px_-14px_rgba(16,32,24,0.14)]",
         className,
       )}
       {...props}

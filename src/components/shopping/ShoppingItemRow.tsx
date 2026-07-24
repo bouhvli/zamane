@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import type { ShoppingItem } from "@/lib/shopping-api";
 import { toggleShoppingItem } from "@/lib/shopping-api";
 import { ApiError } from "@/lib/api";
-import { formatAmount } from "@/lib/format";
+import { formatAmount, initials } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
 import { Button } from "@/components/ui/button";
 
@@ -13,12 +13,17 @@ export function ShoppingItemRow({
   item,
   onChanged,
   onDelete,
+  addedBy,
 }: {
   item: ShoppingItem;
   onChanged: () => void;
   // Delete is owned by the page (undoable, delayed-commit); the row just
   // asks for it. Toggle stays local since it's instant and non-destructive.
   onDelete: () => void;
+  // The partner's display name when *they* added this item — surfaced as a
+  // small avatar so the list reads as a shared space, not a solo to-do list.
+  // Null for the current user's own items, so it stays signal, not noise.
+  addedBy?: string | null;
 }) {
   // Optimistic toggle: reflect the new state instantly, then reconcile. On a
   // slow connection the checkbox no longer freezes waiting for the round-trip.
@@ -76,6 +81,16 @@ export function ShoppingItemRow({
         <p className="shrink-0 font-mono text-sm text-muted-foreground">
           {formatAmount(Number(item.price) * item.quantity)}
         </p>
+      )}
+
+      {addedBy && (
+        <span
+          title={`Added by ${addedBy}`}
+          aria-label={`Added by ${addedBy}`}
+          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground"
+        >
+          {initials(addedBy)}
+        </span>
       )}
 
       <Button
