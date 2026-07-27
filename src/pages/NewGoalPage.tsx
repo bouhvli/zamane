@@ -3,11 +3,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate, useRouteLoaderData } from "react-router";
-import { Loader2 } from "lucide-react";
+import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { goalTypeSchema, MAX_MONEY_AMOUNT, type CreateGoalRequest, type UpdateGoalRequest } from "@shared/validation";
-import { createGoal, updateGoal, type Goal } from "@/lib/goals-api";
+import { createGoal, updateGoal, uploadGoalImage, type Goal } from "@/lib/goals-api";
+import { optimizeImage } from "@/lib/image-optimize";
 import { ApiError } from "@/lib/api";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,50 @@ export default function NewGoalPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const radioRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
+  // Cover image. `cover` is the persisted {url, publicId} sent on submit;
+  // `coverPreview` is what we render (a local optimized data URL the instant a
+  // file is picked, swapped for the hosted URL once upload succeeds).
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cover, setCover] = useState<{ url: string; publicId: string } | null>(
+    existing?.imageUrl ? { url: existing.imageUrl, publicId: existing.imagePublicId ?? "" } : null,
+  );
+  const [coverPreview, setCoverPreview] = useState<string | null>(existing?.imageUrl ?? null);
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [coverError, setCoverError] = useState<string | null>(null);
+
+  async function onPickImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = ""; // let the same file be re-picked after a remove
+    if (!file) return;
+
+    setCoverError(null);
+    setCoverBusy(true);
+    try {
+      const { dataUrl } = await optimizeImage(file, { maxDim: 1600, quality: 0.82 });
+      setCoverPreview(dataUrl); // instant local preview while it uploads
+      const uploaded = await uploadGoalImage(dataUrl);
+      setCover(uploaded);
+      setCoverPreview(uploaded.url);
+    } catch (error) {
+      setCoverError(
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : "Couldn't add that image. Please try again.",
+      );
+      if (!cover) setCoverPreview(null); // failed first upload — don't imply success
+    } finally {
+      setCoverBusy(false);
+    }
+  }
+
+  function removeImage() {
+    setCover(null);
+    setCoverPreview(null);
+    setCoverError(null);
+  }
+
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(goalFormSchema),
     defaultValues: existing
@@ -106,6 +151,8 @@ export default function NewGoalPage() {
                 description: values.description,
                 targetAmount: Number(values.targetAmount),
                 targetDate: values.targetDate || undefined,
+                imageUrl: cover?.url,
+                imagePublicId: cover?.publicId,
               }
             : {
                 goalType: "general",
@@ -113,6 +160,8 @@ export default function NewGoalPage() {
                 title: values.title,
                 description: values.description,
                 targetDate: values.targetDate || undefined,
+                imageUrl: cover?.url,
+                imagePublicId: cover?.publicId,
               };
         await updateGoal(payload);
         toast.success("Goal updated");
@@ -128,12 +177,16 @@ export default function NewGoalPage() {
               description: values.description,
               targetAmount: Number(values.targetAmount),
               targetDate: values.targetDate || undefined,
+              imageUrl: cover?.url,
+              imagePublicId: cover?.publicId,
             }
           : {
               goalType: "general",
               title: values.title,
               description: values.description,
               targetDate: values.targetDate || undefined,
+              imageUrl: cover?.url,
+              imagePublicId: cover?.publicId,
             };
       const { goal } = await createGoal(payload);
       toast.success("Goal created");
@@ -192,6 +245,66 @@ export default function NewGoalPage() {
                 </p>
               </div>
             )}
+
+            {/* Cover image — optional, but it makes a goal feel real and
+                turns the list into something aspirational to scroll. Optimized
+                on-device before it ever hits the network. */}
+            <div>
+              <label className="mb-1.5 block text-base font-medium">Cover image (optional)</label>
+              {coverPreview ? (
+                <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border bg-muted">
+                  <img src={coverPreview} alt="" className="h-full w-full object-cover" />
+                  {coverBusy && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white">
+                      <Loader2 className="size-6 animate-spin" />
+                    </div>
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/60 to-transparent p-2.5">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={coverBusy}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-full bg-white/90 px-3 text-xs font-semibold text-foreground shadow-sm outline-none transition-colors hover:bg-white focus-visible:ring-[3px] focus-visible:ring-ring/60 disabled:opacity-60"
+                    >
+                      <ImagePlus className="size-3.5" />
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      aria-label="Remove cover image"
+                      className="inline-flex size-9 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm outline-none transition-colors hover:bg-black/70 focus-visible:ring-[3px] focus-visible:ring-white/70"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={coverBusy}
+                  className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-input bg-input-background/60 text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  {coverBusy ? <Loader2 className="size-6 animate-spin" /> : <ImagePlus className="size-6" />}
+                  <span className="text-sm font-medium text-foreground">{coverBusy ? "Adding…" : "Add a photo"}</span>
+                  <span className="text-xs">JPG, PNG or WebP — resized automatically</span>
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={onPickImage}
+                tabIndex={-1}
+              />
+              {coverError && (
+                <p role="alert" className="mt-1.5 text-sm text-destructive">
+                  {coverError}
+                </p>
+              )}
+            </div>
 
             <FormField
               control={form.control}
@@ -270,7 +383,7 @@ export default function NewGoalPage() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || coverBusy}>
               {form.formState.isSubmitting && <Loader2 className="size-4 animate-spin" />}
               {isEdit ? "Save changes" : "Create goal"}
             </Button>

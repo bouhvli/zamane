@@ -4,6 +4,7 @@ import { updateGoalRequestSchema } from "@shared/validation";
 import { sql } from "../_lib/db";
 import { methodGuard, parseBody } from "../_lib/http";
 import { getUserFromRequest } from "../_lib/auth";
+import { destroyImage } from "../_lib/cloudinary";
 
 // Edits a goal's mutable fields (title, description, target). The goal type is
 // immutable, so the request's declared type is only used to validate the
@@ -25,12 +26,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(400).json({ error: parsed.error });
     return;
   }
-  const { id, title, description, targetDate } = parsed.data;
+  const { id, title, description, targetDate, imageUrl, imagePublicId } = parsed.data;
+  const nextImageUrl = imageUrl ?? null;
+  const nextImagePublicId = imagePublicId ?? null;
 
   const goalRows = await sql`
-    select goal_type as "goalType" from goals where id = ${id} and group_id = ${user.groupId} limit 1
+    select goal_type as "goalType", image_public_id as "imagePublicId"
+    from goals where id = ${id} and group_id = ${user.groupId} limit 1
   `;
-  const goal = goalRows[0] as { goalType: "financial" | "general" } | undefined;
+  const goal = goalRows[0] as { goalType: "financial" | "general"; imagePublicId: string | null } | undefined;
   if (!goal) {
     res.status(404).json({ error: "Goal not found" });
     return;
@@ -48,6 +52,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         description = ${description ?? null},
         target_amount = ${targetAmount},
         target_date = ${targetDate ?? null},
+        image_url = ${nextImageUrl},
+        image_public_id = ${nextImagePublicId},
         is_completed = (select coalesce(sum(amount), 0) from goal_contributions where goal_id = ${id}) >= ${targetAmount},
         updated_at = now()
       where id = ${id} and group_id = ${user.groupId}
@@ -58,9 +64,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         title = ${title},
         description = ${description ?? null},
         target_date = ${targetDate ?? null},
+        image_url = ${nextImageUrl},
+        image_public_id = ${nextImagePublicId},
         updated_at = now()
       where id = ${id} and group_id = ${user.groupId}
     `;
+  }
+
+  // The image was swapped out or cleared — free the orphaned Cloudinary asset.
+  if (goal.imagePublicId && goal.imagePublicId !== nextImagePublicId) {
+    await destroyImage(goal.imagePublicId);
   }
 
   res.status(200).json({ ok: true });

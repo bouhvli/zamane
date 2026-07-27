@@ -125,6 +125,24 @@ const moneyAmountSchema = z.coerce
   .positive("Amount must be greater than 0")
   .max(MAX_MONEY_AMOUNT, "Amount is too large");
 
+// Optional cover image for a goal. The client uploads an optimized image to
+// Cloudinary via /api/goals/upload-image, which returns { url, publicId };
+// those flow back in on create/update. An empty string (a cleared image)
+// normalizes to undefined so "no image" and "removed image" share one shape.
+const goalImageUrlSchema = z
+  .string()
+  .trim()
+  .url("Invalid image URL")
+  .max(600)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const goalImagePublicIdSchema = z
+  .string()
+  .trim()
+  .max(300)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
 export const createGoalRequestSchema = z.discriminatedUnion("goalType", [
   z.object({
     goalType: z.literal("financial"),
@@ -132,12 +150,16 @@ export const createGoalRequestSchema = z.discriminatedUnion("goalType", [
     description: goalDescriptionSchema,
     targetAmount: moneyAmountSchema,
     targetDate: goalTargetDateSchema,
+    imageUrl: goalImageUrlSchema,
+    imagePublicId: goalImagePublicIdSchema,
   }),
   z.object({
     goalType: z.literal("general"),
     title: goalTitleSchema,
     description: goalDescriptionSchema,
     targetDate: goalTargetDateSchema,
+    imageUrl: goalImageUrlSchema,
+    imagePublicId: goalImagePublicIdSchema,
   }),
 ]);
 export type CreateGoalRequest = z.infer<typeof createGoalRequestSchema>;
@@ -163,6 +185,8 @@ export const updateGoalRequestSchema = z.discriminatedUnion("goalType", [
     description: goalDescriptionSchema,
     targetAmount: moneyAmountSchema,
     targetDate: goalTargetDateSchema,
+    imageUrl: goalImageUrlSchema,
+    imagePublicId: goalImagePublicIdSchema,
   }),
   z.object({
     goalType: z.literal("general"),
@@ -170,6 +194,8 @@ export const updateGoalRequestSchema = z.discriminatedUnion("goalType", [
     title: goalTitleSchema,
     description: goalDescriptionSchema,
     targetDate: goalTargetDateSchema,
+    imageUrl: goalImageUrlSchema,
+    imagePublicId: goalImagePublicIdSchema,
   }),
 ]);
 export type UpdateGoalRequest = z.infer<typeof updateGoalRequestSchema>;
@@ -189,6 +215,48 @@ export const contributeRequestSchema = z.discriminatedUnion("goalType", [
   }),
 ]);
 export type ContributeRequest = z.infer<typeof contributeRequestSchema>;
+
+// ---- Goal notes ----
+// The goal detail page is a shared "continuous note": an append-only stream
+// of rich notes. A note body is an ordered list of blocks — text paragraphs
+// and images (uploaded via the same Cloudinary pipeline as covers) — so a
+// photo can be placed at any position between paragraphs.
+
+export const noteTextBlockSchema = z.object({
+  type: z.literal("text"),
+  value: z.string().max(5000),
+});
+export const noteImageBlockSchema = z.object({
+  type: z.literal("image"),
+  url: z.string().url().max(600),
+  publicId: z.string().max(300),
+  width: z.number().int().positive().max(20000).optional(),
+  height: z.number().int().positive().max(20000).optional(),
+});
+export const noteBlockSchema = z.discriminatedUnion("type", [noteTextBlockSchema, noteImageBlockSchema]);
+export type NoteBlock = z.infer<typeof noteBlockSchema>;
+
+// Up to 60 blocks per note; must carry at least one image or one non-blank
+// line of text (an all-empty note is nothing to save).
+export const noteBlocksSchema = z
+  .array(noteBlockSchema)
+  .min(1, "Write something first")
+  .max(60)
+  .refine(
+    (blocks) => blocks.some((b) => b.type === "image" || (b.type === "text" && b.value.trim().length > 0)),
+    { message: "Write something first" },
+  );
+
+export const createGoalNoteRequestSchema = z.object({
+  goalId: z.string().uuid(),
+  blocks: noteBlocksSchema,
+});
+export type CreateGoalNoteRequest = z.infer<typeof createGoalNoteRequestSchema>;
+
+export const goalNoteIdSchema = z.object({
+  id: z.string().uuid("Invalid note id"),
+});
+export type GoalNoteIdQuery = z.infer<typeof goalNoteIdSchema>;
 
 // ---- Trips ----
 // A trip belongs to a group, same sharing model as goals. Its itinerary is

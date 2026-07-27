@@ -93,6 +93,15 @@ create table if not exists goals (
 -- required even though Postgres doesn't enforce that here.
 alter table goals add column if not exists group_id uuid references groups(id) on delete cascade;
 
+-- Optional cover image, uploaded via api/goals/upload-image.ts to Cloudinary.
+-- image_url is Cloudinary's canonical secure_url (delivery transformations —
+-- resize, f_auto/q_auto — are layered on at render time, not stored here).
+-- image_public_id is retained so the asset can be destroyed when the goal is
+-- deleted or its image replaced. Both null = no cover (the card then paints
+-- its branded gradient fallback).
+alter table goals add column if not exists image_url text;
+alter table goals add column if not exists image_public_id text;
+
 create index if not exists goals_created_by_idx on goals (created_by);
 create index if not exists goals_is_completed_idx on goals (is_completed);
 create index if not exists goals_group_id_idx on goals (group_id);
@@ -114,6 +123,25 @@ create table if not exists goal_contributions (
 create index if not exists goal_contributions_goal_id_idx on goal_contributions (goal_id);
 create index if not exists goal_contributions_user_id_idx on goal_contributions (user_id);
 create index if not exists goal_contributions_created_at_idx on goal_contributions (created_at);
+
+-- A goal's shared journal: an append-only stream of rich notes (the goal
+-- detail page is a "continuous note"). Each note's body is an ordered list of
+-- blocks stored as jsonb — either {type:'text', value} or
+-- {type:'image', url, publicId, width, height} — so a photo can sit at any
+-- position between paragraphs. group_id is denormalized (same rationale as
+-- goals/trips) so the group scope check stays a single-table filter.
+create table if not exists goal_notes (
+  id            uuid primary key default gen_random_uuid(),
+  goal_id       uuid not null references goals(id) on delete cascade,
+  group_id      uuid not null references groups(id) on delete cascade,
+  created_by    uuid not null references users(id) on delete cascade,
+  blocks        jsonb not null,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists goal_notes_goal_id_idx on goal_notes (goal_id, created_at desc);
+create index if not exists goal_notes_group_id_idx on goal_notes (group_id);
 
 -- Trips belong to a group, same rationale as goals above. The itinerary is
 -- a flat append-only list of dated/undated entries rather than a nested

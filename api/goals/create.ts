@@ -24,18 +24,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(400).json({ error: parsed.error });
     return;
   }
-  const { title, description, goalType, targetDate } = parsed.data;
+  const { title, description, goalType, targetDate, imageUrl, imagePublicId } = parsed.data;
   const targetAmount = parsed.data.goalType === "financial" ? parsed.data.targetAmount : null;
 
   const rows = await sql`
-    insert into goals (title, description, goal_type, target_amount, target_date, created_by, group_id)
-    values (${title}, ${description ?? null}, ${goalType}, ${targetAmount}, ${targetDate ?? null}, ${user.id}, ${user.groupId})
+    insert into goals (title, description, goal_type, target_amount, target_date, image_url, image_public_id, created_by, group_id)
+    values (${title}, ${description ?? null}, ${goalType}, ${targetAmount}, ${targetDate ?? null}, ${imageUrl ?? null}, ${imagePublicId ?? null}, ${user.id}, ${user.groupId})
     returning
       id, title, description,
       goal_type as "goalType",
       target_amount as "targetAmount",
       current_progress_pct as "currentProgressPct",
       target_date as "targetDate",
+      image_url as "imageUrl",
+      image_public_id as "imagePublicId",
       is_completed as "isCompleted",
       created_by as "createdBy",
       created_at as "createdAt"

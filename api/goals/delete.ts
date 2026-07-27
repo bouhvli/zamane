@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { goalIdQuerySchema } from "@shared/validation";
+import { goalIdQuerySchema, type NoteBlock } from "@shared/validation";
 
 import { sql } from "../_lib/db";
 import { methodGuard, parseBody } from "../_lib/http";
 import { getUserFromRequest } from "../_lib/auth";
+import { destroyImage } from "../_lib/cloudinary";
 
 // Deletes a goal and (via the ON DELETE CASCADE on goal_contributions) its
 // whole contribution history. Group-scoped so a member can only delete their
@@ -24,13 +25,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const { id } = parsed.data;
 
+  // Gather note image ids BEFORE the delete (the goal_notes rows cascade away
+  // with the goal, so we can't read them afterwards).
+  const noteRows = await sql`
+    select blocks from goal_notes where goal_id = ${id} and group_id = ${user.groupId}
+  `;
+
   const rows = await sql`
-    delete from goals where id = ${id} and group_id = ${user.groupId} returning id
+    delete from goals where id = ${id} and group_id = ${user.groupId}
+    returning image_public_id as "imagePublicId"
   `;
 
   if (rows.length === 0) {
     res.status(404).json({ error: "Goal not found" });
     return;
+  }
+
+  // Free the goal's cover + every image its notes held (best-effort; never
+  // blocks the delete — the DB rows are already gone via ON DELETE CASCADE).
+  const imagePublicId = (rows[0] as { imagePublicId: string | null }).imagePublicId;
+  if (imagePublicId) await destroyImage(imagePublicId);
+  for (const row of noteRows) {
+    for (const block of (row.blocks ?? []) as NoteBlock[]) {
+      if (block.type === "image" && block.publicId) await destroyImage(block.publicId);
+    }
   }
 
   res.status(200).json({ ok: true });

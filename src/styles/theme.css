@@ -237,17 +237,47 @@
 
 /*
  * BottomNav tokens — the floating rounded pill nav (see the travel-app
- * reference). Like the hero, it's a fixed dark-forest-green "island" that
- * looks the same in both light and dark themes, so the tokens are NOT
- * duplicated under .dark. Inactive items are a translucent white; the active
- * item lights up in the lime accent inside a soft lime-tinted pill.
+ * reference). It's a frosted-glass "island" that adapts to the theme: a
+ * bright translucent-white pill on light, a dark frosted-glass pill on dark
+ * (so it never glares against the near-black canvas). The backdrop blur lets
+ * the page tint and motion bleed through the pill for a real glass feel.
+ *
+ * Light mode: forest-green active foreground on a soft lime-tinted capsule,
+ * muted green-grey inactive. Dark mode flips the active to lime (forest-green
+ * would vanish on dark), same as --primary flips elsewhere. --nav-sheen is a
+ * top-edge inner highlight that gives the glass its lit rim; --nav-shadow is a
+ * soft, theme-tinted cast so the pill floats.
  */
 :root {
-  --nav-bg: #1E4634;
-  --nav-fg-inactive: rgba(255, 255, 255, 0.6);
+  --nav-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.90) 0%, rgba(255, 255, 255, 0.80) 100%);
+  --nav-border: rgba(30, 70, 52, 0.12);
+  --nav-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --nav-shadow:
+    0 16px 34px -12px rgba(30, 70, 52, 0.26),
+    0 5px 14px -6px rgba(30, 70, 52, 0.14);
+  --nav-fg-inactive: #4C6753;
+  --nav-fg-active: #1E4634;
+  --nav-pill-bg:
+    linear-gradient(180deg, rgba(196, 231, 107, 0.58) 0%, rgba(196, 231, 107, 0.36) 100%);
+  --nav-pill-border: rgba(60, 90, 28, 0.20);
+  --nav-pill-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.dark {
+  --nav-bg:
+    linear-gradient(180deg, rgba(38, 56, 46, 0.82) 0%, rgba(20, 32, 26, 0.74) 100%);
+  --nav-border: rgba(150, 200, 130, 0.16);
+  --nav-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --nav-shadow:
+    0 18px 36px -12px rgba(0, 0, 0, 0.62),
+    0 5px 14px -6px rgba(0, 0, 0, 0.5);
+  --nav-fg-inactive: #93AC9C;
   --nav-fg-active: #C4E76B;
-  --nav-pill-bg: rgba(196, 231, 107, 0.16);
-  --nav-shadow: 0 12px 28px -8px rgba(12, 30, 21, 0.5), 0 4px 10px -4px rgba(12, 30, 21, 0.4);
+  --nav-pill-bg:
+    linear-gradient(180deg, rgba(196, 231, 107, 0.22) 0%, rgba(196, 231, 107, 0.12) 100%);
+  --nav-pill-border: rgba(196, 231, 107, 0.28);
+  --nav-pill-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /*

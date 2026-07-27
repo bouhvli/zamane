@@ -29,6 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       coalesce(c.total, 0) as "currentAmount",
       g.current_progress_pct as "currentProgressPct",
       g.target_date as "targetDate",
+      g.image_url as "imageUrl",
+      g.image_public_id as "imagePublicId",
       g.is_completed as "isCompleted",
       g.created_by as "createdBy",
       u.display_name as "createdByName",
@@ -66,5 +68,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     order by gc.created_at desc
   `;
 
-  res.status(200).json({ goal, contributions });
+  // The goal page's "continuous note" feed — newest first. blocks is jsonb and
+  // comes back already parsed to a JS array by the Neon driver.
+  const notes = await sql`
+    select
+      gn.id,
+      gn.blocks,
+      gn.created_by as "createdBy",
+      u.display_name as "displayName",
+      u.email,
+      gn.created_at as "createdAt"
+    from goal_notes gn
+    join users u on u.id = gn.created_by
+    where gn.goal_id = ${id}
+    order by gn.created_at desc
+  `;
+
+  res.status(200).json({ goal, contributions, notes });
 }

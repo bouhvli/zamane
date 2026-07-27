@@ -28,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       coalesce(c.total, 0) as "currentAmount",
       g.current_progress_pct as "currentProgressPct",
       g.target_date as "targetDate",
+      g.image_url as "imageUrl",
       g.is_completed as "isCompleted",
       g.created_by as "createdBy",
       u.display_name as "createdByName",

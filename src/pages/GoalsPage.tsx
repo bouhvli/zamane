@@ -27,7 +27,7 @@ export default function GoalsPage() {
         ]}
       />
 
-      <div className="mx-auto max-w-md space-y-3 px-4 pb-12">
+      <div className="mx-auto max-w-md space-y-4 px-4 pb-12">
         {goals.length === 0 ? (
           <EmptyState
             icon={Target}

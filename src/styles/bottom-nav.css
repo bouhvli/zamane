@@ -1,16 +1,22 @@
-/* The floating pill: a fixed dark-forest-green island (see --nav-* in
-   theme.css), the same in light and dark themes. A faint blur lets whatever
-   scrolls beneath it read through the edges without muddying the green. */
+/* The floating pill: a frosted-glass island (see --nav-* in theme.css) that
+   adapts to the theme — bright translucent white on light, dark frosted glass
+   on dark. A strong backdrop blur + saturation lets the page tint and motion
+   read through the glass, while the hairline border and top-edge sheen give
+   it a lit rim. */
 .bottom-nav-pill {
   background: var(--nav-bg);
-  box-shadow: var(--nav-shadow);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  border: 1px solid var(--nav-border);
+  box-shadow: var(--nav-sheen), var(--nav-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
 }
 
-/* Soft lime-tinted highlight behind the active tab. */
+/* Soft lime-tinted capsule behind the active tab, with its own hairline edge
+   and a faint top sheen so it reads as a raised chip of frosted glass. */
 .bottom-nav-active-bg {
   background: var(--nav-pill-bg);
+  border: 1px solid var(--nav-pill-border);
+  box-shadow: var(--nav-pill-sheen);
 }
 
 .pb-safe-bottom {

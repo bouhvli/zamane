@@ -24,6 +24,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const OnboardingGroupPage = lazy(() => import("./pages/OnboardingGroupPage"));
 const GoalsPage = lazy(() => import("./pages/GoalsPage"));
 const GoalDetailPage = lazy(() => import("./pages/GoalDetailPage"));
+const GoalHistoryPage = lazy(() => import("./pages/GoalHistoryPage"));
 const NewGoalPage = lazy(() => import("./pages/NewGoalPage"));
 const TripsPage = lazy(() => import("./pages/TripsPage"));
 const TripDetailPage = lazy(() => import("./pages/TripDetailPage"));
@@ -137,6 +138,7 @@ export const router = createBrowserRouter([
           { path: "/goals", loader: goalsListLoader, element: withSuspense(<GoalsPage />) },
           { path: "/goals/new", element: withSuspense(<NewGoalPage />) },
           { path: "/goals/:id/edit", id: "goal-edit", loader: goalDetailLoader, element: withSuspense(<NewGoalPage />) },
+          { path: "/goals/:id/history", loader: goalDetailLoader, element: withSuspense(<GoalHistoryPage />) },
           { path: "/goals/:id", loader: goalDetailLoader, element: withSuspense(<GoalDetailPage />) },
           { path: "/profile", loader: profileLoader, element: withSuspense(<ProfilePage />) },
         ],
