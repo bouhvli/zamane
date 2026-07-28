@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { goalIdQuerySchema, type NoteBlock } from "@shared/validation";
+import { goalIdQuerySchema, type NoteBlock } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
-import { destroyImage } from "../_lib/cloudinary";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
+import { destroyImage } from "../_lib/cloudinary.js";
 
 // Deletes a goal and (via the ON DELETE CASCADE on goal_contributions) its
 // whole contribution history. Group-scoped so a member can only delete their

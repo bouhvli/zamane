@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { loginRequestSchema } from "@shared/validation";
+import { loginRequestSchema } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { verifyPasswordConstantTime, createSession, setSessionCookie } from "../_lib/auth";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { verifyPasswordConstantTime, createSession, setSessionCookie } from "../_lib/auth.js";
 
 const GENERIC_ERROR = "Invalid email or password";
 

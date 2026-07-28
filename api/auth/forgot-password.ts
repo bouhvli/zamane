@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { forgotPasswordRequestSchema } from "@shared/validation";
+import { forgotPasswordRequestSchema } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { generateToken, hashToken } from "../_lib/auth";
-import { sendPasswordResetEmail, isEmailConfigured } from "../_lib/mailer";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { generateToken, hashToken } from "../_lib/auth.js";
+import { sendPasswordResetEmail, isEmailConfigured } from "../_lib/mailer.js";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 const GENERIC_MESSAGE = "If that email exists, a reset link was sent.";

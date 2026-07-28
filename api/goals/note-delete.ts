@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { goalNoteIdSchema, type NoteBlock } from "@shared/validation";
+import { goalNoteIdSchema, type NoteBlock } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
-import { destroyImage } from "../_lib/cloudinary";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
+import { destroyImage } from "../_lib/cloudinary.js";
 
 // Deletes a note from a goal's journal (group-scoped) and frees any images it
 // held from Cloudinary (best-effort).

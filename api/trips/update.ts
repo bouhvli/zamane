@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { updateTripRequestSchema } from "@shared/validation";
+import { updateTripRequestSchema } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
 
 // Edits a trip's fields. Group-scoped; the itinerary is untouched.
 export default async function handler(req: VercelRequest, res: VercelResponse) {

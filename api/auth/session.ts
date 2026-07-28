@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { methodGuard } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
+import { methodGuard } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
 
 // A routine "am I logged in" probe — never 401, always 200 with either a
 // user or null so the router's loaders can call it unconditionally.

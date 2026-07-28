@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { changePasswordRequestSchema } from "@shared/validation";
+import { changePasswordRequestSchema } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
 import {
   getUserFromRequest,
   verifyPassword,
@@ -10,7 +10,7 @@ import {
   hashToken,
   deleteOtherSessionsForUser,
   SESSION_COOKIE_NAME,
-} from "../_lib/auth";
+} from "../_lib/auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!methodGuard(req, res, ["POST"])) return;

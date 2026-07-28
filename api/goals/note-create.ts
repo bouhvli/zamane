@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createGoalNoteRequestSchema } from "@shared/validation";
+import { createGoalNoteRequestSchema } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
 
 // Appends a note to a goal's shared journal. The note body is an ordered list
 // of text/image blocks (validated in shared/validation) stored as jsonb, so a

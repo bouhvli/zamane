@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { sql } from "../_lib/db";
-import { methodGuard } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
-import { generateInviteCode } from "../_lib/invite-code";
+import { sql } from "../_lib/db.js";
+import { methodGuard } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
+import { generateInviteCode } from "../_lib/invite-code.js";
 
 const MAX_ATTEMPTS = 5;
 

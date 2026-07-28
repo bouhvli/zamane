@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { methodGuard } from "../_lib/http";
-import { deleteSessionFromRequest, clearSessionCookie } from "../_lib/auth";
+import { methodGuard } from "../_lib/http.js";
+import { deleteSessionFromRequest, clearSessionCookie } from "../_lib/auth.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!methodGuard(req, res, ["POST"])) return;

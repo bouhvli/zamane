@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { methodGuard } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
-import { cloudinaryConfigured, uploadImage } from "../_lib/cloudinary";
+import { methodGuard } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
+import { cloudinaryConfigured, uploadImage } from "../_lib/cloudinary.js";
 
 // Accepts an already-optimized image as a base64 data URI in JSON
 // (`{ dataUrl }`) and uploads it to Cloudinary via a signed request. The

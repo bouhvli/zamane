@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { updateGoalRequestSchema } from "@shared/validation";
+import { updateGoalRequestSchema } from "../../shared/validation.js";
 
-import { sql } from "../_lib/db";
-import { methodGuard, parseBody } from "../_lib/http";
-import { getUserFromRequest } from "../_lib/auth";
-import { destroyImage } from "../_lib/cloudinary";
+import { sql } from "../_lib/db.js";
+import { methodGuard, parseBody } from "../_lib/http.js";
+import { getUserFromRequest } from "../_lib/auth.js";
+import { destroyImage } from "../_lib/cloudinary.js";
 
 // Edits a goal's mutable fields (title, description, target). The goal type is
 // immutable, so the request's declared type is only used to validate the
