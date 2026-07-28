@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useLoaderData, useRevalidator } from "react-router";
-import { ShoppingCart } from "lucide-react";
+import { ChevronDown, ShoppingCart } from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
 import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
@@ -8,7 +9,8 @@ import { formatAmount } from "@/lib/format";
 import { useUndoableDelete } from "@/lib/use-undoable-delete";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { ShoppingItemForm } from "@/components/shopping/ShoppingItemForm";
+import { Fab } from "@/components/layout/Fab";
+import { ShoppingItemSheet } from "@/components/shopping/ShoppingItemSheet";
 import { ShoppingItemRow } from "@/components/shopping/ShoppingItemRow";
 
 const OTHER = "Other";
@@ -37,6 +39,9 @@ export default function ShoppingPage() {
   const { user } = useAuth();
   const { items, summary } = useLoaderData() as { items: ShoppingItem[]; summary: ShoppingSummary };
   const revalidator = useRevalidator();
+  // Adding is now a deliberate step off the FAB rather than an always-open
+  // card at the top of the page — the list itself gets the first viewport.
+  const [adding, setAdding] = useState(false);
   const { pendingIds, requestDelete } = useUndoableDelete({
     commit: (id) => deleteShoppingItem(id),
     onCommitted: () => revalidator.revalidate(),
@@ -60,18 +65,22 @@ export default function ShoppingPage() {
   // reuse a spelling instead of forking a near-duplicate group.
   const categories = Array.from(new Set(items.map((item) => item.category).filter((c): c is string => Boolean(c))));
 
-  // The partner's name when *they* added an item, so the row can show whose it
-  // is. Null for your own items (and before a partner joins) — signal only.
-  const addedByPartner = (item: ShoppingItem): string | null => {
-    if (!user || !item.createdBy || item.createdBy === user.id) return null;
+  // Who added an item — "You" for the current user, otherwise the partner's
+  // name — so the shared list shows whose is whose at a glance.
+  const addedByLabel = (item: ShoppingItem): string => {
+    if (user && item.createdBy && item.createdBy === user.id) return "You";
     return item.createdByName || item.createdByEmail?.split("@")[0] || "Partner";
   };
+
+  // Sum of the priced items in a group, for the per-category subtotal.
+  const categorySubtotal = (list: ShoppingItem[]): number =>
+    list.reduce((sum, it) => sum + (it.price ? Number(it.price) * it.quantity : 0), 0);
 
   const renderRow = (item: ShoppingItem) => (
     <ShoppingItemRow
       key={item.id}
       item={item}
-      addedBy={addedByPartner(item)}
+      addedByLabel={addedByLabel(item)}
       onChanged={() => revalidator.revalidate()}
       onDelete={() => requestDelete(item.id, `Deleted "${item.name}"`)}
     />
@@ -90,40 +99,55 @@ export default function ShoppingPage() {
       />
 
       <div className="mx-auto max-w-md space-y-6 px-4 pb-12">
-        <ShoppingItemForm onAdded={() => revalidator.revalidate()} categories={categories} />
-
         {visibleItems.length === 0 ? (
           <EmptyState
             icon={ShoppingCart}
             title="Your list is empty"
-            description="Add an item above to start your shared list."
+            description="Tap the button below to add your first item."
           />
         ) : (
           <>
             {showCategoryHeaders ? (
-              groups.map(([category, groupItems]) => (
-                <div key={category}>
-                  <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {category}
-                  </p>
-                  <ul className="space-y-2">{groupItems.map(renderRow)}</ul>
-                </div>
-              ))
+              groups.map(([category, groupItems]) => {
+                const subtotal = categorySubtotal(groupItems);
+                return (
+                  <div key={category}>
+                    <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</p>
+                      <p className="text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
+                        {groupItems.length} {groupItems.length === 1 ? "item" : "items"}
+                        {subtotal > 0 && ` · ${formatAmount(subtotal)}`}
+                      </p>
+                    </div>
+                    <ul className="space-y-2.5">{groupItems.map(renderRow)}</ul>
+                  </div>
+                );
+              })
             ) : (
-              activeItems.length > 0 && <ul className="space-y-2">{activeItems.map(renderRow)}</ul>
+              activeItems.length > 0 && <ul className="space-y-2.5">{activeItems.map(renderRow)}</ul>
             )}
 
             {doneItems.length > 0 && (
               <details className="group">
-                <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-md px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-md px-1 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                  <ChevronDown className="size-3.5 transition-transform duration-200 group-open:rotate-180" />
                   Done ({doneItems.length})
                 </summary>
-                <ul className="mt-2 space-y-2">{doneItems.map(renderRow)}</ul>
+                <ul className="mt-2 space-y-2.5">{doneItems.map(renderRow)}</ul>
               </details>
             )}
           </>
         )}
       </div>
+
+      <Fab label="Add item" onClick={() => setAdding(true)} />
+
+      <ShoppingItemSheet
+        open={adding}
+        onClose={() => setAdding(false)}
+        onAdded={() => revalidator.revalidate()}
+        categories={categories}
+      />
     </div>
   );
 }

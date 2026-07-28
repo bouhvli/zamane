@@ -104,10 +104,11 @@ export function PageHero({ greeting, subline, members, metric, className }: Page
                     className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/15"
                   >
                     <div
-                      // Mid-sage → lime, not --primary → --accent: the deep
-                      // forest --primary would vanish against the dark hero, so
-                      // the fill starts at a lighter green that reads here.
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#5F9E6B,var(--accent))] transition-[width] duration-500 ease-out motion-reduce:transition-none"
+                      // The lighter dark-mode violet (#7B52FF) → --accent, not
+                      // --primary → --accent: the deep light-mode --primary
+                      // would sink into the dark hero, so the fill starts at
+                      // the brighter violet that actually reads here.
+                      className="h-full rounded-full bg-[linear-gradient(90deg,#7B52FF,var(--accent))] transition-[width] duration-500 ease-out motion-reduce:transition-none"
                       style={{ width: `${pct}%` }}
                     />
                   </div>

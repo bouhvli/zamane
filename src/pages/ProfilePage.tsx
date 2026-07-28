@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useLoaderData, useNavigate } from "react-router";
-import { Check, ChevronDown, Copy, Loader2, LogOut, ShieldCheck, User, Users } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Check, ChevronDown, Copy, Loader2, LogOut, Monitor, Moon, ShieldCheck, Sun, SunMoon, User, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import { changePasswordFormSchema, type ChangePasswordFormValues } from "@shared/validation";
@@ -59,6 +60,47 @@ function SectionHeading({
         <h2 className="font-sans text-base font-semibold leading-tight text-foreground">{title}</h2>
         {description && <p className="truncate text-xs text-muted-foreground">{description}</p>}
       </div>
+    </div>
+  );
+}
+
+const THEME_OPTIONS = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "system", label: "System", icon: Monitor },
+  { value: "dark", label: "Dark", icon: Moon },
+] as const;
+
+// A three-way segmented control rather than a plain on/off switch — the app
+// already defaults new sessions to "system" (main.tsx), so a binary toggle
+// would have nowhere to represent that state and would force a light/dark
+// pick on everyone who never asked for one.
+function ThemeSwitch() {
+  const { theme, setTheme } = useTheme();
+  const active = theme ?? "system";
+
+  return (
+    <div role="radiogroup" aria-label="Theme" className="inline-flex w-full gap-1 rounded-full bg-muted p-1">
+      {THEME_OPTIONS.map((option) => {
+        const isActive = active === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={isActive}
+            onClick={() => setTheme(option.value)}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              isActive
+                ? "bg-card text-foreground shadow-[0_1px_2px_rgba(16,32,24,0.06)]"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <option.icon className="size-4" />
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -192,6 +234,14 @@ export default function ProfilePage() {
               </Button>
             </form>
           </Form>
+        </Card>
+
+        {/* Appearance */}
+        <Card className="gap-0 p-5">
+          <SectionHeading icon={SunMoon} title="Appearance" description="Light, dark, or match your device" />
+          <div className="mt-4">
+            <ThemeSwitch />
+          </div>
         </Card>
 
         {/* Partner / connection */}

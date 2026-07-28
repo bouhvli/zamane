@@ -64,12 +64,13 @@ export function GlassChip({ icon: Icon, children }: { icon: LucideIcon; children
   );
 }
 
-// The cover surface shared by the trip card and the detail hero. A dark forest
-// gradient is ALWAYS painted first, so the frame is fully filled even while the
-// photo is still loading or if it fails — the image can never leave a strip of
-// page background showing. The photo then covers it edge-to-edge (object-cover,
-// no letterboxing); a bottom scrim keeps overlaid white text legible. Overlay
-// content (badges, title, controls) is passed as children.
+// The cover surface shared by the trip card and the detail hero. A dark violet
+// gradient (matching the PageHero brand surface) is ALWAYS painted first, so
+// the frame is fully filled even while the photo is still loading or if it
+// fails — the image can never leave a strip of page background showing. The
+// photo then covers it edge-to-edge (object-cover, no letterboxing); a bottom
+// scrim keeps overlaid white text legible. Overlay content (badges, title,
+// controls) is passed as children.
 export function TripCover({
   trip,
   className,
@@ -87,9 +88,9 @@ export function TripCover({
   const showImage = Boolean(coverUrl) && !failed;
 
   return (
-    <div className={cn("relative overflow-hidden bg-[#0C1E15]", className)}>
+    <div className={cn("relative overflow-hidden bg-[#120722]", className)}>
       {/* Always-on branded base — guarantees the frame is filled. */}
-      <div className="absolute inset-0 bg-[radial-gradient(150%_130%_at_20%_10%,#2E5E43_0%,#1E4634_50%,#0C1E15_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(150%_130%_at_20%_10%,#3A1470_0%,#2A1052_50%,#120722_100%)]" />
 
       {!showImage && (
         <>

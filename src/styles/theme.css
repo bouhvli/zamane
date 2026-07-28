@@ -2,111 +2,108 @@
 
 :root {
   --font-size: 16px;
-  /* Nature palette (from the travel-app design language): a pale sage-cream
-     canvas, deep-forest-green primary, and a bright lime "spark" accent.
-     Neutrals are tinted cool/green to match the accent temperature rather
-     than left pure grey (Refactoring UI). */
-  --background: #EEF2E9;
-  --foreground: #16241C;
-  --card: #FBFCF9;
-  --card-foreground: #16241C;
-  --popover: #FBFCF9;
-  --popover-foreground: #16241C;
-  /* Deep forest green — the "Hiking" pill / hero / nav colour. Very dark, so
-     it carries white text at ~9:1 and reads as forest text on light surfaces
-     at ~8:1 (text-primary chips, links). */
-  --primary: #1E4634;
+  /* The Zamane brand palette (matches public/icons/logo.svg + favicon.svg +
+     the PWA manifest in vite.config.ts): a pale lavender-blush canvas, a
+     violet primary, and a rose "spark" accent — the two overlapping circles
+     of the logo mark, standing in for the couple. Neutrals are tinted warm
+     toward the rose hue rather than left pure grey (Refactoring UI). */
+  --background: #F5EFF2;
+  --foreground: #1A0F14;
+  --card: #FDFAFC;
+  --card-foreground: #1A0F14;
+  --popover: #FDFAFC;
+  --popover-foreground: #1A0F14;
+  /* Brand violet — the logo's second circle. Carries white text at ~6.6:1. */
+  --primary: #5A27FF;
   --primary-foreground: #FFFFFF;
-  --secondary: #DEE7D6;
-  --secondary-foreground: #1E4634;
-  --muted: #E4EBDC;
-  /* Medium green-grey for secondary/placeholder text; darkened to clear WCAG
-     AA's 4.5:1 against both --background and --muted, same green hue. */
-  --muted-foreground: #4C6753;
-  /* The lime spark. Used as a BACKGROUND with dark text (active states,
-     highlights, the hero progress fill) — never as small text on light, where
-     a light chartreuse can't reach 4.5:1. */
-  --accent: #C4E76B;
-  --accent-foreground: #16341F;
-  /* A darkened olive of the same lime family, for the rare case where accent
-     must render as small text on a light surface (e.g. an "accent"-tone
-     status pill). Clears ~9:1 on white. */
-  --accent-strong: #3C5A1C;
-  --destructive: #C43D2E;
+  --secondary: #EBE0E3;
+  --secondary-foreground: #1A0F14;
+  --muted: #F0E8EC;
+  /* Medium rose-grey for secondary/placeholder text; clears WCAG AA's 4.5:1
+     against both --background and --muted, same rose hue. */
+  --muted-foreground: #7A5566;
+  /* Brand rose — the logo's first circle. Used as a BACKGROUND with white
+     text for large/bold moments (badges, fills) — as small text on light it
+     only clears ~4:1, so small-text contexts use --accent-strong instead. */
+  --accent: #BF6382;
+  --accent-foreground: #FFFFFF;
+  /* A darkened version of the same rose, for when accent must render as
+     small text on a light surface (e.g. an "accent"-tone status pill).
+     Clears ~9:1 on white. */
+  --accent-strong: #7A2E48;
+  --destructive: #D4183D;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(30, 70, 52, 0.14);
+  --border: rgba(191, 99, 130, 0.15);
   /* Matches --border so inputs join the same hairline language instead of
      floating with no boundary (every other bordered surface uses --border
      at rest). */
-  --input: rgba(30, 70, 52, 0.16);
-  --input-background: #E7EEDF;
-  --switch-background: #C3D2B8;
+  --input: rgba(191, 99, 130, 0.15);
+  --input-background: #F0E8EC;
+  --switch-background: #D4B8C4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-  --ring: #1E4634;
-  --chart-1: #1E4634;
-  --chart-2: #6FA368;
-  --chart-3: #C4E76B;
-  --chart-4: #B7C9A8;
-  --chart-5: #16241C;
-  /* Large, soft rounding to match the travel-app cards (was 0.75rem). */
+  --ring: #5A27FF;
+  --chart-1: #5A27FF;
+  --chart-2: #BF6382;
+  --chart-3: #7A2E48;
+  --chart-4: #EBE0E3;
+  --chart-5: #1A0F14;
   --radius: 1.25rem;
-  --sidebar: #FBFCF9;
-  --sidebar-foreground: #16241C;
-  --sidebar-primary: #1E4634;
+  --sidebar: #FDFAFC;
+  --sidebar-foreground: #1A0F14;
+  --sidebar-primary: #5A27FF;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E4EBDC;
-  --sidebar-accent-foreground: #16241C;
-  --sidebar-border: rgba(30, 70, 52, 0.14);
-  --sidebar-ring: #1E4634;
+  --sidebar-accent: #F0E8EC;
+  --sidebar-accent-foreground: #1A0F14;
+  --sidebar-border: rgba(191, 99, 130, 0.15);
+  --sidebar-ring: #5A27FF;
 }
 
 .dark {
-  --background: #0E1512;
-  --foreground: #EAF1E4;
-  --card: #14201A;
-  --card-foreground: #EAF1E4;
-  --popover: #14201A;
-  --popover-foreground: #EAF1E4;
-  /* Inverted from light mode: on dark, primary is a bright grass-green that
-     reads as text on the near-black surface (~5.5:1) AND carries dark text on
-     button fills (~10:1) — so --primary-foreground flips to near-black here,
-     the same dark-text-on-green pattern the lime accent uses. */
-  --primary: #6FBB86;
-  --primary-foreground: #0E1512;
-  --secondary: #23332A;
-  --secondary-foreground: #EAF1E4;
-  --muted: #1A2720;
-  --muted-foreground: #93AC9C;
-  --accent: #C4E76B;
-  --accent-foreground: #14261C;
-  /* On the near-black dark card the lime already clears 4.5:1 as small text,
-     so there's nothing to darken further here. */
-  --accent-strong: #C4E76B;
-  --destructive: #E06253;
+  --background: #0F0A0D;
+  --foreground: #F5EFF2;
+  --card: #1A1015;
+  --card-foreground: #F5EFF2;
+  --popover: #1A1015;
+  --popover-foreground: #F5EFF2;
+  /* A lighter violet on dark — the deep light-mode primary would sink into
+     the near-black surface. Clears ~4:1 against it, same treatment the rose
+     accent already gets (see --accent-strong below). */
+  --primary: #7B52FF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2A1E23;
+  --secondary-foreground: #F5EFF2;
+  --muted: #221519;
+  --muted-foreground: #9B7B88;
+  --accent: #BF6382;
+  --accent-foreground: #FFFFFF;
+  /* On the near-black dark card the rose already clears 4.5:1 as small text
+     (~4.7:1), so there's nothing to darken further here. */
+  --accent-strong: #BF6382;
+  --destructive: #D4183D;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(150, 200, 130, 0.16);
-  --input: rgba(150, 200, 130, 0.1);
-  --input-background: #1A2720;
-  --switch-background: #3A4C40;
+  --border: rgba(191, 99, 130, 0.2);
+  --input: rgba(191, 99, 130, 0.1);
+  --input-background: #221519;
+  --switch-background: #4A3040;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-  --ring: #6FBB86;
-  --chart-1: #6FBB86;
-  --chart-2: #4E9E6E;
-  --chart-3: #C4E76B;
-  --chart-4: #23332A;
-  --chart-5: #EAF1E4;
-  --sidebar: #14201A;
-  --sidebar-foreground: #EAF1E4;
-  --sidebar-primary: #6FBB86;
-  --sidebar-primary-foreground: #0E1512;
-  --sidebar-accent: #23332A;
-  --sidebar-accent-foreground: #EAF1E4;
-  --sidebar-border: rgba(150, 200, 130, 0.16);
-  --sidebar-ring: #6FBB86;
+  --ring: #7B52FF;
+  --chart-1: #7B52FF;
+  --chart-2: #BF6382;
+  --chart-3: #9B7B88;
+  --chart-4: #2A1E23;
+  --chart-5: #F5EFF2;
+  --sidebar: #1A1015;
+  --sidebar-foreground: #F5EFF2;
+  --sidebar-primary: #7B52FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2A1E23;
+  --sidebar-accent-foreground: #F5EFF2;
+  --sidebar-border: rgba(191, 99, 130, 0.2);
+  --sidebar-ring: #7B52FF;
 }
 
 @theme inline {
@@ -242,41 +239,42 @@
  * (so it never glares against the near-black canvas). The backdrop blur lets
  * the page tint and motion bleed through the pill for a real glass feel.
  *
- * Light mode: forest-green active foreground on a soft lime-tinted capsule,
- * muted green-grey inactive. Dark mode flips the active to lime (forest-green
- * would vanish on dark), same as --primary flips elsewhere. --nav-sheen is a
- * top-edge inner highlight that gives the glass its lit rim; --nav-shadow is a
- * soft, theme-tinted cast so the pill floats.
+ * Light mode: brand-violet active foreground on a soft rose-tinted capsule,
+ * muted rose-grey inactive. Dark mode uses the lighter dark-mode violet
+ * (--primary already flips to a brighter tone there), same idea as the rest
+ * of the theme. --nav-sheen is a top-edge inner highlight that gives the
+ * glass its lit rim; --nav-shadow is a soft, theme-tinted cast so the pill
+ * floats.
  */
 :root {
   --nav-bg:
     linear-gradient(180deg, rgba(255, 255, 255, 0.90) 0%, rgba(255, 255, 255, 0.80) 100%);
-  --nav-border: rgba(30, 70, 52, 0.12);
+  --nav-border: rgba(90, 39, 255, 0.12);
   --nav-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.95);
   --nav-shadow:
-    0 16px 34px -12px rgba(30, 70, 52, 0.26),
-    0 5px 14px -6px rgba(30, 70, 52, 0.14);
-  --nav-fg-inactive: #4C6753;
-  --nav-fg-active: #1E4634;
+    0 16px 34px -12px rgba(90, 39, 255, 0.20),
+    0 5px 14px -6px rgba(90, 39, 255, 0.12);
+  --nav-fg-inactive: #7A5566;
+  --nav-fg-active: #5A27FF;
   --nav-pill-bg:
-    linear-gradient(180deg, rgba(196, 231, 107, 0.58) 0%, rgba(196, 231, 107, 0.36) 100%);
-  --nav-pill-border: rgba(60, 90, 28, 0.20);
+    linear-gradient(180deg, rgba(191, 99, 130, 0.32) 0%, rgba(191, 99, 130, 0.18) 100%);
+  --nav-pill-border: rgba(122, 46, 72, 0.20);
   --nav-pill-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .dark {
   --nav-bg:
-    linear-gradient(180deg, rgba(38, 56, 46, 0.82) 0%, rgba(20, 32, 26, 0.74) 100%);
-  --nav-border: rgba(150, 200, 130, 0.16);
+    linear-gradient(180deg, rgba(42, 30, 35, 0.82) 0%, rgba(26, 16, 21, 0.74) 100%);
+  --nav-border: rgba(123, 82, 255, 0.18);
   --nav-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --nav-shadow:
     0 18px 36px -12px rgba(0, 0, 0, 0.62),
     0 5px 14px -6px rgba(0, 0, 0, 0.5);
-  --nav-fg-inactive: #93AC9C;
-  --nav-fg-active: #C4E76B;
+  --nav-fg-inactive: #9B7B88;
+  --nav-fg-active: #7B52FF;
   --nav-pill-bg:
-    linear-gradient(180deg, rgba(196, 231, 107, 0.22) 0%, rgba(196, 231, 107, 0.12) 100%);
-  --nav-pill-border: rgba(196, 231, 107, 0.28);
+    linear-gradient(180deg, rgba(191, 99, 130, 0.24) 0%, rgba(191, 99, 130, 0.14) 100%);
+  --nav-pill-border: rgba(191, 99, 130, 0.30);
   --nav-pill-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -297,28 +295,29 @@
 }
 
 /*
- * PageHero tokens — the deep-forest-green "hero card" header on Home, the
- * app's one drenched brand surface (echoing the dark-green "Nature Power" /
- * "Tyrolean Alps" cards in the reference screenshots). Colours come from the
- * nature palette: a rich pine radial deepening to near-black at the edges,
- * a lime glow top-right (the accent), and a soft mid-green glow bottom-left.
- * Kept identical in both light and dark app themes (not duplicated under
- * .dark): the effect depends on a dark surface for contrast, so it's a fixed
- * brand-coloured "island" rather than a page-background-following surface.
+ * PageHero tokens — the dark, glowing "hero card" header on Home, the app's
+ * one drenched brand surface. Colours are drawn from tokens Zamane already
+ * owns: a deep-violet radial deepening to near-black at the edges, a violet
+ * glow top-right (the dark-mode --primary, #7B52FF), and a hot-pink glow
+ * bottom-left (#FF2D78) — the two brand hues the logo's overlapping circles
+ * stand for. Kept identical in both light and dark app themes (not
+ * duplicated under .dark): the effect depends on a dark surface for
+ * contrast, so it's a fixed brand-coloured "island" rather than a
+ * page-background-following surface.
  *
- * --hero-bg layers a faint top sheen (a glass-like highlight) over the pine
- * radial. --hero-shadow adds a second, lime-tinted pass so the cast shadow
- * reads as part of the two-colour forest+lime brand identity.
+ * --hero-bg layers a faint top sheen (a glass-like highlight) over the
+ * violet radial. --hero-shadow adds a second, violet-tinted pass so the cast
+ * shadow reads as part of the same brand identity.
  */
 :root {
   --hero-bg:
     linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 20%),
-    radial-gradient(150% 130% at 15% -10%, #2E5E43 0%, #1E4634 42%, #143528 75%, #0C1E15 100%);
+    radial-gradient(150% 130% at 15% -10%, #3A1470 0%, #2A1052 42%, #1D0B38 75%, #120722 100%);
   --hero-shadow:
-    0 28px 56px -16px rgba(12, 30, 21, 0.55),
-    0 10px 22px -6px rgba(196, 231, 107, 0.16);
-  --hero-glow-tr: radial-gradient(circle, rgba(196, 231, 107, 0.42) 0%, rgba(196, 231, 107, 0) 70%);
-  --hero-glow-bl: radial-gradient(circle, rgba(46, 94, 67, 0.5) 0%, rgba(46, 94, 67, 0) 70%);
+    0 28px 56px -16px rgba(18, 7, 34, 0.55),
+    0 10px 22px -6px rgba(90, 39, 255, 0.2);
+  --hero-glow-tr: radial-gradient(circle, rgba(123, 82, 255, 0.42) 0%, rgba(123, 82, 255, 0) 70%);
+  --hero-glow-bl: radial-gradient(circle, rgba(255, 45, 120, 0.35) 0%, rgba(255, 45, 120, 0) 70%);
   --hero-dot-grid: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
   --hero-glass: rgba(255, 255, 255, 0.06);
   --hero-glass-border: rgba(255, 255, 255, 0.12);

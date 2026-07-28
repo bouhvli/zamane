@@ -32,11 +32,12 @@ export function GoalCard({ goal }: { goal: Goal }) {
       aria-label={`Open ${goal.title}`}
       className="group block overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(16,32,24,0.05),0_14px_34px_-16px_rgba(16,32,24,0.22)] outline-none transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:hover:translate-y-0"
     >
-      {/* Banner: a dark forest base is ALWAYS painted first, so the frame is
-          full even while a photo loads or if it fails; the photo then covers
-          it edge-to-edge and a scrim keeps the overlaid title legible. */}
-      <div className="relative h-32 overflow-hidden bg-[#0C1E15]">
-        <div className="absolute inset-0 bg-[radial-gradient(150%_130%_at_20%_10%,#2E5E43_0%,#1E4634_50%,#0C1E15_100%)]" />
+      {/* Banner: a dark violet base (matching the PageHero brand surface) is
+          ALWAYS painted first, so the frame is full even while a photo loads
+          or if it fails; the photo then covers it edge-to-edge and a scrim
+          keeps the overlaid title legible. */}
+      <div className="relative h-32 overflow-hidden bg-[#120722]">
+        <div className="absolute inset-0 bg-[radial-gradient(150%_130%_at_20%_10%,#3A1470_0%,#2A1052_50%,#120722_100%)]" />
 
         {!showImage && (
           <>

@@ -1,13 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChevronDown, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 
 import { MAX_MONEY_AMOUNT } from "@shared/validation";
 import { createShoppingItem } from "@/lib/shopping-api";
 import { ApiError } from "@/lib/api";
-import { cn } from "@/components/ui/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -22,15 +21,43 @@ type ShoppingFormValues = z.infer<typeof shoppingFormSchema>;
 
 const DEFAULT_VALUES: ShoppingFormValues = { name: "", quantity: 1, category: "", price: "" };
 
-export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => void; categories?: string[] }) {
+// The add-item flow as a slide-up sheet (same native <dialog> primitive as
+// ItineraryItemSheet/ContributionSheet: focus trap + Escape + backdrop for
+// free). Unlike those, submitting does NOT close the sheet — a shopping list
+// is usually filled in with several items in one sitting, so it clears and
+// refocuses the name field instead, the same rapid-re-add behaviour the old
+// always-open inline form had. Tap the X or the backdrop to finish.
+export function ShoppingItemSheet({
+  open,
+  onClose,
+  onAdded,
+  categories = [],
+}: {
+  open: boolean;
+  onClose: () => void;
+  onAdded: () => void;
+  categories?: string[];
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
   const [serverError, setServerError] = useState<string | null>(null);
-  // The everyday action is "add a name and go", so the extra fields stay
-  // tucked away behind a disclosure until the user actually wants them.
-  const [showDetails, setShowDetails] = useState(false);
   const form = useForm<ShoppingFormValues>({
     resolver: zodResolver(shoppingFormSchema),
     defaultValues: DEFAULT_VALUES,
   });
+  const isSubmitting = form.formState.isSubmitting;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (open && !el.open) {
+      setServerError(null);
+      form.reset(DEFAULT_VALUES);
+      el.showModal();
+      requestAnimationFrame(() => form.setFocus("name"));
+    } else if (!open && el.open) {
+      el.close();
+    }
+  }, [open, form]);
 
   async function onSubmit(values: ShoppingFormValues) {
     setServerError(null);
@@ -48,7 +75,6 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
         price: values.price ? Number(values.price) : undefined,
       });
       form.reset(DEFAULT_VALUES);
-      // Keep focus in the name field so several items can be added in a row.
       form.setFocus("name");
       onAdded();
     } catch (error) {
@@ -57,39 +83,51 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3" noValidate>
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex gap-2">
-                <FormControl>
-                  <Input placeholder="Add an item…" aria-label="Item name" {...field} />
-                </FormControl>
-                <Button type="submit" className="shrink-0" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-                  Add
-                </Button>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <dialog
+      ref={ref}
+      className="sheet-dialog"
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!isSubmitting) onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === ref.current && !isSubmitting) onClose();
+      }}
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex max-h-[92dvh] flex-col" noValidate>
+          <div className="shrink-0 px-5 pt-3">
+            <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-bold tracking-tight text-foreground">Add item</h2>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="-mr-2 size-9 text-muted-foreground"
+                aria-label="Close"
+                onClick={onClose}
+              >
+                <X className="size-5" />
+              </Button>
+            </div>
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setShowDetails((value) => !value)}
-          aria-expanded={showDetails}
-          className="inline-flex items-center gap-1 rounded-md text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
-          <ChevronDown className={cn("size-3.5 transition-transform", showDetails && "rotate-180")} />
-          {showDetails ? "Hide details" : "Add quantity, category, price"}
-        </button>
+          <div className="flex-1 space-y-4 overflow-y-auto px-5 pt-4 pb-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Item</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Milk" autoComplete="off" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {showDetails && (
-          <div className="space-y-3 border-t border-border pt-3">
             <div className="grid grid-cols-3 gap-3">
               <FormField
                 control={form.control}
@@ -109,9 +147,9 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
                 name="category"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>Category (optional)</FormLabel>
+                    <FormLabel>Category</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Groceries" list="shopping-categories" {...field} />
+                      <Input placeholder="Optional" list="shopping-categories" {...field} />
                     </FormControl>
                     {categories.length > 0 && (
                       <datalist id="shopping-categories">
@@ -125,6 +163,7 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
                 )}
               />
             </div>
+
             <FormField
               control={form.control}
               name="price"
@@ -133,8 +172,8 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
                   <FormLabel>Price (optional)</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground">
-                        $
+                      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-medium text-muted-foreground">
+                        MAD
                       </span>
                       <Input
                         type="number"
@@ -142,7 +181,7 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
                         min="0"
                         max={MAX_MONEY_AMOUNT}
                         placeholder="0.00"
-                        className="pl-7"
+                        className="pl-12"
                         inputMode="decimal"
                         {...field}
                       />
@@ -152,15 +191,22 @@ export function ShoppingItemForm({ onAdded, categories = [] }: { onAdded: () => 
                 </FormItem>
               )}
             />
-          </div>
-        )}
 
-        {serverError && (
-          <p role="alert" className="text-sm text-destructive">
-            {serverError}
-          </p>
-        )}
-      </form>
-    </Form>
+            {serverError && (
+              <p role="alert" className="text-sm text-destructive">
+                {serverError}
+              </p>
+            )}
+          </div>
+
+          <div className="shrink-0 border-t border-border bg-popover px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+              Add item
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </dialog>
   );
 }
