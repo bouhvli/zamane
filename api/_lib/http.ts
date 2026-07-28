@@ -16,7 +16,7 @@ export type ParsedBody<T> = { success: true; data: T } | { success: false; error
 /** Validates req.body against a zod schema, returning the first human-readable issue on failure. */
 export function parseBody<T>(schema: ZodType<T>, body: unknown): ParsedBody<T> {
   const result = schema.safeParse(body);
-  if (!result.success) {
+  if (result.success === false) {
     const message = result.error.issues[0]?.message ?? "Invalid request";
     return { success: false, error: message };
   }

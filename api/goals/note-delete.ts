@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const parsed = parseBody(goalNoteIdSchema, req.body);
-  if (!parsed.success) {
+  if (parsed.success === false) {
     res.status(400).json({ error: parsed.error });
     return;
   }

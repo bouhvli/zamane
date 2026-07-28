@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const parsed = parseBody(goalIdQuerySchema, req.query);
-  if (!parsed.success) {
+  if (parsed.success === false) {
     res.status(400).json({ error: parsed.error });
     return;
   }

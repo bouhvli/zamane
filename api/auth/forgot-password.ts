@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!methodGuard(req, res, ["POST"])) return;
 
   const parsed = parseBody(forgotPasswordRequestSchema, req.body);
-  if (!parsed.success) {
+  if (parsed.success === false) {
     res.status(400).json({ error: parsed.error });
     return;
   }
