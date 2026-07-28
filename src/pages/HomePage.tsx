@@ -1,23 +1,39 @@
 import { useState } from "react";
 import { Link, useLoaderData, useNavigate } from "react-router";
-import { Check, Copy, Heart, Plus } from "lucide-react";
+import { Check, Copy, Heart, MapPin, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth-context";
 import type { Goal, GoalsSummary } from "@/lib/goals-api";
 import type { Group } from "@/lib/groups-api";
+import type { Trip, TripsSummary } from "@/lib/trips-api";
+import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHero } from "@/components/layout/PageHero";
 import { GoalCard } from "@/components/goals/GoalCard";
+import { TripCard } from "@/components/trips/TripCard";
+import { tripStatus } from "@/components/trips/trip-visuals";
+import { ShoppingPreviewCard } from "@/components/shopping/ShoppingPreviewCard";
 
 export default function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { goals, summary, group } = useLoaderData() as {
+  const {
+    goals,
+    goalsSummary: summary,
+    group,
+    trips,
+    shoppingItems,
+    shoppingSummary,
+  } = useLoaderData() as {
     goals: Goal[];
-    summary: GoalsSummary;
+    goalsSummary: GoalsSummary;
     group: Group | null;
+    trips: Trip[];
+    tripsSummary: TripsSummary;
+    shoppingItems: ShoppingItem[];
+    shoppingSummary: ShoppingSummary;
   };
   const [copied, setCopied] = useState(false);
 
@@ -73,6 +89,12 @@ export default function HomePage() {
     name: memberName(m),
   }));
 
+  // "What's next" for the dashboard preview: everything except trips already
+  // in the past (undated trips still count — they just haven't been
+  // scheduled yet). The API already orders by start date ascending, so this
+  // stays soonest-first.
+  const previewTrips = trips.filter((trip) => tripStatus(trip)?.tone !== "past").slice(0, 2);
+
   return (
     <div>
       <PageHero
@@ -102,6 +124,60 @@ export default function HomePage() {
             </div>
           </Card>
         )}
+
+        <div>
+          <div className="mb-2 flex items-center justify-between px-1">
+            <p className="text-lg font-semibold text-foreground">Trips</p>
+            <Button type="button" variant="link" size="sm" onClick={() => navigate("/trips")}>
+              View all
+            </Button>
+          </div>
+          {previewTrips.length === 0 ? (
+            <Link
+              to="/trips/new"
+              className="group flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-card p-4 transition-[color,background-color,border-color,transform] active:scale-[0.98] hover:border-primary hover:bg-primary/5"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                <MapPin className="size-5" />
+              </span>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-medium text-foreground">Plan your first trip together</span>
+                <span className="text-xs text-muted-foreground">Map out where you're headed next</span>
+              </div>
+            </Link>
+          ) : (
+            <div className="space-y-3">
+              {previewTrips.map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between px-1">
+            <p className="text-lg font-semibold text-foreground">Shopping</p>
+            <Button type="button" variant="link" size="sm" onClick={() => navigate("/shopping")}>
+              View all
+            </Button>
+          </div>
+          {shoppingItems.length === 0 ? (
+            <Link
+              to="/shopping"
+              className="group flex items-center gap-3 rounded-lg border border-dashed border-primary/30 bg-card p-4 transition-[color,background-color,border-color,transform] active:scale-[0.98] hover:border-primary hover:bg-primary/5"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                <Plus className="size-5" />
+              </span>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-medium text-foreground">Start your shared list</span>
+                <span className="text-xs text-muted-foreground">Add the first thing you need to buy</span>
+              </div>
+            </Link>
+          ) : (
+            <ShoppingPreviewCard items={shoppingItems} summary={shoppingSummary} />
+          )}
+        </div>
 
         <div>
           <div className="mb-2 flex items-center justify-between px-1">

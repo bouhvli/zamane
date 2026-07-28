@@ -13,12 +13,6 @@
 
 /* Soft lime-tinted capsule behind the active tab, with its own hairline edge
    and a faint top sheen so it reads as a raised chip of frosted glass. */
-.bottom-nav-active-bg {
-  background: var(--nav-pill-bg);
-  border: 1px solid var(--nav-pill-border);
-  box-shadow: var(--nav-pill-sheen);
-}
-
 .pb-safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

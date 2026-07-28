@@ -239,12 +239,13 @@
  * (so it never glares against the near-black canvas). The backdrop blur lets
  * the page tint and motion bleed through the pill for a real glass feel.
  *
- * Light mode: brand-violet active foreground on a soft rose-tinted capsule,
- * muted rose-grey inactive. Dark mode uses the lighter dark-mode violet
- * (--primary already flips to a brighter tone there), same idea as the rest
- * of the theme. --nav-sheen is a top-edge inner highlight that gives the
- * glass its lit rim; --nav-shadow is a soft, theme-tinted cast so the pill
- * floats.
+ * Light mode: brand-violet active foreground, muted rose-grey inactive — no
+ * background fill behind the active tab, just the text/icon colour plus the
+ * gradient underline drawn inline in BottomNav.tsx. Dark mode uses the
+ * lighter dark-mode violet (--primary already flips to a brighter tone
+ * there), same idea as the rest of the theme. --nav-sheen is a top-edge
+ * inner highlight that gives the glass its lit rim; --nav-shadow is a soft,
+ * theme-tinted cast so the pill floats.
  */
 :root {
   --nav-bg:
@@ -256,10 +257,6 @@
     0 5px 14px -6px rgba(90, 39, 255, 0.12);
   --nav-fg-inactive: #7A5566;
   --nav-fg-active: #5A27FF;
-  --nav-pill-bg:
-    linear-gradient(180deg, rgba(191, 99, 130, 0.32) 0%, rgba(191, 99, 130, 0.18) 100%);
-  --nav-pill-border: rgba(122, 46, 72, 0.20);
-  --nav-pill-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .dark {
@@ -272,10 +269,6 @@
     0 5px 14px -6px rgba(0, 0, 0, 0.5);
   --nav-fg-inactive: #9B7B88;
   --nav-fg-active: #7B52FF;
-  --nav-pill-bg:
-    linear-gradient(180deg, rgba(191, 99, 130, 0.24) 0%, rgba(191, 99, 130, 0.14) 100%);
-  --nav-pill-border: rgba(191, 99, 130, 0.30);
-  --nav-pill-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /*

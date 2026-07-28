@@ -87,8 +87,25 @@ async function goalDetailLoader({ params }: LoaderFunctionArgs) {
 }
 
 async function homeLoader() {
-  const [goalsData, groupData] = await Promise.all([fetchGoals(), fetchGroup()]);
-  return { ...goalsData, ...groupData };
+  // Fetched in parallel — the four independent lookups the dashboard's
+  // Trips/Shopping/Goals preview sections need. Renamed on the way out since
+  // goals/trips/shopping each return their own "summary" key that would
+  // otherwise collide if merged with a blind spread.
+  const [goalsData, groupData, tripsData, shoppingData] = await Promise.all([
+    fetchGoals(),
+    fetchGroup(),
+    fetchTrips(),
+    fetchShoppingItems(),
+  ]);
+  return {
+    goals: goalsData.goals,
+    goalsSummary: goalsData.summary,
+    group: groupData.group,
+    trips: tripsData.trips,
+    tripsSummary: tripsData.summary,
+    shoppingItems: shoppingData.items,
+    shoppingSummary: shoppingData.summary,
+  };
 }
 
 async function tripsListLoader() {
