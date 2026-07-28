@@ -6,12 +6,46 @@
 // themselves stay in the exact shape Vercel expects for real deployment.
 import { createServer as createViteServer } from "vite";
 import { createServer as createHttpServer } from "node:http";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
+
+function toModulePath(absoluteFilePath) {
+  return "/" + path.relative(root, absoluteFilePath).split(path.sep).join("/");
+}
+
+// Mirrors Vercel's filesystem routing for /api: an exact file wins; otherwise
+// the nearest ancestor directory's `[...param].ts` catch-all handles it, with
+// the remaining path segments exposed on req.query[param] (as an array), same
+// as Vercel does in production. Needed because several resources (auth,
+// goals, groups, shopping, trips) were consolidated into single catch-all
+// functions to stay under the Hobby plan's serverless function cap.
+function resolveApiRoute(routePath) {
+  const exactPath = path.join(root, "api", `${routePath}.ts`);
+  if (existsSync(exactPath)) {
+    return { filePath: exactPath, params: {} };
+  }
+
+  const segments = routePath.split("/").filter(Boolean);
+  for (let i = segments.length - 1; i >= 1; i--) {
+    const dir = path.join(root, "api", ...segments.slice(0, i));
+    if (!existsSync(dir)) continue;
+
+    const catchAllFile = readdirSync(dir).find((f) => /^\[\.\.\..+\]\.ts$/.test(f));
+    if (!catchAllFile) continue;
+
+    const paramName = catchAllFile.match(/^\[\.\.\.(.+)\]\.ts$/)[1];
+    return {
+      filePath: path.join(dir, catchAllFile),
+      params: { [paramName]: segments.slice(i) },
+    };
+  }
+
+  return null;
+}
 
 const vite = await createViteServer({
   root,
@@ -61,16 +95,17 @@ const server = createHttpServer(async (req, res) => {
 
   if (url.pathname.startsWith("/api/")) {
     const routePath = url.pathname.replace(/^\/api\//, "");
-    const filePath = path.join(root, "api", `${routePath}.ts`);
+    const route = resolveApiRoute(routePath);
 
-    if (!existsSync(filePath)) {
+    if (!route) {
       res.statusCode = 404;
       res.end(JSON.stringify({ error: "Not found" }));
       return;
     }
+    const { filePath, params } = route;
 
     req.cookies = parseCookies(req.headers.cookie);
-    req.query = Object.fromEntries(url.searchParams);
+    req.query = { ...Object.fromEntries(url.searchParams), ...params };
 
     const rawBody = await readBody(req);
     const contentType = req.headers["content-type"] ?? "";
@@ -87,7 +122,7 @@ const server = createHttpServer(async (req, res) => {
     enhanceResponse(res);
 
     try {
-      const mod = await vite.ssrLoadModule(`/api/${routePath}.ts`);
+      const mod = await vite.ssrLoadModule(toModulePath(filePath));
       await mod.default(req, res);
     } catch (error) {
       vite.ssrFixStacktrace(error);
