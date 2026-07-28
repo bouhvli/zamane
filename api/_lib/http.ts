@@ -11,6 +11,19 @@ export function methodGuard(req: VercelRequest, res: VercelResponse, allowed: st
   return true;
 }
 
+/**
+ * Reads the joined path segments captured by a catch-all dynamic route file
+ * (`[...action].ts`). Vercel's plain filesystem `/api` routing (unlike
+ * Next.js) exposes this as a plain string when there's one segment and an
+ * array when there are several — handle both rather than assume either.
+ */
+export function getCatchAllAction(req: VercelRequest): string {
+  const raw = req.query.action;
+  if (Array.isArray(raw)) return raw.join("/");
+  if (typeof raw === "string") return raw;
+  return "";
+}
+
 export type ParsedBody<T> = { success: true; data: T } | { success: false; error: string };
 
 /** Validates req.body against a zod schema, returning the first human-readable issue on failure. */

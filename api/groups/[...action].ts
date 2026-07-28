@@ -3,7 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { joinGroupRequestSchema } from "../../shared/validation.js";
 
 import { sql } from "../_lib/db.js";
-import { methodGuard, parseBody } from "../_lib/http.js";
+import { methodGuard, parseBody, getCatchAllAction } from "../_lib/http.js";
 import { getUserFromRequest } from "../_lib/auth.js";
 import { generateInviteCode } from "../_lib/invite-code.js";
 
@@ -12,7 +12,7 @@ const MAX_ATTEMPTS = 5;
 // Consolidated into one function (groups/me, groups/create, groups/join all
 // routed here) to stay under the Hobby plan's 12 serverless function cap.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const action = Array.isArray(req.query.action) ? req.query.action.join("/") : "";
+  const action = getCatchAllAction(req);
 
   switch (action) {
     case "me":

@@ -9,7 +9,7 @@ import {
 } from "../../shared/validation.js";
 
 import { sql } from "../_lib/db.js";
-import { methodGuard, parseBody } from "../_lib/http.js";
+import { methodGuard, parseBody, getCatchAllAction } from "../_lib/http.js";
 import {
   getUserFromRequest,
   verifyPasswordConstantTime,
@@ -34,7 +34,7 @@ const RESET_GENERIC_MESSAGE = "If that email exists, a reset link was sent.";
 // Consolidated into one function (auth/login, auth/signup, etc. all routed
 // here) to stay under the Hobby plan's 12 serverless function cap.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const action = Array.isArray(req.query.action) ? req.query.action.join("/") : "";
+  const action = getCatchAllAction(req);
 
   switch (action) {
     case "login":

@@ -11,7 +11,7 @@ import {
 } from "../../shared/validation.js";
 
 import { sql } from "../_lib/db.js";
-import { methodGuard, parseBody } from "../_lib/http.js";
+import { methodGuard, parseBody, getCatchAllAction } from "../_lib/http.js";
 import { getUserFromRequest } from "../_lib/auth.js";
 import { cloudinaryConfigured, uploadImage, destroyImage } from "../_lib/cloudinary.js";
 
@@ -29,7 +29,7 @@ const MAX_DATA_URL_LENGTH = 8 * 1024 * 1024; // ~6 MB of decoded image
 // Consolidated into one function (goals/list, goals/create, etc. all routed
 // here) to stay under the Hobby plan's 12 serverless function cap.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const action = Array.isArray(req.query.action) ? req.query.action.join("/") : "";
+  const action = getCatchAllAction(req);
 
   switch (action) {
     case "list":

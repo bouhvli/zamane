@@ -39,8 +39,11 @@ function resolveApiRoute(routePath) {
 
     const paramName = catchAllFile.match(/^\[\.\.\.(.+)\]\.ts$/)[1];
     return {
+      // Vercel's plain (non-Next.js) filesystem router captures the catch-all
+      // tail as a single string via a regex group, not an array — match that
+      // here so local dev matches production instead of masking the mismatch.
       filePath: path.join(dir, catchAllFile),
-      params: { [paramName]: segments.slice(i) },
+      params: { [paramName]: segments.slice(i).join("/") },
     };
   }
 
