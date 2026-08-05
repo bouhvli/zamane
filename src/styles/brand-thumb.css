@@ -1,0 +1,12 @@
+/*
+ * Shared brand-radial surface for photo-less covers — see the token comment
+ * in theme.css. One class instead of the gradient re-typed per component.
+ */
+
+.brand-thumb-base {
+  background-color: var(--thumb-radial-base);
+}
+
+.brand-thumb-radial {
+  background-image: var(--thumb-radial-bg);
+}

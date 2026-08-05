@@ -230,6 +230,17 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  /* Browsers default <button> to `cursor: default`, and Tailwind v4's preflight
+     doesn't override it — so every button in the app (the FAB, sheet actions,
+     the amount chips) showed an arrow on pointer devices while every <a> showed
+     a hand. One rule instead of a utility class per call site. Disabled buttons
+     keep the default cursor, since they aren't actionable. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
 }
 
 /*
@@ -314,6 +325,21 @@
   --hero-dot-grid: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
   --hero-glass: rgba(255, 255, 255, 0.06);
   --hero-glass-border: rgba(255, 255, 255, 0.12);
+}
+
+/*
+ * Brand-radial thumbnail surface — the dark violet base every photo-less
+ * cover paints first (CardThumb, FullGoalCard's banner, TripCover), so an
+ * image slot is never an empty hole while a photo loads or after one fails.
+ * One shared token instead of the hex string hand-copied into three
+ * components, which had already drifted (CardThumb's gradient stopped at
+ * 55%, the other two at 50%) before any of them changed the value on
+ * purpose. Kept outside .dark, same reasoning as --hero-bg: a fixed brand
+ * "island" rather than a surface that follows the page theme.
+ */
+:root {
+  --thumb-radial-base: #120722;
+  --thumb-radial-bg: radial-gradient(150% 130% at 20% 10%, #3A1470 0%, #2A1052 50%, #120722 100%);
 }
 
 /*

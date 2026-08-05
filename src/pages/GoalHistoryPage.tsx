@@ -50,7 +50,7 @@ export default function GoalHistoryPage() {
 
   return (
     <div>
-      <PageHeader back={{ to: `/goals/${goal.id}`, label: goal.title }} title="History & stats" description={goal.title} />
+      <PageHeader back={{ to: `/goals/${goal.id}`, label: "Goal" }} title="History & stats" description={goal.title} />
 
       <div className="mx-auto max-w-md space-y-6 px-4 pb-12">
         {count === 0 ? (
@@ -66,7 +66,7 @@ export default function GoalHistoryPage() {
         ) : (
           <>
             {/* Headline: where the goal stands right now. */}
-            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(16,32,24,0.04),0_10px_28px_-16px_rgba(16,32,24,0.16)]">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(26,15,20,0.04),0_10px_28px_-16px_rgba(26,15,20,0.16)]">
               <div className="mb-2 flex items-baseline justify-between gap-3">
                 <span className="text-2xl font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">
                   {isFinancial ? formatAmount(goal.currentAmount) : `${goal.currentProgressPct}%`}

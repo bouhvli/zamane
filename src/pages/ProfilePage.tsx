@@ -92,7 +92,7 @@ function ThemeSwitch() {
             className={cn(
               "flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
               isActive
-                ? "bg-card text-foreground shadow-[0_1px_2px_rgba(16,32,24,0.06)]"
+                ? "bg-card text-foreground shadow-[0_1px_2px_rgba(26,15,20,0.06)]"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >

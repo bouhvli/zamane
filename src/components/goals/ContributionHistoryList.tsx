@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 
 import type { Contribution } from "@/lib/goals-api";
 import { deleteContribution } from "@/lib/goals-api";
-import { formatAmount, formatRelativeDate } from "@/lib/format";
+import { formatAmount, formatDateTime } from "@/lib/format";
 import { useUndoableDelete } from "@/lib/use-undoable-delete";
 import { Button } from "@/components/ui/button";
 
@@ -47,8 +47,8 @@ export function ContributionHistoryList({
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <div className="text-right">
-                <p className="font-mono text-sm font-semibold text-foreground">{what}</p>
-                <p className="text-xs text-muted-foreground">{formatRelativeDate(contribution.createdAt)}</p>
+                <p className="text-sm font-semibold text-foreground [font-variant-numeric:tabular-nums]">{what}</p>
+                <p className="text-xs text-muted-foreground">{formatDateTime(contribution.createdAt)}</p>
               </div>
               <Button
                 type="button"

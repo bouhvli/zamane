@@ -15,6 +15,7 @@ export function ContributionSheet({
   onClose,
   goalId,
   goalType,
+  goalTitle,
   currentProgressPct,
   onContributed,
 }: {
@@ -22,6 +23,13 @@ export function ContributionSheet({
   onClose: () => void;
   goalId: string;
   goalType: GoalType;
+  /**
+   * Which goal this is for. Omitted on GoalDetailPage, where the page header
+   * already names it; required in practice when the sheet is opened from the
+   * Home dashboard, where nothing else on screen says which goal was picked
+   * (recognition over recall).
+   */
+  goalTitle?: string;
   currentProgressPct: number;
   onContributed: () => void;
 }) {
@@ -49,10 +57,13 @@ export function ContributionSheet({
       <div className="flex max-h-[92dvh] flex-col">
         <div className="shrink-0 px-5 pt-3">
           <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold tracking-tight text-foreground">
-              {goalType === "financial" ? "Add contribution" : "Update progress"}
-            </h2>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold tracking-tight text-foreground">
+                {goalType === "financial" ? "Add contribution" : "Update progress"}
+              </h2>
+              {goalTitle && <p className="truncate text-sm text-muted-foreground">{goalTitle}</p>}
+            </div>
             <Button
               type="button"
               variant="ghost"

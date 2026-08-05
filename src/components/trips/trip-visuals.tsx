@@ -88,9 +88,9 @@ export function TripCover({
   const showImage = Boolean(coverUrl) && !failed;
 
   return (
-    <div className={cn("relative overflow-hidden bg-[#120722]", className)}>
+    <div className={cn("brand-thumb-base relative overflow-hidden", className)}>
       {/* Always-on branded base — guarantees the frame is filled. */}
-      <div className="absolute inset-0 bg-[radial-gradient(150%_130%_at_20%_10%,#3A1470_0%,#2A1052_50%,#120722_100%)]" />
+      <div className="brand-thumb-radial absolute inset-0" />
 
       {!showImage && (
         <>

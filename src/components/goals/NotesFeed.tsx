@@ -32,7 +32,7 @@ function NoteItem({ note, onDelete }: { note: GoalNote; onDelete: () => void }) 
   const who = note.displayName || note.email.split("@")[0];
 
   return (
-    <li className="overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(16,32,24,0.04),0_8px_22px_-14px_rgba(16,32,24,0.16)]">
+    <li className="overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(26,15,20,0.04),0_8px_22px_-14px_rgba(26,15,20,0.16)]">
       <div className="flex items-center gap-2.5 px-4 pt-3.5">
         <span
           aria-hidden="true"

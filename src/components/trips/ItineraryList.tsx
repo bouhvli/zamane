@@ -56,7 +56,7 @@ export function ItineraryList({ items, onChanged }: { items: ItineraryItem[]; on
       {visible.map((item) => (
         <li
           key={item.id}
-          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card p-3 shadow-[0_1px_2px_rgba(16,32,24,0.04)]"
+          className="flex items-start gap-3 rounded-lg border border-border/60 bg-card p-3 shadow-[0_1px_2px_rgba(26,15,20,0.04)]"
         >
           <DateTile date={item.itemDate} />
 

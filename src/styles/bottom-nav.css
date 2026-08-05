@@ -11,15 +11,10 @@
   backdrop-filter: blur(18px) saturate(1.4);
 }
 
-/* Soft lime-tinted capsule behind the active tab, with its own hairline edge
-   and a faint top sheen so it reads as a raised chip of frosted glass. */
-.pb-safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
 /* Clears the floating pill: its bottom offset (0.75rem + safe area) plus the
    pill's own height, with breathing room so the last row never hides behind
-   it. */
+   it. Measured at 390×844: the pill is 67px tall and occupies 79px from the
+   viewport bottom, against the 88px reserved here — 9px of slack. */
 .pb-bottom-nav {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
@@ -28,9 +23,10 @@
  * The doodle icon set is solid-fill artwork (not stroke-based like
  * lucide), so it can't be recolored via `stroke`. Instead each icon is
  * used as a CSS mask over `currentColor` — active vs inactive state comes
- * entirely from the parent Link's text color (--nav-fg-active lime vs
- * --nav-fg-inactive translucent white), so there's no separate active variant
- * to keep in sync here.
+ * entirely from the parent Link's text color (--nav-fg-active brand violet
+ * #5A27FF vs --nav-fg-inactive rose-grey #7A5566), so there's no separate
+ * active variant to keep in sync here. Both clear WCAG AA against the pill:
+ * ~6.4:1 and ~6.1:1 respectively.
  */
 .doodle-icon {
   display: inline-block;

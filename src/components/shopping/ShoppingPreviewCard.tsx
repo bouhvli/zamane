@@ -1,13 +1,19 @@
 import { Link } from "react-router";
-import { ChevronRight, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 
 import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
 import { formatAmount } from "@/lib/format";
+import { CardThumb } from "@/components/layout/CardThumb";
+import { ProgressBar } from "@/components/goals/ProgressBar";
 
-// The Home dashboard's shopping preview: a single click-through card (not the
-// full interactive checklist rows — Home is an overview, not where you check
-// items off) naming what's still left to buy, with a few of the next items
-// as a taste of the list.
+// The Home dashboard's shopping row: a single click-through card (not the full
+// interactive checklist — Home is an overview, not where you check items off),
+// built to the same grammar as the compact goal and trip rows.
+//
+// Two things it didn't surface before: the list's own progress (a shopping list
+// IS a progress bar, and `checkedCount` was already in the summary, unused),
+// and the item names inline rather than as a four-row list — that list cost
+// ~70px to say what one truncated line says.
 export function ShoppingPreviewCard({
   items,
   summary,
@@ -18,48 +24,55 @@ export function ShoppingPreviewCard({
   // Already ordered unchecked-first by the API, but filter explicitly so an
   // all-checked list shows the "nothing left" copy instead of stale bought
   // items.
-  const preview = items.filter((item) => !item.isChecked).slice(0, 4);
+  const preview = items.filter((item) => !item.isChecked).slice(0, 3);
   const estimatedTotal = Number(summary.estimatedTotal);
+  const total = summary.uncheckedCount + summary.checkedCount;
+  const percent = total > 0 ? (summary.checkedCount / total) * 100 : 0;
+
+  const names = preview
+    .map((item) => (item.quantity > 1 ? `${item.name} ×${item.quantity}` : item.name))
+    .join(", ");
 
   return (
     <Link
       to="/shopping"
-      className="group block rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgba(16,32,24,0.04),0_10px_28px_-14px_rgba(16,32,24,0.14)] outline-none transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:hover:translate-y-0"
+      aria-label="Open the shopping list"
+      className="group block rounded-lg border border-border bg-card p-3 shadow-[0_1px_2px_rgba(26,15,20,0.04)] outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <ShoppingCart className="size-5" />
-          </span>
-          <div className="min-w-0">
-            <p className="font-semibold text-foreground">
-              {summary.uncheckedCount} {summary.uncheckedCount === 1 ? "item" : "items"} to buy
-            </p>
+      <div className="flex items-center gap-3">
+        <CardThumb icon={ShoppingCart} />
+
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <h3 className="min-w-0 truncate text-sm font-semibold leading-tight text-foreground">
+              {summary.uncheckedCount === 0
+                ? "Nothing left to buy"
+                : `${summary.uncheckedCount} ${summary.uncheckedCount === 1 ? "item" : "items"} to buy`}
+            </h3>
             {estimatedTotal > 0 && (
-              <p className="text-xs text-muted-foreground">{formatAmount(estimatedTotal)} estimated</p>
+              <span className="shrink-0 text-xs font-semibold text-foreground [font-variant-numeric:tabular-nums]">
+                {formatAmount(estimatedTotal)}
+              </span>
             )}
           </div>
-        </div>
-        <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0" />
-      </div>
 
-      {preview.length > 0 ? (
-        <ul className="mt-3 space-y-1.5 border-t border-border/60 pt-3">
-          {preview.map((item) => (
-            <li key={item.id} className="flex items-center gap-2 text-sm text-foreground">
-              <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
-              <span className="truncate">
-                {item.name}
-                {item.quantity > 1 && ` ×${item.quantity}`}
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-3 border-t border-border/60 pt-3 text-sm text-muted-foreground">
-          Nothing left to buy — nice work.
-        </p>
-      )}
+          <ProgressBar percent={percent} label="Shopping list" className="h-1.5" />
+
+          <p className="mt-1.5 flex min-w-0 items-baseline gap-1.5 text-xs">
+            <span className="shrink-0 font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
+              {summary.checkedCount} of {total} bought
+            </span>
+            {names && (
+              <>
+                <span aria-hidden="true" className="shrink-0 text-muted-foreground/50">
+                  ·
+                </span>
+                <span className="truncate text-muted-foreground">{names}</span>
+              </>
+            )}
+          </p>
+        </div>
+      </div>
     </Link>
   );
 }

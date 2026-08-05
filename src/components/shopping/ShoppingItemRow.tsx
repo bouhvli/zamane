@@ -61,7 +61,7 @@ export function ShoppingItemRow({
   return (
     <li
       className={cn(
-        "group rounded-2xl border p-3.5 shadow-[0_1px_2px_rgba(16,32,24,0.04)] transition-all duration-200 active:scale-[0.99]",
+        "group rounded-2xl border p-3.5 shadow-[0_1px_2px_rgba(26,15,20,0.04)] transition-all duration-200 active:scale-[0.99]",
         // A completed item picks up the brand's celebratory lime wash (the
         // same accent GoalCard uses for its "Done" chip) instead of going flat
         // grey — checking something off reads as a small win, not a demotion.

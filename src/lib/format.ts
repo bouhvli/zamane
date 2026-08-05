@@ -1,6 +1,23 @@
+/** The group's currency, as a short prefix. Exported so input affordances (the
+ *  symbol inside an amount field) can't drift from what formatAmount renders —
+ *  they did: the contribution field showed "$" while every figure read "MAD". */
+export const CURRENCY = "MAD";
+
 export function formatAmount(value: number | string): string {
   const num = typeof value === "string" ? Number(value) : value;
-  return "MAD " + new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(num);
+  return CURRENCY + " " + new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(num);
+}
+
+/** A name safe to greet someone with. Prefers the display name; otherwise
+ *  takes the email local-part and keeps only its first word ("hamza.bouhali"
+ *  → "Hamza") so the Home hero — the app's one crown moment — never renders a
+ *  raw address fragment at 2rem. */
+export function friendlyName(person: { displayName: string | null; email: string }): string {
+  const given = person.displayName?.trim();
+  if (given) return given;
+  const local = person.email.split("@")[0] ?? "";
+  const first = local.split(/[._+\-\d]+/).filter(Boolean)[0] ?? local;
+  return first ? first[0].toUpperCase() + first.slice(1) : "there";
 }
 
 /** First + last initial of a display name, e.g. "Sam Vega" → "SV". */
@@ -40,6 +57,27 @@ export function formatDateRange(startValue: string, endValue?: string | null): s
   const sameMonth = !spansYears && start.getMonth() === end.getMonth();
   const endText = sameMonth ? String(end.getDate()) : md(end);
   return showYear ? `${md(start)} – ${endText}, ${end.getFullYear()}` : `${md(start)} – ${endText}`;
+}
+
+/** A contribution's timestamp for the full activity log: today/yesterday, or
+ *  a short date once older, always paired with the clock time —
+ *  formatRelativeDate alone left every entry from today reading as a bare
+ *  "today" with no way to tell which one happened first. */
+export function formatDateTime(value: string | Date): string {
+  const date = typeof value === "string" ? new Date(value) : value;
+  const time = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(date);
+
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diffDays = Math.round((startOfDay(new Date()).getTime() - startOfDay(date).getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return `today, ${time}`;
+  if (diffDays === 1) return `yesterday, ${time}`;
+
+  const day = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+  }).format(date);
+  return `${day}, ${time}`;
 }
 
 export function formatRelativeDate(value: string | Date): string {

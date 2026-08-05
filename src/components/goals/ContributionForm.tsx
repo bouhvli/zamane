@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { MAX_MONEY_AMOUNT } from "@shared/validation";
 import { contributeToGoal, type GoalType, type Goal } from "@/lib/goals-api";
 import { ApiError } from "@/lib/api";
-import { formatAmount } from "@/lib/format";
+import { CURRENCY, formatAmount } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -102,8 +102,11 @@ function FinancialContributionForm({ goalId, onContributed }: { goalId: string; 
               <FormLabel>Amount</FormLabel>
               <FormControl>
                 <div className="relative">
+                  {/* CURRENCY, not a hardcoded "$": every figure in the app
+                      renders as "MAD 1,200" while this field prefixed a dollar
+                      sign — two currencies in one money flow. */}
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground">
-                    $
+                    {CURRENCY}
                   </span>
                   <Input
                     type="number"
@@ -111,7 +114,7 @@ function FinancialContributionForm({ goalId, onContributed }: { goalId: string; 
                     min="0"
                     max={MAX_MONEY_AMOUNT}
                     placeholder="0.00"
-                    className="pl-7"
+                    className="pl-14"
                     inputMode="decimal"
                     {...field}
                     value={field.value ?? ""}

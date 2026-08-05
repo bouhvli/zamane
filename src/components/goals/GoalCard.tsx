@@ -1,26 +1,128 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Target } from "lucide-react";
+import { Check, Target } from "lucide-react";
 
 import type { Goal } from "@/lib/goals-api";
 import { goalImageUrl } from "@/lib/goal-image";
 import { formatAmount, formatDate } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
+import { CardThumb } from "@/components/layout/CardThumb";
 import { ProgressBar } from "./ProgressBar";
+
+/** Percent complete, clamped to 0–100. */
+function goalPercent(goal: Goal): number {
+  const raw =
+    goal.goalType === "financial"
+      ? goal.targetAmount
+        ? (Number(goal.currentAmount) / Number(goal.targetAmount)) * 100
+        : 0
+      : goal.currentProgressPct;
+  return Math.max(0, Math.min(100, raw));
+}
+
+const CARD_BASE =
+  "group block overflow-hidden rounded-lg border border-border bg-card outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
+
+export function GoalCard({ goal, variant = "full" }: { goal: Goal; variant?: "full" | "compact" }) {
+  return variant === "compact" ? <CompactGoalCard goal={goal} /> : <FullGoalCard goal={goal} />;
+}
+
+// The dashboard row. Where the full card spends ~218px to show a photo and one
+// figure, this spends ~96px and shows four: how far along, how much is in, what
+// is still missing, and by when. Home is an overview — density is the point,
+// and the aspirational photo treatment stays on the Goals page where it can
+// breathe.
+//
+// Hover is a background tint rather than a lift: down a list of rows a
+// translate reads as jitter, and colour is the calmer "this is tappable".
+function CompactGoalCard({ goal }: { goal: Goal }) {
+  const isFinancial = goal.goalType === "financial";
+  const percent = goalPercent(goal);
+  const current = Number(goal.currentAmount);
+  const target = Number(goal.targetAmount ?? 0);
+  // The actionable figure the card never showed: what's still missing. "29,200
+  // of 40,000" makes you do the subtraction yourself.
+  const remaining = Math.max(0, target - current);
+
+  return (
+    <Link
+      to={`/goals/${goal.id}`}
+      aria-label={`Open ${goal.title}`}
+      className={cn(
+        CARD_BASE,
+        "p-3 shadow-[0_1px_2px_rgba(26,15,20,0.04)] transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] motion-reduce:active:scale-100",
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <CardThumb
+          src={goalImageUrl(goal, { width: 160, height: 160 })}
+          icon={goal.isCompleted ? Check : Target}
+          dim={goal.isCompleted}
+        />
+
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex items-baseline justify-between gap-2">
+            <h3 className="min-w-0 truncate text-sm font-semibold leading-tight text-foreground">
+              {goal.title}
+            </h3>
+            {goal.isCompleted ? (
+              <span className="shrink-0 text-xs font-semibold text-accent-strong">Reached</span>
+            ) : (
+              <span className="shrink-0 text-xs font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
+                {Math.round(percent)}%
+              </span>
+            )}
+          </div>
+
+          <ProgressBar percent={percent} label={goal.title} className="h-1.5" />
+
+          <div className="mt-1.5 flex items-baseline justify-between gap-2 text-xs [font-variant-numeric:tabular-nums]">
+            {isFinancial ? (
+              <>
+                {/* "29,200 of 40,000" doesn't fit beside the second figure at
+                    390px — it truncated to "of MAD 40,…" and repeated the
+                    currency. The target is already encoded by the bar and the
+                    percentage, so the pair says saved / still-needed instead:
+                    parallel, shorter, and both halves stay readable even at
+                    seven figures. */}
+                <span className="min-w-0 truncate text-muted-foreground">
+                  {formatAmount(current)} saved
+                </span>
+                {/* Weighted heavier than the figure beside it: what's left is
+                    the number that tells you whether to act. */}
+                {remaining > 0 && (
+                  <span className="shrink-0 font-semibold text-foreground">
+                    {formatAmount(remaining)} to go
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                <span className="min-w-0 truncate text-muted-foreground">
+                  {goal.targetDate ? `by ${formatDate(goal.targetDate)}` : "General goal"}
+                </span>
+                {percent < 100 && (
+                  <span className="shrink-0 font-semibold text-foreground">
+                    {Math.round(100 - percent)}% to go
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 // A goal reads as an aspiration, not a database row: a cover photo (or a
 // branded forest gradient when there's none) carries the title, and a crisp
 // solid footer keeps the money/progress unambiguous — the photo never fights
 // the number for legibility. Visually a sibling of the TripCard so Goals and
 // Trips feel like one app.
-export function GoalCard({ goal }: { goal: Goal }) {
+function FullGoalCard({ goal }: { goal: Goal }) {
   const isFinancial = goal.goalType === "financial";
-  const percent = isFinancial
-    ? goal.targetAmount
-      ? (Number(goal.currentAmount) / Number(goal.targetAmount)) * 100
-      : 0
-    : goal.currentProgressPct;
-  const pctLabel = Math.round(Math.max(0, Math.min(100, percent)));
+  const percent = goalPercent(goal);
 
   const [failed, setFailed] = useState(false);
   const cover = goalImageUrl(goal, { width: 1000, height: 560 });
@@ -30,14 +132,17 @@ export function GoalCard({ goal }: { goal: Goal }) {
     <Link
       to={`/goals/${goal.id}`}
       aria-label={`Open ${goal.title}`}
-      className="group block overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(16,32,24,0.05),0_14px_34px_-16px_rgba(16,32,24,0.22)] outline-none transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:hover:translate-y-0"
+      className={cn(
+        CARD_BASE,
+        "shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.22)] transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+      )}
     >
       {/* Banner: a dark violet base (matching the PageHero brand surface) is
           ALWAYS painted first, so the frame is full even while a photo loads
           or if it fails; the photo then covers it edge-to-edge and a scrim
           keeps the overlaid title legible. */}
-      <div className="relative h-32 overflow-hidden bg-[#120722]">
-        <div className="absolute inset-0 bg-[radial-gradient(150%_130%_at_20%_10%,#3A1470_0%,#2A1052_50%,#120722_100%)]" />
+      <div className="brand-thumb-base relative h-32 overflow-hidden">
+        <div className="brand-thumb-radial absolute inset-0" />
 
         {!showImage && (
           <>
@@ -61,7 +166,7 @@ export function GoalCard({ goal }: { goal: Goal }) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
 
-        {/* Status: a celebratory lime chip when done, otherwise a frosted chip
+        {/* Status: a celebratory chip when done, otherwise a frosted chip
             naming the goal type. Text carries the meaning, not colour alone. */}
         <div className="absolute inset-x-0 top-0 flex justify-end p-3">
           <span
@@ -93,7 +198,7 @@ export function GoalCard({ goal }: { goal: Goal }) {
               : "Progress"}
           </span>
           <span className="shrink-0 text-xs font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
-            {pctLabel}%
+            {Math.round(percent)}%
           </span>
         </div>
 

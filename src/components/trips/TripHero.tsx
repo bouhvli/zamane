@@ -30,7 +30,7 @@ export function TripHero({
       <TripCover
         trip={trip}
         dim={status?.tone === "past"}
-        className="aspect-[4/3] rounded-lg shadow-[0_1px_2px_rgba(16,32,24,0.05),0_16px_38px_-16px_rgba(16,32,24,0.3)]"
+        className="aspect-[4/3] rounded-lg shadow-[0_1px_2px_rgba(26,15,20,0.05),0_16px_38px_-16px_rgba(26,15,20,0.3)]"
       >
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
           <div className="flex items-center gap-2">

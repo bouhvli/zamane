@@ -87,24 +87,32 @@ async function goalDetailLoader({ params }: LoaderFunctionArgs) {
 }
 
 async function homeLoader() {
-  // Fetched in parallel — the four independent lookups the dashboard's
-  // Trips/Shopping/Goals preview sections need. Renamed on the way out since
-  // goals/trips/shopping each return their own "summary" key that would
-  // otherwise collide if merged with a blind spread.
-  const [goalsData, groupData, tripsData, shoppingData] = await Promise.all([
-    fetchGoals(),
-    fetchGroup(),
-    fetchTrips(),
-    fetchShoppingItems(),
-  ]);
+  // All four requests start together, but only the two the first viewport
+  // actually needs are awaited: the hero's savings figure and the Goals
+  // preview. Trips and Shopping stream in behind <Await> with skeletons, so
+  // the dashboard no longer blocks its whole first paint on the slowest of
+  // four round-trips (Doherty threshold — perceived response under 400ms).
+  //
+  // A second benefit: a failing trips or shopping request now degrades to that
+  // one section's error slot instead of throwing the entire dashboard to the
+  // route error boundary.
+  const trips = fetchTrips();
+  const shopping = fetchShoppingItems();
+  // Nothing else awaits these two, so an early rejection would surface as an
+  // unhandled rejection before <Await> ever subscribes. Park a no-op catch on
+  // each; <Await> still sees the original rejected promise and renders its
+  // errorElement.
+  trips.catch(() => {});
+  shopping.catch(() => {});
+
+  const [goalsData, groupData] = await Promise.all([fetchGoals(), fetchGroup()]);
+
   return {
     goals: goalsData.goals,
     goalsSummary: goalsData.summary,
     group: groupData.group,
-    trips: tripsData.trips,
-    tripsSummary: tripsData.summary,
-    shoppingItems: shoppingData.items,
-    shoppingSummary: shoppingData.summary,
+    trips,
+    shopping,
   };
 }
 

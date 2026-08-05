@@ -8,9 +8,15 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="card"
       className={cn(
         // Soft floating card of the travel-app language: large radius, a
-        // hairline border kept faint, and a low green-tinted shadow doing the
-        // real separation work (Refactoring UI: prefer shadow over border).
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-lg border border-border/60 shadow-[0_1px_2px_rgba(16,32,24,0.04),0_10px_28px_-14px_rgba(16,32,24,0.14)]",
+        // hairline border kept faint, and a low shadow doing the real
+        // separation work (Refactoring UI: prefer shadow over border).
+        //
+        // The shadow is tinted with --foreground's own near-black (26,15,20) —
+        // a rose-leaning dark, matching the palette. It used to be (16,32,24),
+        // a *green*-black left over from another palette, which put every card
+        // in the app on a different light than the violet-tinted nav and hero
+        // shadows (Refactoring UI: one consistent light source).
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-lg border border-border/60 shadow-[0_1px_2px_rgba(26,15,20,0.04),0_10px_28px_-14px_rgba(26,15,20,0.14)]",
         className,
       )}
       {...props}

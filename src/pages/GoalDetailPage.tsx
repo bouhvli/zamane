@@ -76,7 +76,7 @@ export default function GoalDetailPage() {
           <img
             src={cover}
             alt=""
-            className="aspect-[16/9] w-full rounded-lg border border-border object-cover shadow-[0_1px_2px_rgba(16,32,24,0.05),0_14px_34px_-16px_rgba(16,32,24,0.22)]"
+            className="aspect-[16/9] w-full rounded-lg border border-border object-cover shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.22)]"
           />
         )}
 
