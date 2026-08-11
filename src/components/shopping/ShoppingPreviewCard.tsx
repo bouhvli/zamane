@@ -3,7 +3,9 @@ import { ShoppingCart } from "lucide-react";
 
 import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
 import { formatAmount } from "@/lib/format";
+import { cn } from "@/components/ui/utils";
 import { CardThumb } from "@/components/layout/CardThumb";
+import { GLASS_ROW } from "@/components/layout/glass-row";
 import { ProgressBar } from "@/components/goals/ProgressBar";
 
 // The Home dashboard's shopping row: a single click-through card (not the full
@@ -37,7 +39,10 @@ export function ShoppingPreviewCard({
     <Link
       to="/shopping"
       aria-label="Open the shopping list"
-      className="group block rounded-lg border border-border bg-card p-3 shadow-[0_1px_2px_rgba(26,15,20,0.04)] outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100"
+      className={cn(
+        GLASS_ROW,
+        "group block rounded-lg border border-border p-3 outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100",
+      )}
     >
       <div className="flex items-center gap-3">
         <CardThumb icon={ShoppingCart} />

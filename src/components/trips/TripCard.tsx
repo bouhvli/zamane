@@ -6,6 +6,7 @@ import { formatAmount, formatDateRange } from "@/lib/format";
 import { tripCoverUrl } from "@/lib/trip-photo";
 import { cn } from "@/components/ui/utils";
 import { CardThumb } from "@/components/layout/CardThumb";
+import { GLASS_ROW } from "@/components/layout/glass-row";
 import { GlassChip, StatusBadge, TripCover, tripStatus } from "./trip-visuals";
 
 export function TripCard({ trip, variant = "full" }: { trip: Trip; variant?: "full" | "compact" }) {
@@ -32,7 +33,10 @@ function CompactTripCard({ trip }: { trip: Trip }) {
     <Link
       to={`/trips/${trip.id}`}
       aria-label={`Open ${trip.title}`}
-      className="group block rounded-lg border border-border bg-card p-3 shadow-[0_1px_2px_rgba(26,15,20,0.04)] outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100"
+      className={cn(
+        GLASS_ROW,
+        "group block rounded-lg border border-border p-3 outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100",
+      )}
     >
       <div className="flex items-center gap-3">
         <CardThumb src={tripCoverUrl(trip)} icon={MapPin} dim={status?.tone === "past"} />

@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Await, Link, useLoaderData, useRevalidator } from "react-router";
-import { Check, ChevronRight, Copy, Heart, Plus, Target, X } from "lucide-react";
+import { Check, ChevronRight, Copy, Heart, Plus, Route, ShoppingCart, Target, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth-context";
@@ -155,7 +155,7 @@ export default function HomePage() {
         href={metric ? "/goals" : undefined}
       />
 
-      <div className="mx-auto max-w-md space-y-6 px-4 pb-20">
+      <div className="dashboard-mesh mx-auto max-w-md space-y-6 px-4 pb-20">
         {showInvite && group && (
           <Card className="relative gap-3 overflow-hidden p-6 text-center">
             <div className="pointer-events-none absolute -top-12 right-0 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
@@ -195,7 +195,7 @@ export default function HomePage() {
             now, ahead of Goals, even though that costs the previous
             hero-to-detail adjacency (the savings figure's own section used to
             sit right under it). */}
-        <Section title="Shopping" viewAllTo="/shopping">
+        <Section title="Shopping" icon={ShoppingCart} viewAllTo="/shopping">
           <Suspense fallback={<RowSkeleton count={1} />}>
             <Await resolve={shopping} errorElement={<SectionError>Couldn't load the shopping list.</SectionError>}>
               {({ items, summary: shoppingSummary }) =>
@@ -213,7 +213,7 @@ export default function HomePage() {
             is about, but a savings figure moves on its own pace (a payday, a
             transfer) rather than daily, so it no longer needs the single
             top slot. */}
-        <Section title="Goals" viewAllTo="/goals">
+        <Section title="Goals" icon={Target} viewAllTo="/goals">
           {goals.length === 0 ? (
             <CtaCard
               to="/goals/new"
@@ -235,7 +235,7 @@ export default function HomePage() {
             money, only occasionally imminent. Still gets its own section
             (not folded away) so a live or soon trip is never more than one
             scroll from the top. */}
-        <Section title="Trips" viewAllTo="/trips">
+        <Section title="Trips" icon={Route} viewAllTo="/trips">
           <Suspense fallback={<RowSkeleton count={2} />}>
             <Await resolve={trips} errorElement={<SectionError>Couldn't load trips.</SectionError>}>
               {/* Param types are inferred from `resolve` — annotating them here
@@ -315,17 +315,27 @@ export default function HomePage() {
 // aligns to the same edge as the cards beneath it (Gestalt continuity).
 function Section({
   title,
+  icon: Icon,
   viewAllTo,
   children,
 }: {
   title: string;
+  icon: LucideIcon;
   viewAllTo: string;
   children: React.ReactNode;
 }) {
   return (
     <section>
       <div className="mb-2 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        <div className="flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary"
+          >
+            <Icon className="size-3.5" />
+          </span>
+          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+        </div>
         {/* min-h-11 restores the project's own 44px tap floor — as a `size="sm"`
             link button this was 36px, and it's the section's only navigation
             affordance (Fitts). Negative margin keeps the enlarged target from
