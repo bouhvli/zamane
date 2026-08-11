@@ -7,6 +7,7 @@ import { goalImageUrl } from "@/lib/goal-image";
 import { formatAmount, formatDate } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
 import { CardThumb } from "@/components/layout/CardThumb";
+import { GLASS_ROW } from "@/components/layout/glass-row";
 import { ProgressBar } from "./ProgressBar";
 
 /** Percent complete, clamped to 0–100. */
@@ -21,7 +22,7 @@ function goalPercent(goal: Goal): number {
 }
 
 const CARD_BASE =
-  "group block overflow-hidden rounded-lg border border-border bg-card outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
+  "group block overflow-hidden rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
 
 export function GoalCard({ goal, variant = "full" }: { goal: Goal; variant?: "full" | "compact" }) {
   return variant === "compact" ? <CompactGoalCard goal={goal} /> : <FullGoalCard goal={goal} />;
@@ -50,7 +51,8 @@ function CompactGoalCard({ goal }: { goal: Goal }) {
       aria-label={`Open ${goal.title}`}
       className={cn(
         CARD_BASE,
-        "p-3 shadow-[0_1px_2px_rgba(26,15,20,0.04)] transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] motion-reduce:active:scale-100",
+        GLASS_ROW,
+        "border border-border p-3 transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] motion-reduce:active:scale-100",
       )}
     >
       <div className="flex items-center gap-3">
@@ -134,7 +136,7 @@ function FullGoalCard({ goal }: { goal: Goal }) {
       aria-label={`Open ${goal.title}`}
       className={cn(
         CARD_BASE,
-        "shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.22)] transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+        "border border-border bg-card shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.22)] transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
       )}
     >
       {/* Banner: a dark violet base (matching the PageHero brand surface) is

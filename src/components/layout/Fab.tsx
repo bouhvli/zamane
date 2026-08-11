@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 const WRAPPER =
   "pointer-events-none fixed inset-x-0 bottom-0 z-[var(--z-sticky)] mx-auto flex max-w-md justify-end px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom)+0.75rem)]";
 const PILL =
-  "pointer-events-auto inline-flex h-14 items-center gap-2 rounded-full bg-primary pr-6 pl-5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 outline-none transition-transform active:scale-[0.97] focus-visible:ring-[3px] focus-visible:ring-ring/50";
+  "pointer-events-auto inline-flex h-14 items-center gap-2 rounded-full bg-primary pr-6 pl-5 text-sm font-semibold text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_16px_32px_-12px_rgba(90,39,255,0.45),0_6px_14px_-6px_rgba(90,39,255,0.25)] outline-none transition-transform active:scale-[0.97] focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_32px_-12px_rgba(123,82,255,0.55),0_6px_14px_-6px_rgba(123,82,255,0.3)]";
 
 // Floating action button for a page's primary create action. Anchored bottom-
 // right within the content column and lifted clear of the bottom nav so it

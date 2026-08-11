@@ -1,0 +1,37 @@
+/*
+ * Dashboard mesh — a faint dual-hue wash plus a dot grid, painted behind the
+ * Home dashboard's card stack (below the PageHero). It exists so the frosted
+ * glass rows above (see GLASS_ROW in components/layout/glass-row.ts) have
+ * some colour and texture for their backdrop-blur to pick up — blurring a
+ * flat, single-colour page background is invisible.
+ *
+ * Deliberately low-opacity: this is the light, airy counterpart to the
+ * PageHero's one drenched brand surface, not a second loud one. z-index:-1
+ * keeps it behind the section content without affecting layout (absolute,
+ * out of flow).
+ */
+.dashboard-mesh {
+  position: relative;
+}
+
+.dashboard-mesh::before {
+  content: "";
+  position: absolute;
+  inset: -1.5rem 0 auto 0;
+  height: 28rem;
+  background:
+    radial-gradient(90% 55% at 88% 0%, rgba(90, 39, 255, 0.08) 0%, rgba(90, 39, 255, 0) 60%),
+    radial-gradient(80% 50% at 4% 35%, rgba(191, 99, 130, 0.09) 0%, rgba(191, 99, 130, 0) 65%),
+    radial-gradient(rgba(90, 39, 255, 0.07) 1px, transparent 1.5px);
+  background-size: auto, auto, 22px 22px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark .dashboard-mesh::before {
+  background:
+    radial-gradient(90% 55% at 88% 0%, rgba(123, 82, 255, 0.12) 0%, rgba(123, 82, 255, 0) 60%),
+    radial-gradient(80% 50% at 4% 35%, rgba(191, 99, 130, 0.12) 0%, rgba(191, 99, 130, 0) 65%),
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.5px);
+  background-size: auto, auto, 22px 22px;
+}

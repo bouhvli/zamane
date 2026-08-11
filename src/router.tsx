@@ -10,6 +10,7 @@ import { fetchGroup } from "./lib/groups-api";
 import { fetchTrips, fetchTripDetail } from "./lib/trips-api";
 import { fetchShoppingItems } from "./lib/shopping-api";
 import { AppLayout } from "./components/layout/AppLayout";
+import { AppBootFallback } from "./components/layout/AppBootFallback";
 import { RouteErrorBoundary } from "./components/layout/RouteErrorBoundary";
 import { Loader } from "./components/Loader";
 
@@ -140,6 +141,10 @@ export const router = createBrowserRouter([
     // error screen instead of anything this app controls.
     element: <Outlet />,
     errorElement: <RouteErrorBoundary />,
+    // Rendered in place of the whole tree until the first matched route's
+    // loader(s) resolve — covers the blank gap on initial app load (e.g. the
+    // rootLoader's session check on a cold serverless function).
+    HydrateFallback: AppBootFallback,
     children: [
       { path: "/", loader: rootLoader },
       { path: "/login", loader: guestOnlyLoader, element: withSuspense(<LoginPage />) },
