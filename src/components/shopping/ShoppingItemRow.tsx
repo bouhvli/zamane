@@ -81,13 +81,13 @@ export function ShoppingItemRow({
             aria-hidden="true"
             className={cn(
               "flex size-6 items-center justify-center rounded-[10px] border-2 transition-colors duration-200",
-              checked ? "border-accent-strong bg-accent" : "border-input group-hover:border-primary/50",
+              checked ? "border-accent-strong bg-accent" : "border-input group-hover:border-violet-300",
             )}
           >
             {/* Mounted only while checked, so every check-off pops in fresh
                 instead of just fading a static icon's opacity. */}
             {checked && (
-              <Check className="size-4 animate-in zoom-in-50 duration-200 text-accent-foreground" strokeWidth={3} />
+              <Check className="size-4 animate-in zoom-in-50 duration-200 text-accent-foreground [stroke-width:3]" />
             )}
           </span>
         </button>
@@ -100,7 +100,7 @@ export function ShoppingItemRow({
         >
           <span className="break-words">{item.name}</span>
           {item.quantity > 1 && (
-            <span className="ml-2 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 align-middle text-xs font-semibold text-secondary-foreground [font-variant-numeric:tabular-nums]">
+            <span className="ml-2 inline-flex items-center rounded-full bg-secondary px-2 py-0.5 align-middle font-numeric text-xs font-bold text-secondary-foreground">
               ×{item.quantity}
             </span>
           )}
@@ -109,7 +109,7 @@ export function ShoppingItemRow({
         {hasPrice && (
           <span
             className={cn(
-              "shrink-0 text-sm font-semibold text-foreground [font-variant-numeric:tabular-nums]",
+              "shrink-0 font-numeric text-sm font-bold text-foreground",
               checked && "text-muted-foreground",
             )}
           >
@@ -155,7 +155,7 @@ export function ShoppingItemRow({
             {hasPrice && item.quantity > 1 && (
               <>
                 <span aria-hidden="true">·</span>
-                <span>{formatAmount(unitPrice)} each</span>
+                <span className="font-numeric">{formatAmount(unitPrice)} each</span>
               </>
             )}
           </span>

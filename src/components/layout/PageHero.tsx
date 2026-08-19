@@ -1,8 +1,10 @@
 import { Link } from "react-router";
 import { ChevronRight } from "lucide-react";
 
-import { formatAmount } from "@/lib/format";
+import { CURRENCY, initials } from "@/lib/format";
+import { useCountUp } from "@/lib/use-count-up";
 import { cn } from "@/components/ui/utils";
+import { ProgressTrack } from "@/components/ProgressOrbit";
 
 export type HeroMember = { id: string; name: string };
 
@@ -53,23 +55,18 @@ export type PageHeroProps = {
   className?: string;
 };
 
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const first = parts[0]?.[0] ?? "";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-  return (first + last).toUpperCase() || "?";
-}
+const groupedNumber = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 
-// The dark, glowing "hero card" — deliberately the app's ONE loud, drenched
-// brand surface, used only on Home. Every other page uses the quiet
-// PageHeader.
+// The Home instrument panel. Level 3 glass over the ambient field — the same
+// material as the nav pill and the FAB, at the depth reserved for floating
+// chrome. It replaced the app's one drenched dark surface; see page-hero.css
+// for why that mattered.
 //
 // Metric-first by design: the couple's shared savings figure is the single
 // loudest element on the screen (hierarchy = emphasize by de-emphasizing,
-// Refactoring UI), rendered in the display serif as the one sanctioned
-// per-page "signature" moment (see the .font-display rationale in theme.css).
-// Leading with a cumulative, growing number is the emotional peak the whole
-// product is built around (Peak-End / Goal-Gradient / Zeigarnik, Laws of UX) —
+// Refactoring UI), set in the display face and carrying the app's only
+// gradient. Leading with a cumulative, growing number is the emotional peak
+// the whole product is built around (Peak-End / Goal-Gradient / Zeigarnik) —
 // which only works if the number is genuinely cumulative; see HeroMetric.saved.
 export function PageHero({ greeting, subline, members, metric, href, className }: PageHeroProps) {
   const pct =
@@ -77,33 +74,38 @@ export function PageHero({ greeting, subline, members, metric, href, className }
       ? Math.min(100, Math.round((metric.towardTarget / metric.target) * 100))
       : null;
 
-  const card = (
-    <div className="page-hero relative h-full overflow-hidden rounded-lg">
-      <div className="page-hero-glow-tr pointer-events-none absolute -top-16 -right-16 h-52 w-52 rounded-full" />
-      <div className="page-hero-glow-bl pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full" />
-      <div className="page-hero-dots pointer-events-none absolute inset-0" />
+  // The figure counts up on arrival — the one "confirming" use of motion in
+  // the app. It runs once per mount, not on every revalidation, so a partner's
+  // contribution landing in the background doesn't restart it.
+  const shown = useCountUp(metric?.saved ?? 0);
 
-      <div className="relative px-5 pt-5 pb-6">
-        {/* Identity row. In metric mode the greeting is a quiet supporting
-            line (the number is the headline) but stays the page's `h1` —
-            semantics track meaning, not font size, and in metric mode this
-            screen previously had no heading at all. The avatar pair anchors
-            "this is ours, not mine". */}
+  const card = (
+    <div className="glass-3 relative h-full overflow-hidden p-5">
+      <div className="relative">
+        {/* Identity row. In metric mode the greeting is a quiet supporting line
+            (the number is the headline) but stays the page's `h1` — semantics
+            track meaning, not font size. The avatar pair anchors "this is
+            ours, not mine". */}
         <div className="mb-5 flex items-start justify-between gap-3">
           {metric ? (
             <div className="min-w-0">
-              <h1 className="truncate text-sm font-medium text-white/70">{greeting}</h1>
-              <p className="truncate text-xs text-white/50">{subline}</p>
+              <h1 className="truncate text-sm font-semibold text-foreground">{greeting}</h1>
+              <p className="truncate text-xs text-muted-foreground">{subline}</p>
             </div>
           ) : (
             <span aria-hidden="true" />
           )}
           {members.length > 0 && (
-            <div className="flex shrink-0 -space-x-2" aria-hidden="true">
-              {members.slice(0, 2).map((member) => (
+            <div className="flex shrink-0 -space-x-2.5" aria-hidden="true">
+              {members.slice(0, 2).map((member, index) => (
                 <span
                   key={member.id}
-                  className="flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xs font-semibold text-white"
+                  className={cn(
+                    // One circle per person, in the logo's two hues — the mark
+                    // itself, standing in for the couple.
+                    "flex size-9 items-center justify-center rounded-full border-2 border-card font-numeric text-xs font-bold text-white",
+                    index === 0 ? "bg-violet-500" : "bg-rose-500",
+                  )}
                 >
                   {initials(member.name)}
                 </span>
@@ -114,52 +116,39 @@ export function PageHero({ greeting, subline, members, metric, href, className }
 
         {metric ? (
           <div>
-            <p className="page-hero-label mb-1.5 text-xs font-semibold uppercase tracking-wider">
+            <p className="mb-1.5 text-2xs font-bold tracking-[0.14em] text-muted-foreground uppercase">
               Saved together
             </p>
-            <p className="page-hero-value font-display text-[2.75rem] font-semibold leading-none tracking-tight [font-variant-numeric:tabular-nums]">
-              {formatAmount(metric.saved)}
+            <p className="page-hero-figure font-display text-hero font-bold">
+              <span className="page-hero-currency">{CURRENCY}</span>
+              {groupedNumber.format(shown)}
             </p>
 
             {pct !== null && (
-              <div
-                role="progressbar"
-                aria-valuenow={pct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label="Progress toward goals in progress"
-                className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/15"
-              >
-                <div
-                  // The lighter dark-mode violet (#7B52FF) → --accent, not
-                  // --primary → --accent: the deep light-mode --primary
-                  // would sink into the dark hero, so the fill starts at
-                  // the brighter violet that actually reads here.
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#7B52FF,var(--accent))] transition-[width] duration-500 ease-out motion-reduce:transition-none"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+              <ProgressTrack
+                percent={pct}
+                label="Goals in progress"
+                className="mt-4 h-1.5"
+              />
             )}
 
-            <p className="page-hero-description mt-2.5 flex items-center gap-1 text-sm">
+            <p className="mt-2.5 flex items-center gap-1 text-sm text-muted-foreground">
               <span className="min-w-0 truncate">
                 <MetricCaption metric={metric} pct={pct} />
               </span>
-              {href && <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-white/45" />}
+              {href && <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />}
             </p>
 
             {metric.savedThisMonth > 0 && (
-              <span className="mt-3 inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white">
-                +{formatAmount(metric.savedThisMonth)} this month
+              <span className="mt-3 inline-flex items-center rounded-full bg-violet-100 px-2.5 py-1 font-numeric text-xs font-bold text-violet-700">
+                +{CURRENCY} {groupedNumber.format(metric.savedThisMonth)} this month
               </span>
             )}
           </div>
         ) : (
           <div>
-            <h1 className="page-hero-value text-balance font-display text-[2rem] font-semibold leading-snug tracking-tight sm:text-[2.5rem]">
-              {greeting}
-            </h1>
-            <p className="page-hero-description mt-2 text-sm">{subline}</p>
+            <h1 className="font-display text-3xl text-balance text-foreground">{greeting}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{subline}</p>
           </div>
         )}
       </div>
@@ -179,7 +168,7 @@ export function PageHero({ greeting, subline, members, metric, href, className }
       <Link
         to={href}
         aria-label="View your goals"
-        className="block rounded-lg outline-none transition-transform duration-200 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100"
+        className="block rounded-lg outline-none transition-transform duration-[var(--dur-2)] ease-[var(--ease-glide)] active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100"
       >
         {card}
       </Link>
@@ -197,8 +186,11 @@ function MetricCaption({ metric, pct }: { metric: HeroMetric; pct: number | null
   if (pct !== null) {
     return (
       <>
-        <span className="font-semibold text-white">{pct}%</span> of {formatAmount(metric.target)} ·{" "}
-        {metric.openCount} in progress
+        <span className="font-numeric font-bold text-foreground">{pct}%</span> of{" "}
+        <span className="font-numeric">
+          {CURRENCY} {groupedNumber.format(metric.target)}
+        </span>{" "}
+        · {metric.openCount} in progress
       </>
     );
   }

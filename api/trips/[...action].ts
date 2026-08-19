@@ -8,6 +8,7 @@ import {
 } from "../../shared/validation.js";
 
 import { sql } from "../_lib/db.js";
+import { tripsForGroup, EMPTY_TRIPS } from "../_lib/queries.js";
 import { methodGuard, parseBody, getCatchAllAction } from "../_lib/http.js";
 import { getUserFromRequest } from "../_lib/auth.js";
 
@@ -46,41 +47,13 @@ async function list(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!user.groupId) {
-    res.status(200).json({ trips: [], summary: { upcomingCount: 0, totalBudget: 0 } });
+    res.status(200).json(EMPTY_TRIPS);
     return;
   }
 
-  // Trips are scoped to the caller's group, same as goals.
-  const trips = await sql`
-    select
-      t.id, t.title, t.destination,
-      t.start_date as "startDate",
-      t.end_date as "endDate",
-      t.budget,
-      t.notes,
-      t.created_by as "createdBy",
-      u.display_name as "createdByName",
-      u.email as "createdByEmail",
-      t.created_at as "createdAt",
-      coalesce(i.count, 0)::int as "itineraryCount"
-    from trips t
-    left join users u on u.id = t.created_by
-    left join (
-      select trip_id, count(*) as count from trip_itinerary_items group by trip_id
-    ) i on i.trip_id = t.id
-    where t.group_id = ${user.groupId}
-    order by t.start_date asc nulls last, t.created_at desc
-  `;
-
-  const [{ upcomingCount, totalBudget }] = await sql`
-    select
-      count(*) filter (where end_date is null or end_date >= current_date)::int as "upcomingCount",
-      coalesce(sum(budget), 0) as "totalBudget"
-    from trips
-    where group_id = ${user.groupId}
-  `;
-
-  res.status(200).json({ trips, summary: { upcomingCount, totalBudget } });
+  // Trips are scoped to the caller's group, same as goals. The rows query and
+  // the summary aggregate run concurrently; see api/_lib/queries.ts.
+  res.status(200).json(await tripsForGroup(user.groupId));
 }
 
 async function detail(req: VercelRequest, res: VercelResponse) {

@@ -1,47 +1,43 @@
 /*
- * PageHero — the dark, glowing header card shown at the top of every page.
- * See the token comment in theme.css for the color rationale.
+ * PageHero — the Home instrument panel.
+ *
+ * It used to be the app's one drenched dark surface: a deep-violet radial with
+ * two glows and a dot grid, sitting on a page whose other four tabs were light
+ * and quiet. That was the single largest inconsistency in the product — Home
+ * and Trips did not look like the same app — and the heaviness is what read as
+ * dated rather than futuristic.
+ *
+ * The panel is level 3 glass now (see glass.css), lit by the same ambient
+ * field as everything else. The brand still gets exactly one place to shout:
+ * the savings figure, filled with the violet-to-rose gradient the logo's two
+ * overlapping circles stand for. That gradient is the only place in the whole
+ * app where colour touches type.
  */
 
-.page-hero {
-  background: var(--hero-bg);
-  box-shadow: var(--hero-shadow);
+.page-hero-figure {
+  background-image: var(--hero-figure);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Wherever background-clip:text isn't honoured the text would render fully
+     transparent, so the solid fallback is painted first and only overridden
+     inside the @supports below. */
+  color: var(--hero-figure-solid);
 }
 
-.page-hero-glow-tr {
-  background: var(--hero-glow-tr);
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .page-hero-figure {
+    color: transparent;
+  }
 }
 
-.page-hero-glow-bl {
-  background: var(--hero-glow-bl);
-}
-
-.page-hero-dots {
-  background-image: var(--hero-dot-grid);
-  background-size: 24px 24px;
-}
-
-.page-hero-label {
-  color: rgba(199, 163, 255, 0.85);
-}
-
-.page-hero-value {
-  color: #ffffff;
-}
-
-.page-hero-description {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-/* Stat chips */
-
-.page-hero-chip {
-  background: var(--hero-glass);
-  border: 1px solid var(--hero-glass-border);
-}
-
-.page-hero-chip-label {
-  /* Raised from 0.35 — at 12px on the violet gradient that failed WCAG AA
-     (~3:1). ~0.72 clears the 4.5:1 body-text bar. */
-  color: rgba(255, 255, 255, 0.72);
+/* The currency mark rides above the baseline at a fraction of the figure's
+   size: "MAD" is context, not part of the number, and at full size it took
+   almost half the width of the app's headline. */
+.page-hero-currency {
+  font-size: 0.36em;
+  font-weight: 600;
+  letter-spacing: 0;
+  vertical-align: 0.72em;
+  margin-right: 0.16em;
 }

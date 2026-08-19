@@ -7,7 +7,7 @@ import { DetailMenu, type DetailMenuItem } from "@/components/layout/DetailMenu"
 import { GlassChip, StatusBadge, TripCover, tripStatus } from "./trip-visuals";
 
 const GLASS_CIRCLE =
-  "flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white backdrop-blur-sm outline-none transition-colors hover:bg-white hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-white/60";
+  "cover-chip flex size-9 items-center justify-center rounded-full backdrop-blur-sm outline-none transition-colors hover:bg-card hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/60";
 
 // The trip detail header, styled as a large version of the trip card: the
 // destination photo (or branded gradient) fills a tall hero, with the back
@@ -30,7 +30,7 @@ export function TripHero({
       <TripCover
         trip={trip}
         dim={status?.tone === "past"}
-        className="aspect-[4/3] rounded-lg shadow-[0_1px_2px_rgba(26,15,20,0.05),0_16px_38px_-16px_rgba(26,15,20,0.3)]"
+        className="aspect-[4/3] rounded-lg shadow-[0_4px_10px_rgb(var(--glass-ink)/0.05),0_30px_60px_-28px_rgb(var(--glass-cast)/0.38)]"
       >
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
           <div className="flex items-center gap-2">
@@ -41,16 +41,16 @@ export function TripHero({
           </div>
           <DetailMenu
             items={menuItems}
-            triggerClassName="size-9 rounded-full border border-white/20 bg-white/15 text-white backdrop-blur-sm hover:bg-white hover:text-foreground focus-visible:ring-white/60"
+            triggerClassName="cover-chip size-9 rounded-full backdrop-blur-sm hover:bg-card hover:text-foreground focus-visible:ring-ring/60"
           />
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-4">
-          <p className="flex items-center gap-1 text-sm font-medium text-white/80">
+          <p className="cover-sub flex items-center gap-1 text-sm font-medium">
             <MapPin className="size-4 shrink-0" />
             <span className="truncate">{trip.destination ?? "No destination set yet"}</span>
           </p>
-          <h1 className="mt-1 text-balance text-2xl font-bold leading-tight tracking-tight text-white [text-shadow:0_1px_12px_rgba(0,0,0,0.4)]">
+          <h1 className="cover-title font-display mt-1 text-2xl leading-tight text-balance">
             {trip.title}
           </h1>
 
@@ -64,7 +64,7 @@ export function TripHero({
               )}
               {trip.budget && (
                 <GlassChip icon={Wallet}>
-                  <span className="[font-variant-numeric:tabular-nums]">{formatAmount(trip.budget)}</span>
+                  {formatAmount(trip.budget)}
                 </GlassChip>
               )}
             </div>

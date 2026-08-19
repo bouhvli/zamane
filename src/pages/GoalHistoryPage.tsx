@@ -68,7 +68,7 @@ export default function GoalHistoryPage() {
             {/* Headline: where the goal stands right now. */}
             <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgba(26,15,20,0.04),0_10px_28px_-16px_rgba(26,15,20,0.16)]">
               <div className="mb-2 flex items-baseline justify-between gap-3">
-                <span className="text-2xl font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">
+                <span className="text-2xl font-bold tracking-tight text-foreground">
                   {isFinancial ? formatAmount(goal.currentAmount) : `${goal.currentProgressPct}%`}
                 </span>
                 <span className="text-sm font-semibold text-muted-foreground">{pct}%</span>
@@ -123,7 +123,7 @@ export default function GoalHistoryPage() {
                         </div>
                         {isFinancial && (
                           <div className="shrink-0 text-right">
-                            <p className="text-sm font-semibold text-foreground [font-variant-numeric:tabular-nums]">
+                            <p className="text-sm font-semibold text-foreground">
                               {formatAmount(partner.sum)}
                             </p>
                             {share != null && <p className="text-xs text-muted-foreground">{share}%</p>}
@@ -152,7 +152,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border bg-card p-3.5">
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className="mt-1 text-lg font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums]">{value}</p>
+      <p className="mt-1 text-lg font-bold tracking-tight text-foreground">{value}</p>
     </div>
   );
 }

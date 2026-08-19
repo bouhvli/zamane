@@ -47,7 +47,7 @@ export function ContributionHistoryList({
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <div className="text-right">
-                <p className="text-sm font-semibold text-foreground [font-variant-numeric:tabular-nums]">{what}</p>
+                <p className="text-sm font-semibold text-foreground">{what}</p>
                 <p className="text-xs text-muted-foreground">{formatDateTime(contribution.createdAt)}</p>
               </div>
               <Button

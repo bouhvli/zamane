@@ -10,6 +10,18 @@ export class ApiError extends Error {
 
 type ApiFetchOptions = Omit<RequestInit, "body"> & { body?: unknown };
 
+let unauthorizedHandler: (() => void) | null = null;
+
+/**
+ * Called once for every 401 response. `session.ts` registers itself here so a
+ * session that expires mid-visit invalidates the cached session answer — the
+ * callback lives here rather than the other way round to keep this module
+ * dependency-free.
+ */
+export function setUnauthorizedHandler(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
+
 /**
  * Thin fetch wrapper for /api/* calls: always sends the session cookie,
  * always speaks JSON, and throws a typed ApiError with the server's
@@ -32,6 +44,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const data = contentType.includes("application/json") ? await response.json() : undefined;
 
   if (!response.ok) {
+    if (response.status === 401) unauthorizedHandler?.();
     const message =
       data && typeof data === "object" && "error" in data
         ? String((data as { error: unknown }).error)

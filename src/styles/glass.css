@@ -1,0 +1,140 @@
+/*
+ * Wrapped in @layer components so Tailwind's utilities (which live in the
+ * later `utilities` layer) can still override these. Unlayered CSS beats
+ * layered CSS regardless of source order, so without this a `rounded-full` or
+ * an `absolute` on a .glass-* / .orbit element silently lost to the class's
+ * own declaration — which is exactly what happened to the goal card's orbit,
+ * pinned to the wrong corner by .orbit's own `position: relative`.
+ */
+:root {
+  /* The tinted white the glass is made of. */
+  --glass-top: rgba(255, 255, 255, 0.84);
+  --glass-bottom: rgba(255, 255, 255, 0.62);
+  --glass-edge: rgba(255, 255, 255, 0.72);
+  --glass-sheen: rgba(255, 255, 255, 0.88);
+  /* Raw channels so each level can pick its own alpha off one hue. The cast is
+     violet rather than neutral black: the whole surface is lit by the same
+     lamp, and a grey shadow under a violet light is the tell that a component
+     was built on its own. */
+  --glass-cast: 90 39 255;
+  --glass-ink: 26 15 20;
+  /* Opaque stand-in painted underneath every level, so a browser without
+     backdrop-filter (or one that drops it under memory pressure) still gets a
+     legible surface instead of transparent text on the page background. */
+  --glass-fallback: rgba(253, 250, 252, 0.92);
+}
+
+.dark {
+  --glass-top: rgba(255, 255, 255, 0.08);
+  --glass-bottom: rgba(255, 255, 255, 0.035);
+  --glass-edge: rgba(255, 255, 255, 0.1);
+  --glass-sheen: rgba(255, 255, 255, 0.07);
+  --glass-cast: 0 0 0;
+  --glass-ink: 0 0 0;
+  --glass-fallback: rgba(26, 16, 21, 0.9);
+}
+
+@layer components {
+  /*
+   * The glass material — four depths, one recipe.
+   *
+   * Before this file the app had four unrelated shadow strings: Card's,
+   * GLASS_ROW's, the bottom nav's, and the hero's. Each picked its own tint and
+   * its own offsets, so a single screen carried three different light sources.
+   * Here every level shares one key light — violet, from above — and differs
+   * only in blur radius and cast spread. Depth becomes one variable instead of
+   * an improvisation per component.
+   *
+   * The material only reads as glass over something with texture: see
+   * ambient.css for the field it refracts. Blurring a flat colour is invisible.
+   */
+
+  .glass-1,
+  .glass-2,
+  .glass-3,
+  .glass-4 {
+    background-color: var(--glass-fallback);
+    background-image: linear-gradient(180deg, var(--glass-top) 0%, var(--glass-bottom) 100%);
+    border: 1px solid var(--glass-edge);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .glass-1,
+    .glass-2,
+    .glass-3,
+    .glass-4 {
+      background-color: transparent;
+    }
+  }
+
+  /* Level 1 — list rows, compact cards, chips. Sits nearly on the page. */
+  .glass-1 {
+    border-radius: var(--radius-md);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 1px 2px rgb(var(--glass-ink) / 0.04),
+      0 12px 28px -20px rgb(var(--glass-cast) / 0.22);
+  }
+
+  /* Level 2 — content cards, empty states, dashboard tiles. */
+  .glass-2 {
+    border-radius: var(--radius-lg);
+    -webkit-backdrop-filter: blur(20px) saturate(1.45);
+    backdrop-filter: blur(20px) saturate(1.45);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 2px 4px rgb(var(--glass-ink) / 0.04),
+      0 22px 44px -26px rgb(var(--glass-cast) / 0.3);
+  }
+
+  /* Level 3 — floating chrome: the hero panel, the bottom nav, the FAB. */
+  .glass-3 {
+    border-radius: var(--radius-lg);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 4px 10px rgb(var(--glass-ink) / 0.05),
+      0 30px 60px -28px rgb(var(--glass-cast) / 0.38);
+  }
+
+  /* Level 4 — sheets and dialogs, which have a scrim of their own behind them.
+     The cast points UP, because a bottom sheet is lit from the page it covers. */
+  .glass-4 {
+    border-radius: var(--radius-xl);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    backdrop-filter: blur(28px) saturate(1.5);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 -18px 60px -20px rgb(var(--glass-cast) / 0.45);
+  }
+
+  /*
+   * Interactive glass. A row that can be tapped brightens and takes a violet
+   * edge rather than lifting — down a list of rows a translate reads as jitter
+   * (the same reasoning the compact cards already carried), and colour is the
+   * calmer "this is tappable".
+   */
+  .glass-tap {
+    transition:
+      background-color var(--dur-2) var(--ease-glide),
+      border-color var(--dur-2) var(--ease-glide),
+      transform var(--dur-1) var(--ease-glide);
+  }
+
+  .glass-tap:hover {
+    border-color: rgb(var(--glass-cast) / 0.28);
+    background-color: rgb(255 255 255 / 0.5);
+  }
+
+  .dark .glass-tap:hover {
+    background-color: rgb(255 255 255 / 0.05);
+  }
+
+  .glass-tap:active {
+    transform: scale(0.99);
+  }
+
+}

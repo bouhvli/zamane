@@ -19,8 +19,11 @@ export function EmptyState({
   action?: { to: string; label: string };
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-primary/30 bg-card px-6 py-10 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+    // Level 2 glass with a dashed edge: the dashes say "nothing here yet" while
+    // the material says "this is still part of the app" — the old solid card on
+    // a solid page read as a placeholder someone forgot to remove.
+    <div className="glass-2 flex flex-col items-center gap-3 border-dashed border-violet-200 px-6 py-10 text-center">
+      <span className="flex size-12 items-center justify-center rounded-full bg-violet-100 text-primary">
         <Icon className="size-6" />
       </span>
       <div className="space-y-1">

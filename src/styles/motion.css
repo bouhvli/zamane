@@ -1,0 +1,125 @@
+/*
+ * Wrapped in @layer components so Tailwind's utilities (which live in the
+ * later `utilities` layer) can still override these. Unlayered CSS beats
+ * layered CSS regardless of source order, so without this a `rounded-full` or
+ * an `absolute` on a .glass-* / .orbit element silently lost to the class's
+ * own declaration — which is exactly what happened to the goal card's orbit,
+ * pinned to the wrong corner by .orbit's own `position: relative`.
+ */
+@layer components {
+  /*
+   * The motion vocabulary. Four uses, no ambient animation:
+   *   arriving    — .stagger, a list settling in
+   *   navigating  — view transitions, a card morphing into its detail page
+   *   progressing — the orbit sweep (orbit.css)
+   *   confirming  — the count-up on the savings figure (useCountUp)
+   *
+   * Durations and easing come from theme.css. Transform and opacity only, so
+   * every one of these runs on the compositor.
+   */
+
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /*
+   * A list whose children arrive in sequence rather than all at once. The step
+   * is small on purpose — 45ms reads as one movement with depth, while anything
+   * near 100ms reads as a queue the user has to wait through.
+   *
+   * The index is assigned by :nth-child rather than an inline style so a caller
+   * only has to add one class to the container. Capped at eight: past that the
+   * delay would exceed the animation itself, and a long list should feel
+   * present, not still loading.
+   */
+  .stagger > * {
+    animation: rise-in var(--dur-3) var(--ease-glide) both;
+    animation-delay: calc(45ms * var(--i, 0));
+  }
+
+  .stagger > *:nth-child(1) { --i: 0; }
+  .stagger > *:nth-child(2) { --i: 1; }
+  .stagger > *:nth-child(3) { --i: 2; }
+  .stagger > *:nth-child(4) { --i: 3; }
+  .stagger > *:nth-child(5) { --i: 4; }
+  .stagger > *:nth-child(6) { --i: 5; }
+  .stagger > *:nth-child(7) { --i: 6; }
+  .stagger > *:nth-child(n + 8) { --i: 7; }
+
+  /*
+   * Skeleton shimmer. The highlight travels along the same diagonal as the
+   * ambient field's key light (top-right to bottom-left) so a loading surface is
+   * lit by the same lamp as the real one it becomes.
+   */
+  @keyframes skeleton-sweep {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--muted);
+    background-image: linear-gradient(
+      100deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.65) 50%,
+      transparent 65%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-sweep 1.4s linear infinite;
+  }
+
+  .dark .skeleton {
+    background-image: linear-gradient(
+      100deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.07) 50%,
+      transparent 65%
+    );
+  }
+
+  /*
+   * View transitions. React Router calls document.startViewTransition when a
+   * <Link viewTransition> is followed; these names pair the element on the list
+   * with its counterpart on the detail page so the thumbnail grows into the
+   * cover rather than the whole screen cross-fading.
+   *
+   * A view-transition-name must be unique among *rendered* elements, which is
+   * why the names are minted per entity id at the call site.
+   */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-3);
+    animation-timing-function: var(--ease-glide);
+  }
+
+  /*
+   * The global reduced-motion net in theme.css targets `*` and its ::before /
+   * ::after, which does not reach the view-transition pseudo-elements — they
+   * live in their own tree. Silence them explicitly.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
+
+    .skeleton {
+      animation: none !important;
+    }
+  }
+
+}

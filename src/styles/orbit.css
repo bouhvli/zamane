@@ -1,0 +1,124 @@
+/*
+ * Wrapped in @layer components so Tailwind's utilities (which live in the
+ * later `utilities` layer) can still override these. Unlayered CSS beats
+ * layered CSS regardless of source order, so without this a `rounded-full` or
+ * an `absolute` on a .glass-* / .orbit element silently lost to the class's
+ * own declaration — which is exactly what happened to the goal card's orbit,
+ * pinned to the wrong corner by .orbit's own `position: relative`.
+ */
+/* inherits:true is load-bearing, not a default. The arc is drawn by
+   .orbit::before, and a registered custom property declared inherits:false
+   does not reach a pseudo-element — it silently falls back to initial-value,
+   which rendered every ring as an empty track. */
+@property --orbit-p {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* The unfilled part of the arc, shared by the ring and the bar so the two
+   shapes of the instrument can never drift apart. */
+:root {
+  --orbit-track: rgba(26, 15, 20, 0.09);
+}
+
+.dark {
+  --orbit-track: rgba(255, 255, 255, 0.12);
+}
+
+@layer components {
+  /*
+   * The Progress Orbit — the app's signature instrument.
+   *
+   * A conic gradient masked into a ring: violet at the start of the arc, rose at
+   * the head, a hairline track for the rest. It replaces the linear bar wherever
+   * the bar was competing for horizontal space, and it is the same component at
+   * every size (a 40px row indicator and a 124px goal-detail headline differ
+   * only by --orbit-size and --orbit-w).
+   *
+   * No SVG and no library: one element, one pseudo-element, one registered
+   * custom property. Registering --orbit-p as a <number> is what makes it
+   * animatable — an unregistered custom property can only flip discretely, so
+   * the sweep would jump instead of travelling.
+   */
+
+
+
+  .orbit {
+    --orbit-w: 6px;
+    --orbit-p: var(--orbit-target, 0);
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--orbit-size, 40px);
+    height: var(--orbit-size, 40px);
+    /* Sweeps from empty to its value on mount: the number stops being a readout
+       and becomes a moment. `both` fill means a browser without @property
+       support still settles on the correct final arc, and the global
+       reduced-motion net collapses the whole thing to instant. */
+    animation: orbit-sweep var(--dur-4) var(--ease-glide) both;
+  }
+
+  @keyframes orbit-sweep {
+    from {
+      --orbit-p: 0;
+    }
+    to {
+      --orbit-p: var(--orbit-target, 0);
+    }
+  }
+
+  .orbit::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    /* from -90deg puts zero at twelve o'clock, where a dial is read from. */
+    background: conic-gradient(
+      from -90deg,
+      var(--violet-500) 0turn,
+      var(--rose-500) calc(var(--orbit-p) * 1turn),
+      var(--orbit-track) calc(var(--orbit-p) * 1turn),
+      var(--orbit-track) 1turn
+    );
+    -webkit-mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--orbit-w)),
+      #000 calc(100% - var(--orbit-w))
+    );
+    mask: radial-gradient(
+      farthest-side,
+      transparent calc(100% - var(--orbit-w)),
+      #000 calc(100% - var(--orbit-w))
+    );
+  }
+
+  /* The label sits inside the ring and never inherits the parent's text colour
+     by accident — it is the figure, so it takes the strongest ink available. */
+  .orbit-value {
+    position: relative;
+    font-family: var(--font-heading);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--foreground);
+  }
+
+  /*
+   * The horizontal sibling: the same gradient as a bar, for the places a ring
+   * would be wrong — under a wide figure, or across the full width of a row.
+   * Kept here rather than in the component so the two instruments can never
+   * drift apart on colour.
+   */
+  .orbit-bar {
+    background: var(--orbit-track);
+  }
+
+  .orbit-bar-fill {
+    background: linear-gradient(90deg, var(--violet-500), var(--rose-500));
+    transition: width var(--dur-4) var(--ease-glide);
+  }
+
+}

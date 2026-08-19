@@ -194,7 +194,7 @@ export default function ProfilePage() {
               <span
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
-                  partner ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                  partner ? "bg-violet-100 text-primary" : "bg-muted text-muted-foreground",
                 )}
               >
                 <Users className="size-3.5" />

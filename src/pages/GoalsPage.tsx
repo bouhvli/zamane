@@ -1,5 +1,5 @@
 import { useLoaderData } from "react-router";
-import { Target } from "lucide-react";
+import { CircleDot } from "lucide-react";
 
 import type { Goal, GoalsSummary } from "@/lib/goals-api";
 import { formatAmount } from "@/lib/format";
@@ -27,10 +27,10 @@ export default function GoalsPage() {
         ]}
       />
 
-      <div className="mx-auto max-w-md space-y-4 px-4 pb-12">
+      <div className="stagger mx-auto max-w-md space-y-4 px-4 pb-12">
         {goals.length === 0 ? (
           <EmptyState
-            icon={Target}
+            icon={CircleDot}
             title="No goals yet"
             description="Start saving toward something together."
             action={{ to: "/goals/new", label: "Create a goal" }}

@@ -1,0 +1,61 @@
+/*
+ * Wrapped in @layer components so Tailwind's utilities (which live in the
+ * later `utilities` layer) can still override these. Unlayered CSS beats
+ * layered CSS regardless of source order, so without this a `rounded-full` or
+ * an `absolute` on a .glass-* / .orbit element silently lost to the class's
+ * own declaration — which is exactly what happened to the goal card's orbit,
+ * pinned to the wrong corner by .orbit's own `position: relative`.
+ */
+@layer components {
+  /*
+   * The ambient field — the app's single lit backdrop.
+   *
+   * This wash used to exist only on Home (as .dashboard-mesh, scoped to the card
+   * stack), which is why only Home's frosted rows read as glass: on Trips,
+   * Shopping and Goals the same backdrop-filter was blurring a flat colour, i.e.
+   * doing nothing at all. Promoting it to the shell gives every surface in the
+   * app something real to refract, and gives the five tabs one atmosphere.
+   *
+   * Two low-opacity radial lights establish the light source the glass shadows
+   * in glass.css already assume — violet key from the top right, rose fill from
+   * the bottom left — over a fine dot lattice that gives the blur some grain to
+   * find. The lattice fades out down the page so long lists don't scroll against
+   * a repeating texture.
+   *
+   * `position: fixed` with an explicit z-index (rather than the old z-index:-1
+   * trick) keeps it deterministic: the field is layer 0, page content is layer 1.
+   */
+
+  .ambient-field {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--background);
+    background-image:
+      radial-gradient(90% 45% at 88% 0%, rgba(90, 39, 255, 0.10) 0%, rgba(90, 39, 255, 0) 62%),
+      radial-gradient(80% 45% at 2% 88%, rgba(191, 99, 130, 0.11) 0%, rgba(191, 99, 130, 0) 66%),
+      radial-gradient(rgba(90, 39, 255, 0.07) 1px, transparent 1.5px);
+    background-size: auto, auto, 22px 22px;
+    /* The lattice is the third layer, so masking the element would kill the
+       radial lights too — instead the dots are drawn full-bleed and the whole
+       field is faded at the very bottom, where the nav pill floats. */
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
+  .dark .ambient-field {
+    background-image:
+      radial-gradient(90% 45% at 88% 0%, rgba(123, 82, 255, 0.16) 0%, rgba(123, 82, 255, 0) 62%),
+      radial-gradient(80% 45% at 2% 88%, rgba(191, 99, 130, 0.13) 0%, rgba(191, 99, 130, 0) 66%),
+      radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1.5px);
+    background-size: auto, auto, 22px 22px;
+  }
+
+  /* Everything the user can see or touch sits above the field. */
+  .ambient-content {
+    position: relative;
+    z-index: 1;
+  }
+
+}

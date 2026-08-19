@@ -229,7 +229,7 @@ export default function NewGoalPage() {
                         className={cn(
                           "flex-1 rounded-lg border px-3 py-2.5 text-sm font-medium outline-none transition-[color,background-color,border-color,transform] active:scale-[0.98] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
                           selected
-                            ? "border-primary bg-primary/10 text-primary"
+                            ? "border-primary bg-violet-100 text-primary"
                             : "border-border text-muted-foreground hover:bg-muted",
                         )}
                       >

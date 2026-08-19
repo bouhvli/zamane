@@ -7,16 +7,12 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        // Soft floating card of the travel-app language: large radius, a
-        // hairline border kept faint, and a low shadow doing the real
-        // separation work (Refactoring UI: prefer shadow over border).
-        //
-        // The shadow is tinted with --foreground's own near-black (26,15,20) —
-        // a rose-leaning dark, matching the palette. It used to be (16,32,24),
-        // a *green*-black left over from another palette, which put every card
-        // in the app on a different light than the violet-tinted nav and hero
-        // shadows (Refactoring UI: one consistent light source).
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-lg border border-border/60 shadow-[0_1px_2px_rgba(26,15,20,0.04),0_10px_28px_-14px_rgba(26,15,20,0.14)]",
+        // Level 2 of the glass ramp (see glass.css). This used to carry its
+        // own hand-written shadow, one of four unrelated recipes in the app —
+        // the nav, the hero and the compact rows each had their own, so a
+        // single screen was lit from three directions at once. Depth is now a
+        // level, and every level shares one light source.
+        "glass-2 text-card-foreground flex flex-col gap-6",
         className,
       )}
       {...props}

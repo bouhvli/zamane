@@ -84,7 +84,7 @@ export function ItineraryItemSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet-dialog"
+      className="sheet-dialog glass-4"
       // Route native Escape / backdrop dismissal back through our state so
       // `open` stays the source of truth (and can't close mid-submit).
       onCancel={(event) => {
@@ -100,7 +100,7 @@ export function ItineraryItemSheet({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex max-h-[92dvh] flex-col" noValidate>
           <div className="shrink-0 px-5 pt-3">
-            <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+            <div aria-hidden="true" className="sheet-grabber mx-auto mb-3" />
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-bold tracking-tight text-foreground">Add activity</h2>
               <Button

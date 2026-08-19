@@ -55,11 +55,6 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, './shared'),
     },
   },
-  // Small SVGs used as CSS mask-image sources silently fail to render when
-  // Vite inlines them as base64 data URIs — always emit real file URLs.
-  build: {
-    assetsInlineLimit: 0,
-  },
   server: {
     proxy: {
       '/api': 'http://localhost:3000',

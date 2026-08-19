@@ -2,13 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 
 import { apiFetch } from "./api";
+import { getSessionUser, primeSessionUser, clearSessionUser } from "./session";
 
-export type SessionUser = {
-  id: string;
-  email: string;
-  displayName: string | null;
-  groupId: string | null;
-};
+export type { SessionUser } from "./session";
+import type { SessionUser } from "./session";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -27,26 +24,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
 
-  const refreshSession = useCallback(async () => {
-    try {
-      const data = await apiFetch<{ user: SessionUser | null }>("/api/auth/session");
-      setUser(data.user);
-      setStatus(data.user ? "authenticated" : "unauthenticated");
-    } catch {
-      setUser(null);
-      setStatus("unauthenticated");
-    }
+  // Reads through the shared session cache (src/lib/session.ts) rather than
+  // issuing its own request: on a cold launch this mount effect and the
+  // router's loaders all want the same answer at the same moment, and they
+  // used to fetch it separately. `force` re-checks against the server, which
+  // is what an explicit refresh (e.g. after joining a group) is asking for.
+  const loadSession = useCallback(async (force: boolean) => {
+    if (force) clearSessionUser();
+    const nextUser = await getSessionUser();
+    setUser(nextUser);
+    setStatus(nextUser ? "authenticated" : "unauthenticated");
   }, []);
 
+  const refreshSession = useCallback(() => loadSession(true), [loadSession]);
+
   useEffect(() => {
-    refreshSession();
-  }, [refreshSession]);
+    loadSession(false);
+  }, [loadSession]);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await apiFetch<{ user: SessionUser }>("/api/auth/login", {
       method: "POST",
       body: { email, password },
     });
+    primeSessionUser(data.user);
     setUser(data.user);
     setStatus("authenticated");
     return data.user;
@@ -57,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: "POST",
       body: { email, password, displayName },
     });
+    primeSessionUser(data.user);
     setUser(data.user);
     setStatus("authenticated");
     return data.user;
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await apiFetch("/api/auth/logout", { method: "POST" });
+    primeSessionUser(null);
     setUser(null);
     setStatus("unauthenticated");
   }, []);

@@ -85,7 +85,7 @@ export function ShoppingItemSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet-dialog"
+      className="sheet-dialog glass-4"
       onCancel={(event) => {
         event.preventDefault();
         if (!isSubmitting) onClose();
@@ -97,7 +97,7 @@ export function ShoppingItemSheet({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex max-h-[92dvh] flex-col" noValidate>
           <div className="shrink-0 px-5 pt-3">
-            <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+            <div aria-hidden="true" className="sheet-grabber mx-auto mb-3" />
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-bold tracking-tight text-foreground">Add item</h2>
               <Button
