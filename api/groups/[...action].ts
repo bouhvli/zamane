@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { joinGroupRequestSchema } from "../../shared/validation.js";
 
 import { sql } from "../_lib/db.js";
+import { groupForGroupId } from "../_lib/queries.js";
 import { methodGuard, parseBody, getCatchAllAction } from "../_lib/http.js";
 import { getUserFromRequest } from "../_lib/auth.js";
 import { generateInviteCode } from "../_lib/invite-code.js";
@@ -40,21 +41,11 @@ async function me(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const groupRows = await sql`select id, invite_code as "inviteCode" from groups where id = ${user.groupId} limit 1`;
-  const group = groupRows[0] as { id: string; inviteCode: string } | undefined;
-  if (!group) {
-    res.status(200).json({ group: null });
-    return;
-  }
-
-  const members = await sql`
-    select id, display_name as "displayName", email
-    from users
-    where group_id = ${user.groupId}
-    order by created_at asc
-  `;
-
-  res.status(200).json({ group: { ...group, members } });
+  // The group row and its member list were fetched one after the other even
+  // though the member query only needs the group *id*, which the session
+  // already carries — two serial Neon round trips where one would do. See
+  // api/_lib/queries.ts.
+  res.status(200).json(await groupForGroupId(user.groupId));
 }
 
 async function create(req: VercelRequest, res: VercelResponse) {

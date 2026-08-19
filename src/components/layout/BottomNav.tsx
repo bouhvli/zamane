@@ -1,47 +1,64 @@
-import type { CSSProperties } from "react";
 import { Link, useLocation } from "react-router";
+import {
+  Home09Icon,
+  MapsGlobal01Icon,
+  ShoppingCart02Icon,
+  Target03Icon,
+  UserCircleIcon,
+} from "@hugeicons/core-free-icons";
 
 import { cn } from "@/components/ui/utils";
-// `?url` + build.assetsInlineLimit:0 (vite.config.ts) guarantee these
-// resolve to real file URLs rather than base64 data URIs — inlined data
-// URIs silently fail as a CSS mask-image source, while real URLs work.
-import homeIcon from "@/assets/icons/home.svg?url";
-import tripsIcon from "@/assets/icons/trips.svg?url";
-import shoppingIcon from "@/assets/icons/shopping.svg?url";
-import goalsIcon from "@/assets/icons/goals.svg?url";
-import profileIcon from "@/assets/icons/profile.svg?url";
+import { TwotoneIcon } from "@/components/TwotoneIcon";
 
 type BottomNavTab = {
   id: string;
   label: string;
   href: string;
-  icon: string;
+  icon: Parameters<typeof TwotoneIcon>[0]["icon"];
+  /** Which of the glyph's nodes carry the meaning — see TwotoneIcon. */
+  primary: readonly number[];
 };
 
+/**
+ * The tabs — Hugeicons, rendered twotone (see TwotoneIcon for why the twotone
+ * reading is applied here rather than imported).
+ *
+ * They were five hand-drawn solid-fill SVGs painted through a CSS mask, then
+ * briefly lucide strokes. Hugeicons' rounded geometry sits better against Plus
+ * Jakarta's humanist curves than lucide's squarer terminals did, and the
+ * twotone reading gives the row a softness a single-weight outline can't: the
+ * container recedes, the subject stays.
+ *
+ * `primary` picks the node that carries the meaning, which differs per glyph —
+ * on the map it's the pin (the globe is the container), on the target it's the
+ * centre (the rings are), on the house it's the outline (the door is detail).
+ *
+ * Only the active tab is labelled. Five permanent labels is five words of
+ * chrome for a destination the user learned on day two; spending that width on
+ * the one tab that is actually speaking lets it say its name properly and lets
+ * the other four breathe as icons.
+ */
 export const DEFAULT_BOTTOM_NAV_TABS: BottomNavTab[] = [
-  { id: "home", label: "Home", href: "/home", icon: homeIcon },
-  { id: "trips", label: "Trips", href: "/trips", icon: tripsIcon },
-  { id: "shopping", label: "Shopping", href: "/shopping", icon: shoppingIcon },
-  { id: "goals", label: "Goals", href: "/goals", icon: goalsIcon },
-  { id: "profile", label: "Profile", href: "/profile", icon: profileIcon },
+  { id: "home", label: "Home", href: "/home", icon: Home09Icon, primary: [0] },
+  { id: "trips", label: "Trips", href: "/trips", icon: MapsGlobal01Icon, primary: [3] },
+  { id: "shopping", label: "Shopping", href: "/shopping", icon: ShoppingCart02Icon, primary: [1] },
+  { id: "goals", label: "Goals", href: "/goals", icon: Target03Icon, primary: [2] },
+  { id: "profile", label: "Profile", href: "/profile", icon: UserCircleIcon, primary: [0, 2] },
 ];
 
 export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNavTab[] }) {
   const { pathname } = useLocation();
 
   return (
-    // A floating rounded-rectangle bar, inset from the screen edges and
-    // lifted above the safe area. The outer wrapper is click-through; only
-    // the bar itself takes pointer events.
+    // A floating rounded-rectangle bar, inset from the screen edges and lifted
+    // above the safe area. The outer wrapper is click-through; only the bar
+    // itself takes pointer events.
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex justify-center px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-      {/* rounded-lg matches the same --radius token every Card in the app
-          uses — a refined rounded-rectangle "island" instead of a full
-          stadium pill. */}
       <nav
         // Names the landmark. Without it a screen reader's landmark list just
         // reads "navigation" with nothing to distinguish it.
         aria-label="Main"
-        className="bottom-nav-pill pointer-events-auto flex w-full max-w-md items-stretch gap-1 rounded-lg p-1.5"
+        className="glass-3 pointer-events-auto flex w-full max-w-md items-stretch rounded-lg p-1.5"
       >
         {tabs.map((tab) => {
           // Match nested routes too, so /goals/123 and /goals/123/edit keep the
@@ -52,6 +69,7 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
             <Link
               key={tab.id}
               to={tab.href}
+              aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
               onClick={() => {
                 // Tapping the tab you're already on scrolls that page back to
@@ -61,43 +79,80 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 if (isActive) window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-[14px] py-1 outline-none transition-colors duration-150 active:scale-[0.96] focus-visible:ring-[3px] focus-visible:ring-[var(--nav-fg-active)]/60",
+                // min-h-11 holds the app's 44px tap floor. Dropping the label
+                // from four of the five tabs took ~11px of height out of them,
+                // which quietly put every inactive target under it.
+                "relative flex min-h-11 items-center justify-center gap-1.5 outline-none",
+                // Nested radius derived rather than guessed: the bar is
+                // --radius-lg and carries 6px of padding, so its children are
+                // 6px tighter.
+                "rounded-[calc(var(--radius-lg)-0.375rem)]",
+                // The active tab takes only the width its label needs; the
+                // other four share what's left equally. Both sides of that
+                // split move at once as the label opens, which is what makes
+                // the pill look like it travels along the bar rather than
+                // blinking out in one place and in again in another.
+                // px-2.5 rather than px-3 on the pill: at 320px the wider
+                // padding left the four inactive tabs 43px each, just under
+                // the same floor. Measured 44.7px at 320 and 63px at 390.
+                isActive ? "flex-none px-2.5" : "min-w-0 flex-1 px-1",
+                "transition-colors duration-[var(--dur-2)] ease-[var(--ease-glide)]",
+                "focus-visible:ring-[3px] focus-visible:ring-[var(--nav-fg-active)]/50",
                 isActive ? "text-[var(--nav-fg-active)]" : "text-[var(--nav-fg-inactive)]",
               )}
             >
-              {/* Active state reads as a tinted icon "pill" — the same
-                  bg-primary/10 treatment every icon-in-a-circle moment in the
-                  app already uses (HomePage's quick actions, TripDetailPage's
-                  header icon, EmptyState) — rather than a bespoke nav-only
-                  indicator. The pill is a sibling behind the icon, not a
-                  wrapper around it, so it can scale/fade in without shrinking
-                  the icon it sits behind. Colour + pill is two active signals;
-                  a third (e.g. the old underline bar) was redundant. */}
-              <span aria-hidden="true" className="relative flex size-8 items-center justify-center">
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "absolute inset-0 rounded-full bg-primary/10 transition-[opacity,transform] duration-200 ease-out",
-                    isActive ? "scale-100 opacity-100" : "scale-75 opacity-0",
-                  )}
-                />
-                <span
-                  aria-hidden="true"
-                  className="doodle-icon relative"
-                  style={{ "--icon-mask": `url(${tab.icon})` } as CSSProperties}
-                />
-              </span>
+              {/*
+                The pill sits behind the content rather than wrapping it, so it
+                can fade without nudging what it holds. It fades faster than
+                the label opens (--dur-1 against --dur-3): by the time the row
+                has finished reflowing, the shape has already committed to its
+                new home, which reads as one object moving instead of two
+                objects swapping.
+              */}
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "absolute inset-0 rounded-[calc(var(--radius-lg)-0.375rem)] bg-violet-100",
+                  "transition-opacity duration-[var(--dur-1)] ease-[var(--ease-glide)]",
+                  isActive ? "opacity-100" : "opacity-0",
+                )}
+              />
 
-              {/* Constant weight and tracking. The active label used to jump
-                  400 → 600, which (a) animated font-weight — unreliable, and
-                  janky even on a variable font — and (b) grew the widest label
-                  to exactly its tab's width at 320px: "Shopping" measured 52px
-                  of text in a 52px tab, with a font-fallback render or another
-                  locale enough to tip it over. Weight was a third, redundant
-                  active signal on top of colour and the icon pill, so it
-                  costs nothing to drop. 500 rather than 400 also carries 11px
-                  text better. */}
-              <span className="text-[11px] leading-none font-medium tracking-tight whitespace-nowrap">
+              <TwotoneIcon
+                icon={tab.icon}
+                primary={tab.primary}
+                size={22}
+                // The secondary tone has to survive being drawn in the muted
+                // inactive colour as well as the brand violet, so it sits a
+                // little stronger than a pure decorative dim would.
+                secondaryOpacity={isActive ? 0.4 : 0.45}
+                strokeWidth={1.6}
+                className="relative"
+              />
+
+              {/*
+                Only the active tab is labelled — four words the user has
+                already learned are four words of noise, and dropping them is
+                what buys the active tab room to say its own out loud.
+
+                The label is clipped to zero width rather than unmounted: an
+                element that leaves the DOM cannot animate out, and the width
+                is exactly what the reflow above is riding on. The spring
+                easing gives the opening a small overshoot, so the pill settles
+                rather than stopping dead.
+
+                aria-hidden because the Link already carries the same text as
+                its aria-label, which is what keeps every tab named for a
+                screen reader whether or not it is showing a label.
+              */}
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "relative overflow-hidden text-2xs leading-none font-semibold tracking-tight whitespace-nowrap",
+                  "transition-[max-width,opacity] duration-[var(--dur-3)] ease-[var(--ease-spring)]",
+                  isActive ? "max-w-[7rem] opacity-100" : "max-w-0 opacity-0",
+                )}
+              >
                 {tab.label}
               </span>
             </Link>

@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import { createBrowserRouter, redirect, Navigate, Outlet } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 
-import { apiFetch } from "./lib/api";
-import type { SessionUser } from "./lib/auth-context";
+import { ApiError } from "./lib/api";
+import { getSessionUser } from "./lib/session";
+import { fetchHome } from "./lib/home-api";
 import { fetchGoals, fetchGoalDetail } from "./lib/goals-api";
 import { fetchGroup } from "./lib/groups-api";
 import { fetchTrips, fetchTripDetail } from "./lib/trips-api";
@@ -12,7 +13,7 @@ import { fetchShoppingItems } from "./lib/shopping-api";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AppBootFallback } from "./components/layout/AppBootFallback";
 import { RouteErrorBoundary } from "./components/layout/RouteErrorBoundary";
-import { Loader } from "./components/Loader";
+import { HomeSkeleton } from "./components/layout/Skeleton";
 
 // Each auth screen and the home dashboard get their own chunk — on a
 // mobile connection, the first paint (usually the login screen) shouldn't
@@ -33,10 +34,13 @@ const NewTripPage = lazy(() => import("./pages/NewTripPage"));
 const ShoppingPage = lazy(() => import("./pages/ShoppingPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
+// The gap while a route's own chunk downloads. A skeleton of the shape that's
+// coming beats a centred spinner: the layout is already settled when the code
+// lands, so nothing jumps.
 function RouteFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Loader size={40} />
+    <div className="min-h-screen">
+      <HomeSkeleton />
     </div>
   );
 }
@@ -45,18 +49,16 @@ function withSuspense(element: ReactNode) {
   return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
 }
 
-async function getSessionUser(): Promise<SessionUser | null> {
-  try {
-    const data = await apiFetch<{ user: SessionUser | null }>("/api/auth/session");
-    return data.user;
-  } catch {
-    return null;
-  }
-}
-
-async function rootLoader() {
-  const user = await getSessionUser();
-  throw redirect(user ? "/home" : "/login");
+// `/` used to check the session and *then* redirect, which cost a full round
+// trip before the destination route could even start loading its own data —
+// and on a cold serverless start that first request is the one that pays
+// Neon's compute wake (~3s, against ~50ms once warm). It now redirects
+// straight to /home with no network at all: the guards on /home resolve the
+// same question, and they resolve it in parallel with the dashboard's data
+// instead of in front of it. A signed-out visitor is bounced on to /login by
+// requireGroupLoader for the same single round trip it used to cost here.
+function rootLoader() {
+  throw redirect("/home");
 }
 
 async function guestOnlyLoader() {
@@ -88,32 +90,33 @@ async function goalDetailLoader({ params }: LoaderFunctionArgs) {
 }
 
 async function homeLoader() {
-  // All four requests start together, but only the two the first viewport
-  // actually needs are awaited: the hero's savings figure and the Goals
-  // preview. Trips and Shopping stream in behind <Await> with skeletons, so
-  // the dashboard no longer blocks its whole first paint on the slowest of
-  // four round-trips (Doherty threshold — perceived response under 400ms).
+  // One request for the whole dashboard (see api/home.ts). This used to be
+  // four — goals and groups awaited together, trips and shopping streamed
+  // behind <Await> — which on a cold start meant four separate function
+  // invocations, any of which could draw Neon's compute wake.
   //
-  // A second benefit: a failing trips or shopping request now degrades to that
-  // one section's error slot instead of throwing the entire dashboard to the
-  // route error boundary.
-  const trips = fetchTrips();
-  const shopping = fetchShoppingItems();
-  // Nothing else awaits these two, so an early rejection would surface as an
-  // unhandled rejection before <Await> ever subscribes. Park a no-op catch on
-  // each; <Await> still sees the original rejected promise and renders its
-  // errorElement.
-  trips.catch(() => {});
-  shopping.catch(() => {});
+  // Trips and shopping are still handed to HomePage as promises so its
+  // <Suspense>/<Await> sections keep working unchanged; they simply resolve on
+  // the next microtask now instead of a second round trip later.
+  let data;
+  try {
+    data = await fetchHome();
+  } catch (error) {
+    // Agree with requireGroupLoader, which is resolving the same question in
+    // parallel: a 401 here means signed out, not a broken dashboard, so send
+    // the visitor to /login rather than the route error boundary.
+    if (error instanceof ApiError && error.status === 401) throw redirect("/login");
+    throw error;
+  }
 
-  const [goalsData, groupData] = await Promise.all([fetchGoals(), fetchGroup()]);
+  if (!data.user.groupId) throw redirect("/onboarding/group");
 
   return {
-    goals: goalsData.goals,
-    goalsSummary: goalsData.summary,
-    group: groupData.group,
-    trips,
-    shopping,
+    goals: data.goals.goals,
+    goalsSummary: data.goals.summary,
+    group: data.group,
+    trips: Promise.resolve(data.trips),
+    shopping: Promise.resolve(data.shopping),
   };
 }
 

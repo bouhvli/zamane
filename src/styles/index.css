@@ -1,7 +1,10 @@
 @import './tailwind.css';
 @import './theme.css';
+@import './ambient.css';
+@import './glass.css';
+@import './orbit.css';
+@import './motion.css';
 @import './bottom-nav.css';
 @import './page-hero.css';
 @import './brand-thumb.css';
-@import './dashboard-mesh.css';
 @import './sheet.css';

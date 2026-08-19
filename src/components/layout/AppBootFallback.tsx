@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
 
-import { Loader } from "@/components/Loader";
+import { AmbientField } from "./AmbientField";
+import { HomeSkeleton } from "./Skeleton";
 
-// Shown by the root route's HydrateFallback while the very first loader
-// (the session check) is in flight — the gap between the PWA icon being
-// tapped and React Router's first real paint, which on a cold serverless
-// function can run 3-6s. Without this, that gap is a blank white screen.
+// Shown by the root route's HydrateFallback while the very first request is in
+// flight — the gap between the PWA icon being tapped and React Router's first
+// real paint. That gap is dominated by the database's cold start (~3s on a
+// suspended compute, against ~50ms once warm), so it is worth designing for
+// rather than papering over.
+//
+// It used to be a spinner and a rotating joke on an empty page. It is now the
+// shape of Home: the layout is already settled when the data lands, so nothing
+// jumps, and the wait reads as the app opening rather than the app stalling.
+// The line of copy stays — it is the one place in the product where a slow
+// moment gets to be charming — but it now sits under a screen that is visibly
+// becoming something.
 const MESSAGES = [
   "Waking up the piggy bank…",
   "Untangling the shopping list…",
@@ -30,14 +39,18 @@ export function AppBootFallback() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-6">
-      <Loader size={72} />
-      <p
-        key={index}
-        className="animate-in fade-in-0 duration-500 text-center text-sm text-muted-foreground"
-      >
-        {MESSAGES[index]}
-      </p>
+    <div className="min-h-screen bg-background font-sans">
+      <AmbientField />
+      <div className="ambient-content">
+        <HomeSkeleton />
+        <p
+          key={index}
+          role="status"
+          className="animate-in fade-in-0 mx-auto mt-8 max-w-md px-4 pb-12 text-center text-sm text-muted-foreground duration-500"
+        >
+          {MESSAGES[index]}
+        </p>
+      </div>
     </div>
   );
 }

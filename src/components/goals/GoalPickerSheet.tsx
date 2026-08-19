@@ -43,7 +43,7 @@ export function GoalPickerSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet-dialog"
+      className="sheet-dialog glass-4"
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -54,7 +54,7 @@ export function GoalPickerSheet({
     >
       <div className="flex max-h-[80dvh] flex-col">
         <div className="shrink-0 px-5 pt-3">
-          <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+          <div aria-hidden="true" className="sheet-grabber mx-auto mb-3" />
           <div className="mb-1 flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Add to a goal</h2>
             <button
@@ -80,13 +80,13 @@ export function GoalPickerSheet({
               >
                 <div className="mb-2 flex items-baseline justify-between gap-3">
                   <span className="min-w-0 truncate text-sm font-semibold text-foreground">{goal.title}</span>
-                  <span className="shrink-0 text-xs font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
+                  <span className="shrink-0 text-xs font-semibold text-muted-foreground">
                     {Math.round(Math.max(0, Math.min(100, percent)))}%
                   </span>
                 </div>
                 <ProgressBar percent={percent} label={goal.title} />
                 {goal.goalType === "financial" && (
-                  <p className="mt-2 text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     {formatAmount(goal.currentAmount)} of {formatAmount(goal.targetAmount ?? 0)}
                   </p>
                 )}

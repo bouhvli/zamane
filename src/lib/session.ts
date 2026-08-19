@@ -1,0 +1,71 @@
+import { apiFetch, setUnauthorizedHandler } from "./api";
+
+export type SessionUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  groupId: string | null;
+};
+
+/**
+ * One session request per page load, shared by everyone who asks.
+ *
+ * Three separate callers used to hit `/api/auth/session` on a cold launch:
+ * AuthProvider's mount effect, the root loader deciding between /login and
+ * /home, and the app layout's group guard after the redirect. The first two
+ * fired concurrently (two identical requests) and the third fired *after* the
+ * redirect, so it serialised behind them. Each one is a function invocation,
+ * and whichever reaches Neon first pays the compute wake — measured at ~3s
+ * against ~50ms once warm.
+ *
+ * `cached` holds the resolved value for the life of the page, so every caller
+ * after the first is free. `pending` de-duplicates callers that arrive while
+ * the first request is still in flight.
+ *
+ * Correctness: the cache is cleared whenever any API call comes back 401 (see
+ * setUnauthorizedHandler below), and explicitly on login, signup and logout —
+ * so a session that dies mid-visit still gets noticed on the next request,
+ * which is the only moment it can actually matter.
+ */
+let cached: { user: SessionUser | null } | null = null;
+let pending: Promise<SessionUser | null> | null = null;
+
+export function getSessionUser(): Promise<SessionUser | null> {
+  if (cached) return Promise.resolve(cached.user);
+  if (!pending) {
+    pending = apiFetch<{ user: SessionUser | null }>("/api/auth/session")
+      .then((data) => {
+        cached = { user: data.user };
+        return data.user;
+      })
+      .catch(() => {
+        // A failed session check is "not signed in" for routing purposes, but
+        // it is not a *known* answer — leave the cache empty so a transient
+        // network blip doesn't pin the app to the logged-out state.
+        return null;
+      })
+      .finally(() => {
+        pending = null;
+      });
+  }
+  return pending;
+}
+
+/** Records a known-good user (from login, signup, or the /api/home payload). */
+export function primeSessionUser(user: SessionUser | null): void {
+  cached = { user };
+}
+
+export function clearSessionUser(): void {
+  cached = null;
+}
+
+// A 401 anywhere means a cached "signed in" answer is stale. It says nothing
+// new when we already believe nobody is signed in, though — and that case is
+// real: a signed-out visitor lands on /, gets bounced through /home, and the
+// dashboard request 401s. Clearing on that would throw away the correct answer
+// the session check just gave us and make the next guard fetch it all over
+// again.
+setUnauthorizedHandler(() => {
+  if (cached?.user) clearSessionUser();
+});

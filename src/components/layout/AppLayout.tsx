@@ -1,6 +1,7 @@
 import { Outlet, useNavigation } from "react-router";
 
 import { BottomNav } from "./BottomNav";
+import { AmbientField } from "./AmbientField";
 import { Loader } from "@/components/Loader";
 
 // Zamane is phone-only by deliberate choice, not oversight: every page caps
@@ -19,20 +20,28 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-background font-sans">
+      {/* The one lit backdrop, shared by all five tabs. It used to live inside
+          Home's card stack, which is why the frosted rows only read as glass
+          there — everywhere else backdrop-filter was blurring a flat colour. */}
+      <AmbientField />
+
       {isNavigating && (
         <div
           role="status"
           aria-label="Loading"
           className="fixed inset-x-0 top-0 z-[var(--z-toast)] flex justify-center pt-3"
         >
-          <div className="rounded-full bg-card px-3 py-2 shadow-md">
+          <div className="glass-3 rounded-full px-3 py-2">
             <Loader size={20} />
           </div>
         </div>
       )}
-      <main className="pb-bottom-nav">
+      <main className="ambient-content pb-bottom-nav">
         <Outlet />
       </main>
+      {/* Dissolves the end of the page under the floating cluster — see
+          .bottom-fade in bottom-nav.css. */}
+      <div aria-hidden="true" className="bottom-fade" />
       <BottomNav />
     </div>
   );

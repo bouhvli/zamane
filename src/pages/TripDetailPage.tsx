@@ -61,8 +61,8 @@ export default function TripDetailPage() {
           </div>
 
           {count === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-primary/30 bg-card px-6 py-10 text-center">
-              <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-violet-200 bg-card px-6 py-10 text-center">
+              <span className="flex size-12 items-center justify-center rounded-full bg-violet-100 text-primary">
                 <Route className="size-6" />
               </span>
               <div className="space-y-1">

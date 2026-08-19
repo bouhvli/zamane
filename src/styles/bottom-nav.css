@@ -1,15 +1,8 @@
-/* The floating pill: a frosted-glass island (see --nav-* in theme.css) that
-   adapts to the theme — bright translucent white on light, dark frosted glass
-   on dark. A strong backdrop blur + saturation lets the page tint and motion
-   read through the glass, while the hairline border and top-edge sheen give
-   it a lit rim. */
-.bottom-nav-pill {
-  background: var(--nav-bg);
-  border: 1px solid var(--nav-border);
-  box-shadow: var(--nav-sheen), var(--nav-shadow);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  backdrop-filter: blur(18px) saturate(1.4);
-}
+/* The floating pill is level 3 of the glass ramp (see glass.css) — it used to
+   carry its own --nav-bg / --nav-sheen / --nav-shadow recipe, which is exactly
+   the drift this system exists to remove. Only the foreground colours stay
+   nav-specific, since they name an active tab rather than describe a surface.
+   Both clear WCAG AA against the pill: ~6.4:1 and ~6.1:1. */
 
 /* Clears the floating pill: its bottom offset (0.75rem + safe area) plus the
    pill's own height, with breathing room so the last row never hides behind
@@ -20,25 +13,20 @@
 }
 
 /*
- * The doodle icon set is solid-fill artwork (not stroke-based like
- * lucide), so it can't be recolored via `stroke`. Instead each icon is
- * used as a CSS mask over `currentColor` — active vs inactive state comes
- * entirely from the parent Link's text color (--nav-fg-active brand violet
- * #5A27FF vs --nav-fg-inactive rose-grey #7A5566), so there's no separate
- * active variant to keep in sync here. Both clear WCAG AA against the pill:
- * ~6.4:1 and ~6.1:1 respectively.
+ * Content passing under the floating cluster used to be chopped off by the
+ * nav pill's edge mid-word. This dissolves the last stretch of the page into
+ * the background instead, so the dock reads as floating above something
+ * continuous rather than as a lid on a cut-off list.
+ *
+ * Sits above the page (z-index 1) and below the nav (--z-nav) so it fades the
+ * content without ever touching the chrome, and is click-through.
  */
-.doodle-icon {
-  display: inline-block;
-  width: 22px;
-  height: 22px;
-  background-color: currentColor;
-  -webkit-mask-image: var(--icon-mask);
-  mask-image: var(--icon-mask);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
+.bottom-fade {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  height: calc(9rem + env(safe-area-inset-bottom));
+  z-index: 30;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, var(--background) 72%);
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData, useNavigate, useRevalidator } from "react-router";
-import { Coins, History, PenLine, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Coins, History, PenLine, Pencil, Trash2, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,9 +10,11 @@ import { goalImageUrl } from "@/lib/goal-image";
 import { ApiError } from "@/lib/api";
 import { formatAmount, formatDate } from "@/lib/format";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Fab } from "@/components/layout/Fab";
 import { DetailMenu } from "@/components/layout/DetailMenu";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { ProgressBar } from "@/components/goals/ProgressBar";
+import { ProgressOrbit } from "@/components/ProgressOrbit";
+import { goalCoverTransitionName } from "@/components/goals/GoalCard";
 import { NotesFeed } from "@/components/goals/NotesFeed";
 import { ContributionSheet } from "@/components/goals/ContributionSheet";
 import { NoteComposerSheet } from "@/components/goals/NoteComposerSheet";
@@ -46,6 +48,9 @@ export default function GoalDetailPage() {
       ? (Number(goal.currentAmount) / Number(goal.targetAmount)) * 100
       : 0
     : goal.currentProgressPct;
+  // What's still missing — the figure that tells you whether to act, which
+  // the page made you subtract for yourself.
+  const remaining = Math.max(0, Number(goal.targetAmount ?? 0) - Number(goal.currentAmount));
   const cover = goalImageUrl(goal, { width: 1000, height: 480 });
 
   return (
@@ -59,7 +64,7 @@ export default function GoalDetailPage() {
         ]
           .filter(Boolean)
           .join(" · ")}
-        status={{ text: goal.isCompleted ? "Done" : "In progress", tone: goal.isCompleted ? "primary" : "accent" }}
+        status={{ text: goal.isCompleted ? "Reached" : "In progress", tone: goal.isCompleted ? "success" : "accent" }}
         actions={
           <DetailMenu
             items={[
@@ -76,31 +81,60 @@ export default function GoalDetailPage() {
           <img
             src={cover}
             alt=""
-            className="aspect-[16/9] w-full rounded-lg border border-border object-cover shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.22)]"
+            // The other half of the pair: the list card's thumbnail carries the
+            // same name, so following the link grows the photo into this cover
+            // instead of cross-fading the whole screen.
+            style={{ viewTransitionName: goalCoverTransitionName(goal.id) }}
+            className="aspect-[16/9] w-full rounded-lg border border-border object-cover shadow-[0_2px_4px_rgb(var(--glass-ink)/0.04),0_22px_44px_-26px_rgb(var(--glass-cast)/0.3)]"
           />
         )}
 
         {goal.isCompleted && (
-          <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 text-center">
+          <div className="rounded-lg border border-success/30 bg-success-surface p-4 text-center">
             <p className="text-base font-semibold text-foreground">Goal reached 🎉</p>
             <p className="mt-1 text-sm text-muted-foreground">You and your partner made it together.</p>
           </div>
         )}
 
-        <div>
-          <ProgressBar percent={percent} className="mb-2" label={goal.title} />
-          <p className="text-base font-semibold text-foreground [font-variant-numeric:tabular-nums]">
-            {isFinancial
-              ? `${formatAmount(goal.currentAmount)} of ${formatAmount(goal.targetAmount ?? 0)}`
-              : `${goal.currentProgressPct}% complete`}
-          </p>
-          {goal.description && <p className="mt-2 text-sm text-foreground">{goal.description}</p>}
+        {/* The orbit at headline size. This page's whole reason to exist is
+            "how are we doing on this one", and a 6px bar answered it in the
+            margin — the ring makes the answer the first thing on the screen,
+            with the money reading beside it rather than under it. */}
+        <div className="glass-2 flex items-center gap-5 p-5">
+          <ProgressOrbit percent={percent} size={104} stroke={10} label={goal.title}>
+            <span className="orbit-value text-2xl">
+              {Math.round(percent)}
+              <span className="text-[0.5em] font-semibold">%</span>
+            </span>
+          </ProgressOrbit>
+
+          <div className="min-w-0 flex-1">
+            {isFinancial ? (
+              <>
+                <p className="font-display text-xl text-foreground">{formatAmount(goal.currentAmount)}</p>
+                <p className="mt-0.5 font-numeric text-sm text-muted-foreground">
+                  of {formatAmount(goal.targetAmount ?? 0)}
+                </p>
+                {remaining > 0 && (
+                  <p className="mt-2 font-numeric text-sm font-bold text-foreground">
+                    {formatAmount(remaining)} to go
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="font-display text-xl text-foreground">
+                {goal.isCompleted ? "Reached" : "In progress"}
+              </p>
+            )}
+          </div>
         </div>
 
+        {goal.description && <p className="text-sm text-foreground">{goal.description}</p>}
+
         <div>
-          <h2 className="mb-3 font-sans text-xl font-semibold text-foreground">Notes</h2>
+          <h2 className="mb-3 text-xl font-semibold text-foreground">Notes</h2>
           {notes.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center">
+            <div className="glass-2 border-dashed border-violet-200 px-4 py-8 text-center">
               <p className="text-sm font-medium text-foreground">No notes yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Keep a shared journal for this goal — add an update or a photo below.
@@ -112,18 +146,11 @@ export default function GoalDetailPage() {
         </div>
       </div>
 
-      {/* Bottom action button — the page's one primary action, lifted clear of
-          the nav. It opens a chooser: log a contribution, or add a note. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[var(--z-sticky)] mx-auto flex max-w-md justify-center px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom)+0.75rem)]">
-        <button
-          type="button"
-          onClick={() => setSheet("choose")}
-          className="pointer-events-auto inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 outline-none transition-transform active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
-          <Plus className="size-5" />
-          Add to this goal
-        </button>
-      </div>
+      {/* The page's one primary action, in the same floating control every
+          other screen uses. It was a full-width solid violet bar here — a
+          third shape for one job, and the heaviest element on the page.
+          It opens a chooser: log a contribution, or add a note. */}
+      <Fab label="Add to this goal" onClick={() => setSheet("choose")} />
 
       <ActionChooserSheet
         open={sheet === "choose"}
@@ -189,7 +216,7 @@ function ActionChooserSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet-dialog"
+      className="sheet-dialog glass-4"
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -199,7 +226,7 @@ function ActionChooserSheet({
       }}
     >
       <div className="flex flex-col px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-        <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+        <div aria-hidden="true" className="sheet-grabber mx-auto mb-3" />
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold tracking-tight text-foreground">Add to this goal</h2>
           <button

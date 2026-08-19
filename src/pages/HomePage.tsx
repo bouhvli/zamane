@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Await, Link, useLoaderData, useRevalidator } from "react-router";
-import { Check, ChevronRight, Copy, Heart, Plus, Route, ShoppingCart, Target, X } from "lucide-react";
+import { Check, ChevronRight, CircleDot, Copy, Heart, Map, Plus, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth-context";
@@ -9,7 +9,7 @@ import type { Goal, GoalsSummary } from "@/lib/goals-api";
 import type { Group } from "@/lib/groups-api";
 import type { Trip, TripsSummary } from "@/lib/trips-api";
 import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
-import { friendlyName } from "@/lib/format";
+import { friendlyName, formatAmount } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,8 @@ import { ContributionSheet } from "@/components/goals/ContributionSheet";
 import { TripCard } from "@/components/trips/TripCard";
 import { tripStatus } from "@/components/trips/trip-visuals";
 import { ShoppingPreviewCard } from "@/components/shopping/ShoppingPreviewCard";
+import { InstrumentTile } from "@/components/layout/InstrumentTile";
+import { Skeleton, SkeletonRow } from "@/components/layout/Skeleton";
 
 type HomeData = {
   goals: Goal[];
@@ -155,10 +157,10 @@ export default function HomePage() {
         href={metric ? "/goals" : undefined}
       />
 
-      <div className="dashboard-mesh mx-auto max-w-md space-y-6 px-4 pb-20">
+      <div className="mx-auto max-w-md space-y-6 px-4 pb-20">
         {showInvite && group && (
           <Card className="relative gap-3 overflow-hidden p-6 text-center">
-            <div className="pointer-events-none absolute -top-12 right-0 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+            <div className="pointer-events-none absolute -top-12 right-0 h-32 w-32 rounded-full bg-violet-200/60 blur-2xl" />
             {/* Dismissable: unpaired, this was the loudest thing on the
                 dashboard permanently. The code stays available on Profile. */}
             <button
@@ -170,11 +172,11 @@ export default function HomePage() {
               <X className="size-4" />
             </button>
             <div className="relative flex flex-col items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span className="flex size-10 items-center justify-center rounded-full bg-violet-100 text-primary">
                 <Heart className="size-5" fill="currentColor" />
               </span>
               <p className="text-sm font-medium text-foreground">Share this code with your partner</p>
-              <p className="w-full rounded-lg bg-muted/60 px-4 py-3 font-mono text-2xl font-bold tracking-[0.25em] text-foreground">
+              <p className="w-full rounded-md bg-muted px-4 py-3 font-numeric text-2xl font-bold tracking-[0.28em] text-foreground">
                 {group.inviteCode}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -188,6 +190,31 @@ export default function HomePage() {
           </Card>
         )}
 
+        {/* The glance row. Home used to be a stack of same-width, same-weight
+            sections — every element at one scale, which reads as a list rather
+            than a dashboard. These two readouts sit between the hero and the
+            feed and answer, without opening a tab, the only two questions that
+            change day to day: how much is left to buy, and how soon is the
+            next trip. */}
+        <Suspense fallback={<TileSkeleton />}>
+          <Await resolve={shopping} errorElement={null}>
+            {({ items: shoppingItems, summary: shoppingSummary }) => (
+              <Suspense fallback={<TileSkeleton />}>
+                <Await resolve={trips} errorElement={null}>
+                  {({ trips: allTrips }) => (
+                    <BentoRow
+                      uncheckedCount={shoppingSummary.uncheckedCount}
+                      estimatedTotal={Number(shoppingSummary.estimatedTotal)}
+                      itemCount={shoppingItems.length}
+                      trips={allTrips}
+                    />
+                  )}
+                </Await>
+              </Suspense>
+            )}
+          </Await>
+        </Suspense>
+
         {/* Reordered for daily use rather than narrative order: of the three,
             Shopping is the only one that's genuinely a recurring TASK — a
             couple checks "what do we need" every grocery run, while Goals and
@@ -196,7 +223,7 @@ export default function HomePage() {
             hero-to-detail adjacency (the savings figure's own section used to
             sit right under it). */}
         <Section title="Shopping" icon={ShoppingCart} viewAllTo="/shopping">
-          <Suspense fallback={<RowSkeleton count={1} />}>
+          <Suspense fallback={<SkeletonRow />}>
             <Await resolve={shopping} errorElement={<SectionError>Couldn't load the shopping list.</SectionError>}>
               {({ items, summary: shoppingSummary }) =>
                 items.length === 0 ? (
@@ -213,16 +240,16 @@ export default function HomePage() {
             is about, but a savings figure moves on its own pace (a payday, a
             transfer) rather than daily, so it no longer needs the single
             top slot. */}
-        <Section title="Goals" icon={Target} viewAllTo="/goals">
+        <Section title="Goals" icon={CircleDot} viewAllTo="/goals">
           {goals.length === 0 ? (
             <CtaCard
               to="/goals/new"
-              icon={Target}
+              icon={CircleDot}
               title="Create your first goal together"
               description="Start saving toward something as a team"
             />
           ) : (
-            <div className="space-y-2">
+            <div className="stagger space-y-2">
               {previewGoals.map((goal) => (
                 <GoalCard key={goal.id} goal={goal} variant="compact" />
               ))}
@@ -235,8 +262,8 @@ export default function HomePage() {
             money, only occasionally imminent. Still gets its own section
             (not folded away) so a live or soon trip is never more than one
             scroll from the top. */}
-        <Section title="Trips" icon={Route} viewAllTo="/trips">
-          <Suspense fallback={<RowSkeleton count={2} />}>
+        <Section title="Trips" icon={Map} viewAllTo="/trips">
+          <Suspense fallback={<SkeletonRow count={2} />}>
             <Await resolve={trips} errorElement={<SectionError>Couldn't load trips.</SectionError>}>
               {/* Param types are inferred from `resolve` — annotating them here
                   makes TS infer Await's generic from the callback instead. */}
@@ -246,7 +273,7 @@ export default function HomePage() {
                 const upcoming = allTrips.filter((trip) => tripStatus(trip)?.tone !== "past").slice(0, 2);
                 if (upcoming.length > 0) {
                   return (
-                    <div className="space-y-2">
+                    <div className="stagger space-y-2">
                       {upcoming.map((trip) => (
                         <TripCard key={trip.id} trip={trip} variant="compact" />
                       ))}
@@ -330,7 +357,7 @@ function Section({
         <div className="flex items-center gap-2">
           <span
             aria-hidden="true"
-            className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-primary"
+            className="flex size-7 items-center justify-center rounded-full bg-violet-100 text-primary"
           >
             <Icon className="size-3.5" />
           </span>
@@ -374,14 +401,14 @@ function CtaCard({
       to={to}
       className={cn(
         "group flex items-center gap-3 rounded-lg bg-card p-4 transition-[color,background-color,border-color,transform] active:scale-[0.98] motion-reduce:active:scale-100",
-        // border-primary/70 measures ~3.7:1 against the card. At /30 it was
+        // border-violet-300 measures ~3.7:1 against the card. At /30 it was
         // ~1.9:1 — and since --card sits only ~1.05:1 from the page
         // background, this dashed edge is the *only* thing that identifies the
         // card as a control, which WCAG 1.4.11 asks to clear 3:1.
-        "border border-dashed border-primary/70 hover:border-primary hover:bg-primary/5",
+        "border border-dashed border-violet-300 hover:border-primary hover:bg-violet-50",
       )}
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
         <Icon className="size-5" />
       </span>
       <div className="flex flex-col items-start">
@@ -407,15 +434,64 @@ function CtaLink({ to, label }: { to: string; label: string }) {
   );
 }
 
-// Placeholder for a streaming section. Sized to the compact row it stands in
-// for, so resolving doesn't shift the page (content-jumping): 64px thumb + 2×
-// 12px padding = 88px.
-function RowSkeleton({ count }: { count: number }) {
+function TileSkeleton() {
   return (
-    <div className="space-y-2">
-      {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="h-[88px] animate-pulse rounded-lg bg-muted" />
-      ))}
+    <div className="grid grid-cols-2 gap-2.5">
+      <Skeleton className="h-[92px] rounded-md" />
+      <Skeleton className="h-[92px] rounded-md" />
+    </div>
+  );
+}
+
+// The two glance readouts. Both degrade to a still-useful state rather than
+// disappearing: an empty list says "all clear", and no scheduled trip points
+// at planning one instead of showing a hollow countdown.
+function BentoRow({
+  uncheckedCount,
+  estimatedTotal,
+  itemCount,
+  trips: allTrips,
+}: {
+  uncheckedCount: number;
+  estimatedTotal: number;
+  itemCount: number;
+  trips: Trip[];
+}) {
+  // The soonest trip that hasn't finished — the only one with a countdown
+  // worth reading. tripStatus already encodes "soon" vs "live" vs "past".
+  const next = allTrips
+    .filter((trip) => trip.startDate && tripStatus(trip)?.tone !== "past")
+    .sort((a, b) => (a.startDate! < b.startDate! ? -1 : 1))[0];
+  const status = next ? tripStatus(next) : null;
+
+  return (
+    <div className="grid grid-cols-2 gap-2.5">
+      <InstrumentTile
+        to="/shopping"
+        label="Shopping"
+        value={String(uncheckedCount)}
+        unit={uncheckedCount === 1 ? "item" : "items"}
+        caption={
+          uncheckedCount === 0
+            ? itemCount === 0
+              ? "Nothing on the list"
+              : "All bought"
+            : estimatedTotal > 0
+              ? `${formatAmount(estimatedTotal)} estimated`
+              : "Left to buy"
+        }
+      />
+      {next && status ? (
+        <InstrumentTile
+          to={`/trips/${next.id}`}
+          label="Next trip"
+          value={status.tone === "live" ? "Now" : status.label.replace(/^In /, "").replace(/ days?$/, "")}
+          unit={status.tone === "live" || !/^In \d/.test(status.label) ? undefined : "days"}
+          caption={next.destination ?? next.title}
+        />
+      ) : (
+        <InstrumentTile to="/trips/new" label="Next trip" value="—" caption="Nothing planned yet" />
+      )}
     </div>
   );
 }

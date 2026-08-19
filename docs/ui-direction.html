@@ -1,0 +1,856 @@
+<title>Luminous Glass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700&family=Space+Grotesk:wght@700&display=swap">
+
+<style>
+/* ── Palette ───────────────────────────────────────────────────────────
+   Drawn from Zamane's own tokens: the rose-black ink, the lavender-blush
+   ground, the violet/rose pair the logo's two circles stand for.        */
+:root {
+  --paper:      #F7F2F5;
+  --paper-2:    #FDFAFC;
+  --ink:        #1A0F14;
+  --ink-2:      #5C3D4B;
+  --ink-3:      #7A5566;
+  --hair:       #E5D9DF;
+  --hair-soft:  #EFE6EB;
+  --violet:     #5A27FF;
+  --violet-ink: #3A16A8;
+  --rose:       #BF6382;
+  --rose-deep:  #7A2E48;
+  --stage-lift: 0 1px 2px rgb(26 15 20 / .05), 0 24px 56px -32px rgb(90 39 255 / .28);
+  --measure:    68ch;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #100A0E;
+    --paper-2:    #1A1015;
+    --ink:        #F5EFF2;
+    --ink-2:      #C9B3BE;
+    --ink-3:      #9B7B88;
+    --hair:       #2E2027;
+    --hair-soft:  #241920;
+    --violet:     #8B66FF;
+    --violet-ink: #C9B8FF;
+    --rose:       #D07E9A;
+    --rose-deep:  #E29FB6;
+    --stage-lift: 0 1px 2px rgb(0 0 0 / .4), 0 24px 56px -32px rgb(0 0 0 / .7);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:      #100A0E;
+  --paper-2:    #1A1015;
+  --ink:        #F5EFF2;
+  --ink-2:      #C9B3BE;
+  --ink-3:      #9B7B88;
+  --hair:       #2E2027;
+  --hair-soft:  #241920;
+  --violet:     #8B66FF;
+  --violet-ink: #C9B8FF;
+  --rose:       #D07E9A;
+  --rose-deep:  #E29FB6;
+  --stage-lift: 0 1px 2px rgb(0 0 0 / .4), 0 24px 56px -32px rgb(0 0 0 / .7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────── */
+.shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 96px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 56px;
+}
+@media (min-width: 1040px) {
+  .shell { grid-template-columns: 200px minmax(0, 1fr); }
+  .rail { display: block; }
+}
+
+.rail { display: none; grid-column: 1; }
+.rail-inner {
+  position: sticky;
+  top: 48px;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid var(--hair);
+}
+.rail a {
+  display: block;
+  padding: 6px 0 6px 16px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  color: var(--ink-3);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  transition: color .16s, border-color .16s;
+}
+.rail a:hover, .rail a:focus-visible { color: var(--ink); border-left-color: var(--violet); }
+.rail a:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; border-radius: 2px; }
+
+main { grid-column: 1; min-width: 0; }
+@media (min-width: 1040px) { main { grid-column: 2; } .rail { grid-column: 1; } }
+
+/* ── Type ──────────────────────────────────────────────────────────── */
+h1, h2, h3, .num, .eyebrow, .metric {
+  font-family: "Sora", "Plus Jakarta Sans", ui-sans-serif, sans-serif;
+}
+h1 {
+  font-size: clamp(2.6rem, 7vw, 4.1rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  margin: 0 0 20px;
+  text-wrap: balance;
+}
+h2 {
+  font-size: clamp(1.5rem, 3.4vw, 1.95rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 6px;
+  text-wrap: balance;
+}
+h3 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 0 0 4px;
+}
+p { margin: 0 0 14px; max-width: var(--measure); }
+.lede { font-size: 1.125rem; color: var(--ink-2); max-width: 60ch; }
+strong { font-weight: 600; color: var(--ink); }
+a { color: var(--violet-ink); }
+code, .mono {
+  font-family: "Sora", ui-monospace, monospace;
+  font-size: 0.875em;
+  font-variant-numeric: tabular-nums;
+  background: var(--hair-soft);
+  padding: 0.12em 0.4em;
+  border-radius: 5px;
+  color: var(--ink);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rose-deep);
+  margin: 0 0 14px;
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.masthead { padding: 72px 0 40px; border-bottom: 1px solid var(--hair); margin-bottom: 8px; }
+.thesis {
+  font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+  line-height: 1.45;
+  color: var(--ink-2);
+  max-width: 46ch;
+  margin: 0 0 28px;
+}
+.thesis b { color: var(--ink); font-weight: 600; }
+.facts { display: flex; flex-wrap: wrap; gap: 0; border-top: 1px solid var(--hair); }
+.fact { padding: 14px 28px 0 0; margin-right: 28px; border-right: 1px solid var(--hair); }
+.fact:last-child { border-right: 0; }
+.fact dt { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.fact dd {
+  margin: 2px 0 0;
+  font-family: "Sora", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── Sections ──────────────────────────────────────────────────────── */
+section { padding: 56px 0 8px; scroll-margin-top: 24px; }
+section + section { border-top: 1px solid var(--hair); }
+.sec-head { margin-bottom: 26px; }
+.sec-head p { color: var(--ink-2); margin-bottom: 0; }
+
+/* ── Two-column read ───────────────────────────────────────────────── */
+.split { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .split { grid-template-columns: 1fr 1fr; gap: 40px; } }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.list li { padding-left: 20px; position: relative; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-2); }
+.list li::before {
+  content: ""; position: absolute; left: 0; top: 0.62em;
+  width: 7px; height: 7px; border-radius: 2px; background: var(--violet);
+}
+.list.warn li::before { background: var(--rose); border-radius: 50%; }
+.list li b { color: var(--ink); font-weight: 600; }
+
+/* ── Specimen stage — a self-contained light scope that stands in for
+      the phone surface, so mocks read the same on either host theme. ── */
+.stage {
+  --s-bg: #F5EFF2;
+  --s-card: #FFFFFF;
+  --s-ink: #1A0F14;
+  --s-mute: #7A5566;
+  --s-hair: rgb(191 99 130 / .16);
+  --s-violet: #5A27FF;
+  --s-rose: #BF6382;
+  color: var(--s-ink);
+  background:
+    radial-gradient(90% 55% at 88% 0%, rgb(90 39 255 / .10) 0%, rgb(90 39 255 / 0) 60%),
+    radial-gradient(80% 50% at 4% 90%, rgb(191 99 130 / .11) 0%, rgb(191 99 130 / 0) 65%),
+    radial-gradient(rgb(90 39 255 / .07) 1px, transparent 1.5px),
+    var(--s-bg);
+  background-size: auto, auto, 22px 22px, auto;
+  border: 1px solid var(--hair);
+  border-radius: 24px;
+  padding: 28px 22px;
+  box-shadow: var(--stage-lift);
+  overflow-x: auto;
+}
+.stage-cap {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 10px 0 0;
+  max-width: var(--measure);
+}
+.stage-cap b { color: var(--ink-2); font-weight: 600; }
+.phone { max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+/* Glass surfaces, as prescribed */
+.g1, .g2, .g3 {
+  background: linear-gradient(180deg, rgb(255 255 255 / .84) 0%, rgb(255 255 255 / .64) 100%);
+  border: 1px solid rgb(255 255 255 / .75);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+}
+.g1 { border-radius: 16px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .85), 0 1px 2px rgb(26 15 20 / .04), 0 12px 28px -20px rgb(90 39 255 / .22); }
+.g2 { border-radius: 20px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .9), 0 2px 4px rgb(26 15 20 / .04), 0 22px 44px -26px rgb(90 39 255 / .3); }
+.g3 { border-radius: 20px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .95), 0 4px 10px rgb(26 15 20 / .05), 0 30px 60px -28px rgb(90 39 255 / .38); }
+
+/* Hero mock */
+.hero { padding: 20px; }
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.hero-hi { font-size: 13px; font-weight: 600; color: var(--s-ink); line-height: 1.3; }
+.hero-sub { font-size: 12px; color: var(--s-mute); }
+.avatars { display: flex; }
+.avatars span {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; color: #fff;
+  border: 2px solid rgb(255 255 255 / .9);
+  font-family: "Sora", sans-serif;
+}
+.avatars span:nth-child(1) { background: var(--s-violet); }
+.avatars span:nth-child(2) { background: var(--s-rose); margin-left: -10px; }
+.hero-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--s-mute); margin-bottom: 4px;
+}
+.metric {
+  font-size: 2.9rem; font-weight: 700; letter-spacing: -0.045em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(96deg, #5A27FF 8%, #8B4FE8 52%, #BF6382 96%);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+}
+.metric .cur { font-size: 0.42em; font-weight: 600; letter-spacing: 0; vertical-align: 0.7em; margin-right: 0.18em; }
+.arc-wrap { margin: 16px 0 10px; }
+.hero-cap { font-size: 12.5px; color: var(--s-mute); display: flex; align-items: center; gap: 6px; }
+.hero-cap b { color: var(--s-ink); font-weight: 700; font-variant-numeric: tabular-nums; font-family: "Sora", sans-serif; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 12px; padding: 5px 11px; border-radius: 999px;
+  background: rgb(90 39 255 / .09); color: #3A16A8;
+  font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+  font-family: "Sora", sans-serif;
+}
+
+/* Half arc */
+.arc { position: relative; width: 100%; height: 6px; border-radius: 999px; background: rgb(26 15 20 / .08); overflow: hidden; }
+.arc i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #5A27FF, #BF6382); }
+
+/* Progress orbit */
+.orbit { position: relative; display: grid; place-items: center; flex: none; }
+.orbit::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from -90deg, #5A27FF 0turn, #8B4FE8 var(--half), #BF6382 var(--p), rgb(26 15 20 / .09) var(--p), rgb(26 15 20 / .09) 1turn);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--w)), #000 calc(100% - var(--w)));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--w)), #000 calc(100% - var(--w)));
+}
+.orbit b {
+  font-family: "Sora", sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* Bento tiles */
+.bento { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { padding: 14px; display: flex; flex-direction: column; gap: 2px; }
+.tile .k { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--s-mute); }
+.tile .v {
+  font-family: "Sora", sans-serif; font-variant-numeric: tabular-nums;
+  font-size: 1.55rem; font-weight: 700; letter-spacing: -0.035em; line-height: 1.1;
+}
+.tile .s { font-size: 11.5px; color: var(--s-mute); }
+
+/* Compact row */
+.row { display: flex; align-items: center; gap: 12px; padding: 11px; }
+.thumb {
+  width: 54px; height: 54px; border-radius: 12px; flex: none;
+  background: radial-gradient(150% 130% at 20% 10%, #3A1470 0%, #2A1052 50%, #120722 100%);
+  display: grid; place-items: center; color: rgb(255 255 255 / .55); font-size: 18px;
+}
+.row-body { min-width: 0; flex: 1; }
+.row-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.row-title { font-size: 13.5px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-fig { font-family: "Sora", sans-serif; font-size: 11.5px; font-weight: 700; color: var(--s-mute); font-variant-numeric: tabular-nums; flex: none; }
+.row-meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 5px; font-size: 11.5px; color: var(--s-mute); font-variant-numeric: tabular-nums; }
+
+/* Nav mock */
+.nav { display: flex; gap: 4px; padding: 6px; }
+.nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 14px; text-decoration: none; color: var(--s-mute); font-size: 10px; font-weight: 600; }
+.nav a .d { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; }
+.nav a[aria-current] { color: var(--s-violet); }
+.nav a[aria-current] .d { background: rgb(90 39 255 / .11); }
+
+/* ── Swatches ──────────────────────────────────────────────────────── */
+.ramp { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--hair); }
+.ramp div { padding: 14px 8px 10px; font-size: 10px; font-weight: 600; font-family: "Sora", sans-serif; letter-spacing: .02em; line-height: 1.5; }
+.ramp div span { display: block; opacity: .72; font-weight: 500; }
+.ramp-label { font-size: 12px; font-weight: 600; color: var(--ink-2); margin: 22px 0 8px; letter-spacing: .01em; }
+
+/* ── Specimen (type) ───────────────────────────────────────────────── */
+.spec { border: 1px solid var(--hair); border-radius: 16px; padding: 24px; background: var(--paper-2); }
+.spec + .spec { margin-top: 14px; }
+.spec-meta { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 12px; }
+.spec-line { letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 8px; max-width: none; }
+.spec-note { font-size: 13px; color: var(--ink-2); margin: 10px 0 0; }
+
+/* ── Tables ────────────────────────────────────────────────────────── */
+.tw { overflow-x: auto; border: 1px solid var(--hair); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--hair-soft); vertical-align: top; }
+th { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; background: var(--hair-soft); border-bottom: 1px solid var(--hair); }
+tr:last-child td { border-bottom: 0; }
+td b { font-weight: 600; }
+td.f { font-family: "Sora", monospace; font-size: 12.5px; color: var(--violet-ink); white-space: nowrap; }
+
+/* ── Phases ────────────────────────────────────────────────────────── */
+.phases { display: flex; flex-direction: column; gap: 0; counter-reset: ph; }
+.phase {
+  display: grid; grid-template-columns: 48px 1fr; gap: 18px;
+  padding: 22px 0; border-top: 1px solid var(--hair);
+}
+.phase:last-child { border-bottom: 1px solid var(--hair); }
+.phase-n {
+  font-family: "Sora", sans-serif; font-size: 1.4rem; font-weight: 700;
+  letter-spacing: -0.04em; color: var(--violet); font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.phase h3 { margin-bottom: 6px; }
+.phase p { font-size: 0.9375rem; color: var(--ink-2); margin-bottom: 8px; }
+.phase .files { font-size: 12.5px; color: var(--ink-3); font-family: "Sora", monospace; line-height: 1.7; }
+
+/* ── Gate ──────────────────────────────────────────────────────────── */
+.gate { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .gate { grid-template-columns: 1fr 1fr; } }
+.gate li {
+  font-size: 14px; color: var(--ink-2); padding: 12px 14px 12px 40px; position: relative;
+  border: 1px solid var(--hair); border-radius: 10px; background: var(--paper-2);
+}
+.gate li::before {
+  content: "✓"; position: absolute; left: 14px; top: 11px;
+  color: var(--violet); font-weight: 700; font-size: 13px;
+}
+
+footer { padding: 48px 0 0; border-top: 1px solid var(--hair); margin-top: 56px; font-size: 13px; color: var(--ink-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div class="shell">
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-inner">
+      <a href="#read">The read</a>
+      <a href="#direction">Direction</a>
+      <a href="#color">Colour</a>
+      <a href="#type">Typography</a>
+      <a href="#glass">Glass &amp; depth</a>
+      <a href="#moves">Signature moves</a>
+      <a href="#screens">Screen by screen</a>
+      <a href="#phases">Rollout</a>
+      <a href="#gate">Ship gate</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="masthead">
+      <p class="eyebrow">Zamane · UI direction · shipped</p>
+      <h1>Luminous Glass</h1>
+      <p class="thesis">
+        Zamane already has good bones and a real palette. What it doesn't have is
+        <b>one atmosphere</b>. This direction takes the light, frosted language the app
+        already reaches for in three places and makes it the whole surface — then
+        spends its boldness in exactly one place: <b>the numbers</b>.
+      </p>
+      <dl class="facts">
+        <div class="fact"><dt>Surfaces</dt><dd>5 tabs</dd></div>
+        <div class="fact"><dt>Palette</dt><dd>violet + rose</dd></div>
+        <div class="fact"><dt>Families</dt><dd>2</dd></div>
+        <div class="fact"><dt>Phases</dt><dd>4 of 4</dd></div>
+      </dl>
+    </header>
+
+    <!-- ── THE READ ─────────────────────────────────────────────── -->
+    <section id="read">
+      <div class="sec-head">
+        <h2>The read</h2>
+        <p>Where the current build stands, honestly. This is a refinement brief, not a rebuild —
+           most of what's here is worth keeping.</p>
+      </div>
+      <div class="split">
+        <div>
+          <p class="eyebrow">Working</p>
+          <ul class="list">
+            <li><b>Semantic token layer.</b> Colour roles, z-index scale, and a reduced-motion net already exist in <code>theme.css</code>. Nothing needs inventing — only extending.</li>
+            <li><b>Accessibility discipline.</b> 44px tap floor, documented contrast ratios, real headings, <code>aria-current</code> on the nav, focus rings everywhere.</li>
+            <li><b>Restraint.</b> One accent, one drenched surface, one display treatment. The rules are stated in comments and mostly obeyed.</li>
+            <li><b>The frosted bottom nav.</b> The best-resolved element in the app, and the seed of this whole direction.</li>
+          </ul>
+        </div>
+        <div>
+          <p class="eyebrow">Holding it back</p>
+          <ul class="list warn">
+            <li><b>Two design languages.</b> The dark violet PageHero on Home versus the quiet light PageHeader on the other four tabs. Home and Trips don't look like the same product.</li>
+            <li><b>Glass with nothing behind it.</b> The frosted rows only exist on Home, because only Home paints an ambient wash for them to refract. Everywhere else, <code>backdrop-blur</code> is blurring a flat colour — i.e. doing nothing.</li>
+            <li><b>Money isn't styled like money.</b> The app's headline figure is set in the same face as a nav label with <code>tabular-nums</code> bolted on. A savings app should have a numeric voice.</li>
+            <li><b>Four hand-written shadow recipes.</b> Card, glass row, nav, hero each invent their own — three different light sources across one screen.</li>
+            <li><b>One radius for everything.</b> <code>20px</code> on a 54px thumbnail and on a full-bleed sheet. Nested radius never derived.</li>
+            <li><b>Almost no motion.</b> A press-scale and one width transition. Nothing about arriving, changing, or completing feels responsive.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DIRECTION ────────────────────────────────────────────── -->
+    <section id="direction">
+      <div class="sec-head">
+        <h2>The direction</h2>
+        <p>Light-first translucency — Apple's material layering crossed with the precision of a
+           good instrument panel. Futuristic here means <strong>crisp, lit, and exact</strong>, not dark and neon.</p>
+      </div>
+
+      <div class="split">
+        <div>
+          <h3>One light source</h3>
+          <p style="font-size:.9375rem;color:var(--ink-2)">A violet key light from the top-right and a rose fill from the bottom-left, declared once and used by every shadow, glow and gradient in the app. Every surface is lit from the same place.</p>
+          <h3 style="margin-top:22px">One material</h3>
+          <p style="font-size:.9375rem;color:var(--ink-2)">Frosted white glass at four defined depths. Cards, rows, chrome and sheets differ by blur radius and shadow spread — never by a new recipe.</p>
+        </div>
+        <div>
+          <h3>Numbers are the hero</h3>
+          <p style="font-size:.9375rem;color:var(--ink-2)">Every figure in the app gets a dedicated face, tabular figures, and a subdued currency mark. The savings total is the only place gradient is allowed to touch type.</p>
+          <h3 style="margin-top:22px">Motion means something</h3>
+          <p style="font-size:.9375rem;color:var(--ink-2)">Four uses only: arriving (stagger), navigating (view transitions), progressing (orbit sweep), and confirming (count-up). No ambient animation.</p>
+        </div>
+      </div>
+
+      <div class="stage" style="margin-top:34px">
+        <div class="phone">
+          <div class="g3 hero">
+            <div class="hero-top">
+              <div>
+                <div class="hero-hi">Hi, Hamza</div>
+                <div class="hero-sub">You and Salma</div>
+              </div>
+              <div class="avatars"><span>H</span><span>S</span></div>
+            </div>
+            <div class="hero-label">Saved together</div>
+            <div class="metric"><span class="cur">MAD</span>68,400</div>
+            <div class="arc-wrap"><div class="arc"><i style="width:73%"></i></div></div>
+            <div class="hero-cap"><b>73%</b> of MAD 94,000 · 3 in progress →</div>
+            <div class="chip">+MAD 5,200 this month</div>
+          </div>
+
+          <div class="bento">
+            <div class="g1 tile">
+              <div class="k">Shopping</div>
+              <div class="v">7</div>
+              <div class="s">to buy · MAD 340 est.</div>
+            </div>
+            <div class="g1 tile">
+              <div class="k">Next trip</div>
+              <div class="v">12<span style="font-size:.55em;letter-spacing:0"> days</span></div>
+              <div class="s">Chefchaouen</div>
+            </div>
+          </div>
+
+          <div class="g1 row">
+            <div class="thumb">◈</div>
+            <div class="row-body">
+              <div class="row-top">
+                <div class="row-title">Apartment deposit</div>
+                <div class="row-fig">73%</div>
+              </div>
+              <div class="arc" style="height:5px"><i style="width:73%"></i></div>
+              <div class="row-meta"><span>MAD 29,200 in</span><span>MAD 10,800 to go</span></div>
+            </div>
+            <div class="orbit" style="--p:.73turn;--half:.36turn;--w:4px;width:38px;height:38px">
+              <b style="font-size:11px">73</b>
+            </div>
+          </div>
+
+          <div class="g3 nav">
+            <a href="#direction" aria-current="page"><span class="d">◆</span>Home</a>
+            <a href="#direction"><span class="d">✈</span>Trips</a>
+            <a href="#direction"><span class="d">▣</span>Shopping</a>
+            <a href="#direction"><span class="d">◎</span>Goals</a>
+            <a href="#direction"><span class="d">◍</span>Profile</a>
+          </div>
+        </div>
+      </div>
+      <p class="stage-cap"><b>Home, proposed.</b> The dark hero becomes a lit glass panel over the ambient field; the savings figure carries the only gradient in the app; two instrument tiles add the scale contrast the stacked-card layout never had.</p>
+    </section>
+
+    <!-- ── COLOUR ───────────────────────────────────────────────── -->
+    <section id="color">
+      <div class="sec-head">
+        <h2>Colour</h2>
+        <p>The brand hues don't change. What changes is that they gain real ramps, so tints stop
+           being <code>/10</code> opacity hacks that shift hue against every different background.</p>
+      </div>
+
+      <p class="ramp-label">Violet — action, progress, focus</p>
+      <div class="ramp">
+        <div style="background:#F2EEFF;color:#3A16A8">50<span>F2EEFF</span></div>
+        <div style="background:#E4DCFF;color:#3A16A8">100<span>E4DCFF</span></div>
+        <div style="background:#C9B8FF;color:#2A0F78">200<span>C9B8FF</span></div>
+        <div style="background:#A88EFF;color:#1B0A4D">300<span>A88EFF</span></div>
+        <div style="background:#8360FF;color:#fff">400<span>8360FF</span></div>
+        <div style="background:#5A27FF;color:#fff">500<span>5A27FF</span></div>
+        <div style="background:#4A1DDB;color:#fff">600<span>4A1DDB</span></div>
+        <div style="background:#3A16A8;color:#fff">700<span>3A16A8</span></div>
+        <div style="background:#2A0F78;color:#fff">800<span>2A0F78</span></div>
+      </div>
+
+      <p class="ramp-label">Rose — identity, warmth, the second person</p>
+      <div class="ramp">
+        <div style="background:#FCF1F5;color:#7A2E48">50<span>FCF1F5</span></div>
+        <div style="background:#F8E2EA;color:#7A2E48">100<span>F8E2EA</span></div>
+        <div style="background:#EFC3D2;color:#571F32">200<span>EFC3D2</span></div>
+        <div style="background:#E29FB6;color:#37131F">300<span>E29FB6</span></div>
+        <div style="background:#D07E9A;color:#fff">400<span>D07E9A</span></div>
+        <div style="background:#BF6382;color:#fff">500<span>BF6382</span></div>
+        <div style="background:#A04A68;color:#fff">600<span>A04A68</span></div>
+        <div style="background:#7A2E48;color:#fff">700<span>7A2E48</span></div>
+        <div style="background:#571F32;color:#fff">800<span>571F32</span></div>
+      </div>
+
+      <p class="ramp-label">Neutrals — rose-tinted, never grey</p>
+      <div class="ramp">
+        <div style="background:#FDFAFC;color:#1A0F14">25<span>FDFAFC</span></div>
+        <div style="background:#F7F2F5;color:#1A0F14">50<span>F7F2F5</span></div>
+        <div style="background:#F0E8EC;color:#1A0F14">100<span>F0E8EC</span></div>
+        <div style="background:#E5D9DF;color:#1A0F14">200<span>E5D9DF</span></div>
+        <div style="background:#D2C0C9;color:#1A0F14">300<span>D2C0C9</span></div>
+        <div style="background:#A98D9B;color:#fff">400<span>A98D9B</span></div>
+        <div style="background:#7A5566;color:#fff">500<span>7A5566</span></div>
+        <div style="background:#402934;color:#fff">700<span>402934</span></div>
+        <div style="background:#1A0F14;color:#fff">900<span>1A0F14</span></div>
+      </div>
+
+      <p style="margin-top:26px">Three rules that come with the ramps.
+        <strong>One:</strong> a tint is a ramp step, not an alpha — <code>bg-violet-50</code>, never <code>bg-primary/10</code>,
+        so a badge on a card and the same badge on the hero are the same colour.
+        <strong>Two:</strong> small text on a light surface uses <code>rose-700</code>; <code>rose-500</code> is a background colour only.
+        <strong>Three:</strong> semantic <em>success / warning / danger</em> stay separate from the two brand hues —
+        a reached goal is not "accent", it's success.</p>
+    </section>
+
+    <!-- ── TYPE ─────────────────────────────────────────────────── -->
+    <section id="type">
+      <div class="sec-head">
+        <h2>Typography</h2>
+        <p>Plus Jakarta Sans stays and keeps every job it has. It gains one partner, with exactly
+           one job: <strong>anything that is a number, and the four headlines that matter.</strong></p>
+      </div>
+
+      <div class="spec">
+        <div class="spec-meta">Display &amp; data — Sora 700</div>
+        <p class="spec-line" style="font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,3.2rem)">MAD 68,400</p>
+        <p class="spec-line" style="font-family:'Sora',sans-serif;font-weight:500;font-size:1.25rem;color:var(--ink-2)">0123456789 · 11,100 · 73% · 12 days</p>
+        <p class="spec-note">Why it blends: both faces sit on a geometric skeleton with near-identical
+          x-heights, so they read as one system at a glance, while Sora's engineered, structural forms give
+          it clear display character against Plus Jakarta's rounder humanist ones — role separation without
+          the mushy middle.</p>
+        <p class="spec-note"><b>This started as Space Grotesk and changed during the build.</b> Space
+          Grotesk's numeral <span class="mono">1</span> carries a flag the full width of its tabular advance,
+          so consecutive ones butt together: <span class="mono" style="font-family:'Space Grotesk',monospace;font-weight:700;font-size:1.15em">11,100</span> rendered with what looked like
+          a strike through it, and no amount of letter-spacing separated them. In an app whose headline
+          element is a sum of money, a numeral that can be misread is disqualifying however good the rest of
+          the face looks. Sora — named here as the alternate from the start — has unambiguous figures at
+          every pairing.</p>
+      </div>
+
+      <div class="spec">
+        <div class="spec-meta">UI &amp; body — Plus Jakarta Sans 400 / 500 / 600 / 700</div>
+        <p class="spec-line" style="font-weight:700;font-size:1.5rem">Apartment deposit</p>
+        <p style="margin:0;max-width:60ch;color:var(--ink-2)">Every label, description, button, form field and paragraph in
+          the app. Unchanged from today — it is a good face for this product and it is already loaded.</p>
+        <p class="spec-note"><b>JetBrains Mono comes out.</b> It exists today for the invite code and prices;
+          Sora's tabular figures do both jobs better, and dropping a family removes a webfont
+          from the critical path.</p>
+      </div>
+
+      <p style="margin-top:26px"><strong>The scale.</strong> Nine steps, and figures never improvise a size:
+        <code>2xs 11</code> · <code>xs 12</code> · <code>sm 14</code> · <code>base 16</code> ·
+        <code>lg 18</code> · <code>xl 22</code> · <code>2xl 28</code> · <code>3xl 36</code> ·
+        <code>hero 48</code>. Display sizes tighten to <code>-0.03em</code>; the hero figure to <code>-0.045em</code>.
+        Both faces load as one Google Fonts request, non-render-blocking.</p>
+    </section>
+
+    <!-- ── GLASS ────────────────────────────────────────────────── -->
+    <section id="glass">
+      <div class="sec-head">
+        <h2>Glass &amp; depth</h2>
+        <p>Four levels replace four hand-written recipes. Each is blur + a lit top edge + a violet-tinted
+           cast from the same light source. Depth changes by <em>one</em> variable, never by improvisation.</p>
+      </div>
+
+      <div class="stage">
+        <div class="phone" style="max-width:420px">
+          <div class="g1" style="padding:16px">
+            <div style="font-weight:700;font-size:14px">Level 1 — rows</div>
+            <div style="font-size:12px;color:var(--s-mute)">blur 16 · cast 12/28 · list rows, compact cards, chips</div>
+          </div>
+          <div class="g2" style="padding:16px">
+            <div style="font-weight:700;font-size:14px">Level 2 — cards</div>
+            <div style="font-size:12px;color:var(--s-mute)">blur 20 · cast 22/44 · content cards, empty states, tiles</div>
+          </div>
+          <div class="g3" style="padding:16px">
+            <div style="font-weight:700;font-size:14px">Level 3 — floating chrome</div>
+            <div style="font-size:12px;color:var(--s-mute)">blur 24 · cast 30/60 · hero panel, bottom nav, FAB</div>
+          </div>
+          <div class="g3" style="padding:16px;border-radius:28px;box-shadow:inset 0 1px 0 rgb(255 255 255/.95), 0 -18px 60px -20px rgb(90 39 255/.45)">
+            <div style="font-weight:700;font-size:14px">Level 4 — sheets &amp; dialogs</div>
+            <div style="font-size:12px;color:var(--s-mute)">blur 28 · scrim behind · bottom sheets, confirm dialogs</div>
+          </div>
+        </div>
+      </div>
+      <p class="stage-cap"><b>The ambient field is what makes this work.</b> Today the wash lives on Home only
+        (<code>.dashboard-mesh</code>). It moves to the app shell as one fixed layer behind every route — two
+        low-opacity radial lights plus a 22px dot lattice — so glass on Trips, Shopping and Goals finally has
+        something real to refract.</p>
+
+      <p style="margin-top:26px"><strong>Radius gets a ramp too.</strong>
+        <code>xs 8</code> thumbs and chips · <code>sm 12</code> inputs · <code>md 16</code> rows ·
+        <code>lg 20</code> cards · <code>xl 28</code> hero and sheets · <code>full</code> pills.
+        Nested radius is derived, never guessed: <em>inner = outer − padding</em>.</p>
+    </section>
+
+    <!-- ── MOVES ────────────────────────────────────────────────── -->
+    <section id="moves">
+      <div class="sec-head">
+        <h2>Signature moves</h2>
+        <p>Six changes carry the whole redesign. Everything else in this document is the system
+           that lets them exist without looking bolted on.</p>
+      </div>
+
+      <h3>The Progress Orbit</h3>
+      <p>A conic-gradient ring — violet through rose on a hairline track — replacing the linear bar
+         wherever the bar is competing for horizontal space. One component, three sizes, no SVG and no
+         library. It sweeps from zero to its value on mount, which turns "how are we doing" into a
+         moment rather than a readout.</p>
+
+      <div class="stage">
+        <div style="display:flex;align-items:center;justify-content:center;gap:34px;flex-wrap:wrap">
+          <div style="text-align:center">
+            <div class="orbit" style="--p:.42turn;--half:.21turn;--w:4px;width:40px;height:40px;margin:0 auto"><b style="font-size:11px">42</b></div>
+            <div style="font-size:11px;color:var(--s-mute);margin-top:8px">40px · rows</div>
+          </div>
+          <div style="text-align:center">
+            <div class="orbit" style="--p:.73turn;--half:.36turn;--w:7px;width:76px;height:76px;margin:0 auto"><b style="font-size:19px">73<span style="font-size:.55em">%</span></b></div>
+            <div style="font-size:11px;color:var(--s-mute);margin-top:8px">76px · goal cards</div>
+          </div>
+          <div style="text-align:center">
+            <div class="orbit" style="--p:1turn;--half:.5turn;--w:11px;width:124px;height:124px;margin:0 auto">
+              <b style="font-size:28px;line-height:1.1">100<span style="font-size:.5em">%</span><br><span style="font-size:.36em;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--s-mute)">Reached</span></b>
+            </div>
+            <div style="font-size:11px;color:var(--s-mute);margin-top:8px">124px · goal detail</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:36px">The five others</h3>
+      <ul class="list" style="margin-top:12px">
+        <li><b>Ambient field, app-wide.</b> One fixed layer in <code>AppLayout</code>; delete the Home-only version. Every tab gets the same atmosphere, and every glass surface starts working.</li>
+        <li><b>Light instrument panel.</b> The dark <code>PageHero</code> becomes Level-3 glass. The figure keeps its crown-moment weight through a violet→rose gradient fill and a hairline arc instead of a drenched slab. This is the change that makes Home and Trips the same product.</li>
+        <li><b>Bento home.</b> Hero, then a two-up row of instrument tiles (shopping count, next trip countdown), then the goal feed. Scale contrast is the difference between a designed dashboard and a stack of equal cards.</li>
+        <li><b>View transitions.</b> <code>&lt;Link viewTransition&gt;</code> plus a <code>view-transition-name</code> on the thumbnail and title, so a card's photo morphs into the detail hero. React Router 7 supports it natively — roughly fifteen lines for the strongest "this feels expensive" cue available on mobile.</li>
+        <li><b>A real skeleton system.</b> A <code>&lt;Skeleton&gt;</code> primitive on Level-1 glass with a shimmer travelling along the ambient light direction, used on every route. The boot screen becomes the Home skeleton rather than a spinner and a joke.</li>
+      </ul>
+
+      <p style="margin-top:20px"><strong>Motion budget.</strong> <code>120ms</code> press ·
+        <code>200ms</code> colour and state · <code>320ms</code> enter and exit ·
+        <code>520ms</code> orbit sweep and count-up. Easing <code>cubic-bezier(.2,0,0,1)</code> throughout,
+        one spring reserved for the FAB sheet. Transform and opacity only. All of it already covered by
+        the existing <code>prefers-reduced-motion</code> net.</p>
+    </section>
+
+    <!-- ── SCREENS ──────────────────────────────────────────────── -->
+    <section id="screens">
+      <div class="sec-head">
+        <h2>Screen by screen</h2>
+        <p>What actually changes, and where.</p>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr><th>Surface</th><th>Change</th><th>Files</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>App shell</b></td>
+              <td>Ambient field moves here; glass tokens replace four shadow strings; radius ramp.</td>
+              <td class="f">AppLayout.tsx<br>theme.css<br>dashboard-mesh.css</td>
+            </tr>
+            <tr>
+              <td><b>Home</b></td>
+              <td>Light instrument panel; bento tile row; orbit on compact rows; staggered entry.</td>
+              <td class="f">HomePage.tsx<br>PageHero.tsx<br>page-hero.css</td>
+            </tr>
+            <tr>
+              <td><b>Goals</b></td>
+              <td>Full cards get a 76px orbit over the cover; ramped tints replace opacity badges.</td>
+              <td class="f">GoalsPage.tsx<br>GoalCard.tsx<br>ProgressBar.tsx</td>
+            </tr>
+            <tr>
+              <td><b>Goal detail</b></td>
+              <td>124px orbit as the header instrument; note feed on Level-1 glass; view-transition pair with the card.</td>
+              <td class="f">GoalDetailPage.tsx<br>NotesFeed.tsx</td>
+            </tr>
+            <tr>
+              <td><b>Trips</b></td>
+              <td>Countdown set in the display face; status pill uses semantic colour, not accent.</td>
+              <td class="f">TripsPage.tsx<br>TripCard.tsx<br>trip-visuals.tsx</td>
+            </tr>
+            <tr>
+              <td><b>Shopping</b></td>
+              <td>Rows to Level-1 glass; checked state fades rather than strikes; running total in the display face.</td>
+              <td class="f">ShoppingPage.tsx<br>ShoppingItemRow.tsx</td>
+            </tr>
+            <tr>
+              <td><b>Sheets &amp; dialogs</b></td>
+              <td>Level-4 glass; grabber handle; spring entry.</td>
+              <td class="f">sheet.css<br>confirm-dialog.tsx</td>
+            </tr>
+            <tr>
+              <td><b>Chrome</b></td>
+              <td>Nav and FAB adopt Level-3 tokens (visually near-identical — they become systematic).</td>
+              <td class="f">BottomNav.tsx<br>Fab.tsx<br>bottom-nav.css</td>
+            </tr>
+            <tr>
+              <td><b>Empty &amp; loading</b></td>
+              <td>Skeleton primitive; boot screen becomes the Home skeleton; empty states on Level-2 glass.</td>
+              <td class="f">EmptyState.tsx<br>AppBootFallback.tsx<br>Skeleton.tsx <em>(new)</em></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="margin-top:24px"><strong>Two structural notes, outside the surface work.</strong>
+        The <code>/</code> → session-check → redirect → <code>/home</code> hop is a visible stall on
+        every cold launch and should collapse into one route. And the Home FAB is the only control in
+        the app that changes meaning with state — "New goal" when empty, "Add to a goal" otherwise —
+        which is one affordance doing two jobs.</p>
+    </section>
+
+    <!-- ── PHASES ───────────────────────────────────────────────── -->
+    <section id="phases">
+      <div class="sec-head">
+        <h2>Rollout</h2>
+        <p>All four phases are built and in the working tree. Ordered so the app stayed shippable
+           after each one, and so the foundations landed before anything depended on them.</p>
+      </div>
+      <div class="phases">
+        <div class="phase">
+          <div class="phase-n">01</div>
+          <div>
+            <h3>Foundations</h3>
+            <p>Colour ramps, type scale, glass levels, radius ramp, motion tokens. Load Sora,
+               drop JetBrains Mono. Zero visible change beyond the type — this phase only makes the
+               next three possible.</p>
+            <div class="files">theme.css · index.html · tailwind theme block</div>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">02</div>
+          <div>
+            <h3>Atmosphere</h3>
+            <p>Ambient field to the app shell. Every surface migrates to a glass level. Radius derived
+               per component. First phase with a visible payoff: the app becomes one material.</p>
+            <div class="files">AppLayout · Card · GLASS_ROW · BottomNav · Fab · sheet.css</div>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">03</div>
+          <div>
+            <h3>Instruments</h3>
+            <p>Progress Orbit at three sizes. Light instrument panel replaces the dark hero. Bento tile
+               row on Home. Numeric system applied to every figure in the app.</p>
+            <div class="files">ProgressOrbit.tsx <em>(new)</em> · PageHero · HomePage · GoalCard · TripCard</div>
+          </div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">04</div>
+          <div>
+            <h3>Motion &amp; states</h3>
+            <p>View transitions on card→detail. Staggered list entry. Count-up on the savings figure.
+               Skeleton primitive across every route, boot screen included.</p>
+            <div class="files">router.tsx · Skeleton.tsx <em>(new)</em> · AppBootFallback · every list page</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── GATE ─────────────────────────────────────────────────── -->
+    <section id="gate">
+      <div class="sec-head">
+        <h2>Ship gate</h2>
+        <p>Nothing merges until all of it passes, on a real phone.</p>
+      </div>
+      <ul class="gate">
+        <li>Body text ≥ 4.5:1 and UI boundaries ≥ 3:1 — on glass, over the ambient field, in both themes</li>
+        <li>Every interactive target ≥ 44×44px, focus ring visible on all of them</li>
+        <li><code>prefers-reduced-motion</code> kills the orbit sweep, the count-up, the stagger and the view transitions</li>
+        <li>No <code>backdrop-filter</code> without an opaque fallback background behind it</li>
+        <li>Blur layer count ≤ 3 in any one viewport — measured on a mid-range Android, not a desktop</li>
+        <li>Empty and loading states designed for every route before the populated state ships</li>
+        <li>No colour outside the ramps; no shadow outside the four glass levels; no radius off the scale</li>
+        <li>The savings figure still reads correctly at MAD 999,999 and at 0</li>
+      </ul>
+    </section>
+
+    <footer>
+      Zamane · Luminous Glass — UI direction, August 2026.
+      Grounded in <em>Refactoring UI</em> (hierarchy, systematisation, one light source),
+      <em>Laws of UX</em> (Von Restorff, Goal-Gradient, Doherty, Jakob),
+      and <em>The Design of Everyday Things</em> (feedback, signifiers).
+    </footer>
+  </main>
+</div>

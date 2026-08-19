@@ -114,7 +114,7 @@ export default function ShoppingPage() {
                   <div key={category}>
                     <div className="mb-2 flex items-center justify-between gap-2 px-1">
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{category}</p>
-                      <p className="text-xs text-muted-foreground [font-variant-numeric:tabular-nums]">
+                      <p className="font-numeric text-xs text-muted-foreground">
                         {groupItems.length} {groupItems.length === 1 ? "item" : "items"}
                         {subtotal > 0 && ` · ${formatAmount(subtotal)}`}
                       </p>

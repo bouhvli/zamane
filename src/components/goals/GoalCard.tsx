@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Check, Target } from "lucide-react";
+import { Check, CircleDot } from "lucide-react";
 
 import type { Goal } from "@/lib/goals-api";
 import { goalImageUrl } from "@/lib/goal-image";
@@ -8,7 +8,7 @@ import { formatAmount, formatDate } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
 import { CardThumb } from "@/components/layout/CardThumb";
 import { GLASS_ROW } from "@/components/layout/glass-row";
-import { ProgressBar } from "./ProgressBar";
+import { ProgressOrbit } from "@/components/ProgressOrbit";
 
 /** Percent complete, clamped to 0–100. */
 function goalPercent(goal: Goal): number {
@@ -22,20 +22,25 @@ function goalPercent(goal: Goal): number {
 }
 
 const CARD_BASE =
-  "group block overflow-hidden rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
+  "group block overflow-hidden outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60";
+
+/** Pairs the card's thumbnail with the detail page's cover so the photo grows
+ *  into place instead of the whole screen cross-fading. Minted per goal id
+ *  because a view-transition-name must be unique among rendered elements. */
+export const goalCoverTransitionName = (id: string) => `goal-cover-${id}`;
 
 export function GoalCard({ goal, variant = "full" }: { goal: Goal; variant?: "full" | "compact" }) {
   return variant === "compact" ? <CompactGoalCard goal={goal} /> : <FullGoalCard goal={goal} />;
 }
 
 // The dashboard row. Where the full card spends ~218px to show a photo and one
-// figure, this spends ~96px and shows four: how far along, how much is in, what
-// is still missing, and by when. Home is an overview — density is the point,
-// and the aspirational photo treatment stays on the Goals page where it can
-// breathe.
+// figure, this spends ~90px and shows four: how far along, how much is in,
+// what is still missing, and by when.
 //
-// Hover is a background tint rather than a lift: down a list of rows a
-// translate reads as jitter, and colour is the calmer "this is tappable".
+// The linear bar became the orbit at the end of the row. The bar had to share
+// a line with two figures and a percentage; the ring says the same thing in a
+// 40px square, gives the percentage a home inside it, and buys the money
+// figures a full line of their own.
 function CompactGoalCard({ goal }: { goal: Goal }) {
   const isFinancial = goal.goalType === "financial";
   const percent = goalPercent(goal);
@@ -48,52 +53,44 @@ function CompactGoalCard({ goal }: { goal: Goal }) {
   return (
     <Link
       to={`/goals/${goal.id}`}
+      viewTransition
       aria-label={`Open ${goal.title}`}
-      className={cn(
-        CARD_BASE,
-        GLASS_ROW,
-        "border border-border p-3 transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] motion-reduce:active:scale-100",
-      )}
+      className={cn(CARD_BASE, GLASS_ROW, "rounded-md p-3")}
     >
       <div className="flex items-center gap-3">
         <CardThumb
           src={goalImageUrl(goal, { width: 160, height: 160 })}
-          icon={goal.isCompleted ? Check : Target}
+          icon={goal.isCompleted ? Check : CircleDot}
           dim={goal.isCompleted}
+          style={{ viewTransitionName: goalCoverTransitionName(goal.id) }}
         />
 
         <div className="min-w-0 flex-1">
-          <div className="mb-1.5 flex items-baseline justify-between gap-2">
-            <h3 className="min-w-0 truncate text-sm font-semibold leading-tight text-foreground">
+          <div className="mb-1 flex items-baseline justify-between gap-2">
+            <h3 className="min-w-0 truncate text-sm leading-tight font-semibold text-foreground">
               {goal.title}
             </h3>
-            {goal.isCompleted ? (
-              <span className="shrink-0 text-xs font-semibold text-accent-strong">Reached</span>
-            ) : (
-              <span className="shrink-0 text-xs font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
-                {Math.round(percent)}%
-              </span>
+            {goal.isCompleted && (
+              // Semantic success, not the brand rose: a reached goal is a
+              // state, and states live outside the two brand hues.
+              <span className="shrink-0 text-xs font-bold text-success">Reached</span>
             )}
           </div>
 
-          <ProgressBar percent={percent} label={goal.title} className="h-1.5" />
-
-          <div className="mt-1.5 flex items-baseline justify-between gap-2 text-xs [font-variant-numeric:tabular-nums]">
+          <div className="flex items-baseline justify-between gap-2 text-xs">
             {isFinancial ? (
               <>
                 {/* "29,200 of 40,000" doesn't fit beside the second figure at
-                    390px — it truncated to "of MAD 40,…" and repeated the
-                    currency. The target is already encoded by the bar and the
-                    percentage, so the pair says saved / still-needed instead:
-                    parallel, shorter, and both halves stay readable even at
-                    seven figures. */}
-                <span className="min-w-0 truncate text-muted-foreground">
+                    390px — and the target is already encoded by the ring, so
+                    the pair says saved / still-needed instead: parallel,
+                    shorter, and both halves stay readable at seven figures. */}
+                <span className="min-w-0 truncate font-numeric text-muted-foreground">
                   {formatAmount(current)} saved
                 </span>
                 {/* Weighted heavier than the figure beside it: what's left is
                     the number that tells you whether to act. */}
                 {remaining > 0 && (
-                  <span className="shrink-0 font-semibold text-foreground">
+                  <span className="shrink-0 font-numeric font-bold text-foreground">
                     {formatAmount(remaining)} to go
                   </span>
                 )}
@@ -104,7 +101,7 @@ function CompactGoalCard({ goal }: { goal: Goal }) {
                   {goal.targetDate ? `by ${formatDate(goal.targetDate)}` : "General goal"}
                 </span>
                 {percent < 100 && (
-                  <span className="shrink-0 font-semibold text-foreground">
+                  <span className="shrink-0 font-numeric font-bold text-foreground">
                     {Math.round(100 - percent)}% to go
                   </span>
                 )}
@@ -112,16 +109,19 @@ function CompactGoalCard({ goal }: { goal: Goal }) {
             )}
           </div>
         </div>
+
+        <ProgressOrbit percent={percent} size={42} label={goal.title}>
+          <span className="orbit-value text-[11px]">{Math.round(percent)}</span>
+        </ProgressOrbit>
       </div>
     </Link>
   );
 }
 
-// A goal reads as an aspiration, not a database row: a cover photo (or a
-// branded forest gradient when there's none) carries the title, and a crisp
-// solid footer keeps the money/progress unambiguous — the photo never fights
-// the number for legibility. Visually a sibling of the TripCard so Goals and
-// Trips feel like one app.
+// A goal reads as an aspiration, not a database row: a cover photo (or the
+// branded radial when there's none) carries the title, and the orbit straddles
+// the seam between photo and footer so the number is never fighting the image
+// for legibility.
 function FullGoalCard({ goal }: { goal: Goal }) {
   const isFinancial = goal.goalType === "financial";
   const percent = goalPercent(goal);
@@ -133,25 +133,26 @@ function FullGoalCard({ goal }: { goal: Goal }) {
   return (
     <Link
       to={`/goals/${goal.id}`}
+      viewTransition
       aria-label={`Open ${goal.title}`}
       className={cn(
         CARD_BASE,
-        "border border-border bg-card shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.22)] transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0",
+        "glass-2 !overflow-visible transition-transform duration-[var(--dur-2)] ease-[var(--ease-glide)] hover:-translate-y-0.5 active:scale-[0.98] motion-reduce:hover:translate-y-0",
       )}
     >
-      {/* Banner: a dark violet base (matching the PageHero brand surface) is
-          ALWAYS painted first, so the frame is full even while a photo loads
-          or if it fails; the photo then covers it edge-to-edge and a scrim
-          keeps the overlaid title legible. */}
-      <div className="brand-thumb-base relative h-32 overflow-hidden">
+      {/* Banner: the brand radial is ALWAYS painted first, so the frame is full
+          even while a photo loads or if it fails; the photo then covers it
+          edge-to-edge and a scrim keeps the overlaid title legible. */}
+      <div
+        className="brand-thumb-base relative h-32 overflow-hidden rounded-t-[calc(var(--radius-lg)-1px)]"
+        style={{ viewTransitionName: goalCoverTransitionName(goal.id) }}
+      >
         <div className="brand-thumb-radial absolute inset-0" />
 
-        {!showImage && (
-          <>
-            <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1.5px)] [background-size:22px_22px]" />
-            <Target className="absolute -right-3 -bottom-4 size-28 text-white/[0.07]" strokeWidth={1.5} />
-          </>
-        )}
+        {/* No watermark mark here, unlike TripCover: the orbit already sits in
+            this corner, and a second faint ring behind it read as a smudge
+            rather than as texture. The brand wash and its dot lattice carry
+            the empty cover on their own. */}
 
         {showImage && (
           <img
@@ -166,49 +167,71 @@ function FullGoalCard({ goal }: { goal: Goal }) {
           />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        {/* The scrim exists to keep the title legible over a photo. Without a
+            photo the surface is a light wash, so the scrim would only muddy
+            it — and the title flips to ink instead of white. */}
+        {showImage && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+        )}
 
-        {/* Status: a celebratory chip when done, otherwise a frosted chip
-            naming the goal type. Text carries the meaning, not colour alone. */}
+        {/* Status: text carries the meaning, not colour alone. */}
         <div className="absolute inset-x-0 top-0 flex justify-end p-3">
           <span
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm backdrop-blur-sm",
+              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold shadow-sm backdrop-blur-sm",
               goal.isCompleted
-                ? "bg-accent text-accent-foreground"
-                : "border border-white/20 bg-white/15 text-white",
+                ? "bg-success text-white"
+                : showImage
+                  ? "border border-white/20 bg-white/15 text-white"
+                  : "border border-violet-200 bg-card/70 text-violet-700 backdrop-blur-sm",
             )}
           >
             {goal.isCompleted && <span className="size-1.5 rounded-full bg-current" />}
-            {goal.isCompleted ? "Done" : isFinancial ? "Financial" : "General"}
+            {goal.isCompleted ? "Reached" : isFinancial ? "Financial" : "General"}
           </span>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 p-4">
-          <h3 className="line-clamp-2 text-balance text-lg font-bold leading-tight tracking-tight text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.4)]">
+        <div className="absolute inset-x-0 bottom-0 p-4 pr-24">
+          <h3
+            className={cn(
+              "line-clamp-2 text-lg leading-tight font-bold tracking-tight text-balance",
+              showImage
+                ? "text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.4)]"
+                : "text-[var(--thumb-ink)]",
+            )}
+          >
             {goal.title}
           </h3>
         </div>
       </div>
 
-      {/* Footer: the number stays on a solid surface so it's always crisp. */}
-      <div className="p-4">
-        <div className="mb-2 flex items-baseline justify-between gap-3">
-          <span className="min-w-0 truncate text-sm font-semibold text-foreground [font-variant-numeric:tabular-nums]">
+      {/* The instrument straddles the seam: half on the photo, half on the
+          footer, which is what makes it read as an inset dial rather than a
+          widget parked in a corner. */}
+      <div className="relative px-4 pb-4">
+        <ProgressOrbit
+          percent={percent}
+          size={72}
+          stroke={7}
+          label={goal.title}
+          className="absolute -top-9 right-4 rounded-full bg-card p-1 shadow-[0_4px_10px_rgb(var(--glass-ink)/0.12)]"
+        >
+          <span className="orbit-value text-base">
+            {Math.round(percent)}
+            <span className="text-[0.6em] font-semibold">%</span>
+          </span>
+        </ProgressOrbit>
+
+        <div className="pt-4 pr-20">
+          <span className="block truncate font-numeric text-sm font-bold text-foreground">
             {isFinancial
               ? `${formatAmount(goal.currentAmount)} of ${formatAmount(goal.targetAmount ?? 0)}`
-              : "Progress"}
+              : "In progress"}
           </span>
-          <span className="shrink-0 text-xs font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
-            {Math.round(percent)}%
-          </span>
+          {goal.targetDate && (
+            <p className="mt-1 text-xs text-muted-foreground">by {formatDate(goal.targetDate)}</p>
+          )}
         </div>
-
-        <ProgressBar percent={percent} label={goal.title} />
-
-        {goal.targetDate && (
-          <p className="mt-2 text-xs text-muted-foreground">by {formatDate(goal.targetDate)}</p>
-        )}
       </div>
     </Link>
   );

@@ -18,15 +18,33 @@
          has even downloaded. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Plus Jakarta Sans is the single UI + display family (--font-sans /
-         --font-heading, see theme.css): the warm geometric sans of the
-         travel-app design language. Weights 400-800 cover body through bold
-         headlines and the .font-display treatment; italic 500 for the rare
-         emphasis. JetBrains Mono stays for numerics (prices, invite code). -->
+    <!-- Two families, one job each (see theme.css).
+         Plus Jakarta Sans — every label, description, button and paragraph.
+         Sora — the display face and, more importantly, every NUMBER in the
+         app. It replaces JetBrains Mono, which was carrying the numeric job
+         less well and cost a third family on the critical path. See theme.css
+         for why Sora rather than Space Grotesk, which this started as. -->
+    <!-- Loaded without blocking the first paint. A plain stylesheet link to a
+         third-party origin is render-blocking: nothing at all is painted until
+         that cross-origin round trip completes, which on a phone is a couple
+         of hundred milliseconds of white screen before the app's own JS has
+         even been asked for. `media="print"` makes the browser fetch it at low
+         priority without applying it, and the onload handler flips it to
+         `all` the moment it arrives. `display=swap` already means text renders
+         in the fallback face and swaps in place, so nothing is hidden either
+         way — the only change is that the first paint no longer waits. -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+      media="print"
+      onload="this.media='all'; this.onload=null;"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=Sora:wght@400;500;600;700&display=swap"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=Sora:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

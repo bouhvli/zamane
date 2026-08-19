@@ -1,12 +1,68 @@
 /*
- * Shared brand-radial surface for photo-less covers — see the token comment
- * in theme.css. One class instead of the gradient re-typed per component.
+ * The photo-less cover surface — see the token comment in theme.css. One class
+ * instead of the gradient re-typed per component.
  */
 
-.brand-thumb-base {
-  background-color: var(--thumb-radial-base);
-}
+@layer components {
+  .brand-thumb-base {
+    background-color: var(--thumb-base);
+  }
 
-.brand-thumb-radial {
-  background-image: var(--thumb-radial-bg);
+  .brand-thumb-radial {
+    background-image: var(--thumb-wash);
+    /* The lattice is the third layer of --thumb-wash; the two radial lights
+       are sized to the box, so only this one needs a tile size. */
+    background-size: auto, auto, 22px 22px;
+  }
+
+  /*
+   * Overlay content on a cover. A cover with a photo carries a dark scrim, so
+   * its text is white; a photo-less cover is a light brand wash, where white
+   * would be invisible. `data-cover` on the cover element decides, once, for
+   * everything overlaid on it — rather than each of the six call sites
+   * (title, destination, chips, badges, back button, menu) branching itself.
+   */
+  .cover-title {
+    color: #fff;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+  }
+
+  .cover-sub {
+    color: rgba(255, 255, 255, 0.82);
+  }
+
+  .cover-chip {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    /* Blur alone doesn't stop a hard edge in the photo from reading straight
+       through the chip — a doorframe behind "In 11 days" looked like a strike
+       through the digits. Darkening what's behind the glass guarantees the
+       white text has something to sit on, whatever the photo does. */
+    -webkit-backdrop-filter: blur(10px) brightness(0.68) saturate(1.2);
+    backdrop-filter: blur(10px) brightness(0.68) saturate(1.2);
+  }
+
+  [data-cover="false"] .cover-title {
+    color: var(--thumb-ink);
+    text-shadow: none;
+  }
+
+  [data-cover="false"] .cover-sub {
+    color: var(--thumb-ink);
+    opacity: 0.72;
+  }
+
+  [data-cover="false"] .cover-chip {
+    border-color: var(--violet-200);
+    background: rgb(255 255 255 / 0.55);
+    color: var(--violet-700);
+    /* No photo to fight, so no darkening — just the material. */
+    -webkit-backdrop-filter: blur(10px) saturate(1.3);
+    backdrop-filter: blur(10px) saturate(1.3);
+  }
+
+  [data-cover="false"] .cover-chip:hover {
+    background: #fff;
+  }
 }

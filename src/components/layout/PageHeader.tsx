@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { cn } from "@/components/ui/utils";
 
 export type PageHeaderStat = { label: string; value: string };
-export type PageHeaderStatus = { text: string; tone?: "primary" | "accent" | "neutral" };
+export type PageHeaderStatus = { text: string; tone?: "primary" | "accent" | "success" | "neutral" };
 
 export type PageHeaderProps = {
   title: ReactNode;
@@ -38,7 +38,7 @@ export function PageHeader({ title, description, back, status, stats, actions, c
       )}
 
       <div className="flex items-start justify-between gap-3">
-        <h1 className="min-w-0 text-balance font-sans text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="min-w-0 font-display text-2xl text-balance text-foreground">
           {title}
         </h1>
         {(status || actions) && (
@@ -55,7 +55,7 @@ export function PageHeader({ title, description, back, status, stats, actions, c
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           {stats.map((stat) => (
             <span key={stat.label} className="text-muted-foreground">
-              <span className="font-semibold text-foreground">{stat.value}</span> {stat.label}
+              <span className="font-numeric font-bold text-foreground">{stat.value}</span> {stat.label}
             </span>
           ))}
         </div>
@@ -70,9 +70,11 @@ function HeaderStatus({ status }: { status: PageHeaderStatus }) {
     <span
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
-        tone === "primary" && "bg-primary/10 text-primary",
+        tone === "primary" && "bg-violet-100 text-primary",
+        // A finished thing is a semantic state, not a brand moment.
+        tone === "success" && "bg-success-surface text-success",
         // --accent-strong is the AA-safe olive for small text on light surfaces.
-        tone === "accent" && "bg-accent/10 text-accent-strong",
+        tone === "accent" && "bg-rose-100 text-rose-700",
         tone === "neutral" && "bg-muted text-muted-foreground",
       )}
     >

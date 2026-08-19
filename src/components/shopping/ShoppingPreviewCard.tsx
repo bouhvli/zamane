@@ -39,10 +39,7 @@ export function ShoppingPreviewCard({
     <Link
       to="/shopping"
       aria-label="Open the shopping list"
-      className={cn(
-        GLASS_ROW,
-        "group block rounded-lg border border-border p-3 outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100",
-      )}
+      className={cn(GLASS_ROW, "group block rounded-md p-3 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60")}
     >
       <div className="flex items-center gap-3">
         <CardThumb icon={ShoppingCart} />
@@ -55,7 +52,7 @@ export function ShoppingPreviewCard({
                 : `${summary.uncheckedCount} ${summary.uncheckedCount === 1 ? "item" : "items"} to buy`}
             </h3>
             {estimatedTotal > 0 && (
-              <span className="shrink-0 text-xs font-semibold text-foreground [font-variant-numeric:tabular-nums]">
+              <span className="shrink-0 font-numeric text-xs font-bold text-foreground">
                 {formatAmount(estimatedTotal)}
               </span>
             )}
@@ -64,7 +61,7 @@ export function ShoppingPreviewCard({
           <ProgressBar percent={percent} label="Shopping list" className="h-1.5" />
 
           <p className="mt-1.5 flex min-w-0 items-baseline gap-1.5 text-xs">
-            <span className="shrink-0 font-semibold text-muted-foreground [font-variant-numeric:tabular-nums]">
+            <span className="shrink-0 font-numeric font-bold text-muted-foreground">
               {summary.checkedCount} of {total} bought
             </span>
             {names && (

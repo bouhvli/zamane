@@ -131,7 +131,7 @@ function FinancialContributionForm({ goalId, onContributed }: { goalId: string; 
                       const current = Number(form.getValues("amount")) || 0;
                       form.setValue("amount", Math.round((current + amount) * 100) / 100, { shouldValidate: true });
                     }}
-                    className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground outline-none transition-colors hover:border-primary hover:bg-primary/5 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground outline-none transition-colors hover:border-primary hover:bg-violet-50 focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   >
                     +{formatAmount(amount)}
                   </button>

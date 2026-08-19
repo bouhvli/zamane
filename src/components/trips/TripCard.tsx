@@ -7,7 +7,7 @@ import { tripCoverUrl } from "@/lib/trip-photo";
 import { cn } from "@/components/ui/utils";
 import { CardThumb } from "@/components/layout/CardThumb";
 import { GLASS_ROW } from "@/components/layout/glass-row";
-import { GlassChip, StatusBadge, TripCover, tripStatus } from "./trip-visuals";
+import { GlassChip, StatusBadge, TripCover, tripStatus, tripCoverTransitionName } from "./trip-visuals";
 
 export function TripCard({ trip, variant = "full" }: { trip: Trip; variant?: "full" | "compact" }) {
   return variant === "compact" ? <CompactTripCard trip={trip} /> : <FullTripCard trip={trip} />;
@@ -32,14 +32,17 @@ function CompactTripCard({ trip }: { trip: Trip }) {
   return (
     <Link
       to={`/trips/${trip.id}`}
+      viewTransition
       aria-label={`Open ${trip.title}`}
-      className={cn(
-        GLASS_ROW,
-        "group block rounded-lg border border-border p-3 outline-none transition-colors duration-200 hover:border-primary/30 hover:bg-muted/50 active:scale-[0.99] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:active:scale-100",
-      )}
+      className={cn(GLASS_ROW, "group block rounded-md p-3 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60")}
     >
       <div className="flex items-center gap-3">
-        <CardThumb src={tripCoverUrl(trip)} icon={MapPin} dim={status?.tone === "past"} />
+        <CardThumb
+          src={tripCoverUrl(trip)}
+          icon={MapPin}
+          dim={status?.tone === "past"}
+          style={{ viewTransitionName: tripCoverTransitionName(trip.id) }}
+        />
 
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-semibold leading-tight text-foreground">{trip.title}</h3>
@@ -49,13 +52,13 @@ function CompactTripCard({ trip }: { trip: Trip }) {
             <span className="truncate">{trip.destination ?? "No destination set yet"}</span>
           </p>
 
-          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs [font-variant-numeric:tabular-nums]">
+          <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs">
             {status && (
               <>
                 <span
                   className={cn(
-                    "inline-flex shrink-0 items-center gap-1 font-semibold",
-                    status.tone === "live" && "text-accent-strong",
+                    "inline-flex shrink-0 items-center gap-1 font-numeric font-bold",
+                    status.tone === "live" && "text-rose-700",
                     status.tone === "soon" && "text-primary",
                     status.tone === "past" && "text-muted-foreground",
                   )}
@@ -75,7 +78,7 @@ function CompactTripCard({ trip }: { trip: Trip }) {
                 )}
               </>
             )}
-            <span className="truncate text-muted-foreground">{facts.join(" · ")}</span>
+            <span className="truncate font-numeric text-muted-foreground">{facts.join(" · ")}</span>
           </p>
         </div>
       </div>
@@ -90,30 +93,32 @@ function FullTripCard({ trip }: { trip: Trip }) {
   return (
     <Link
       to={`/trips/${trip.id}`}
+      viewTransition
       aria-label={`Open ${trip.title}`}
-      className="group relative block rounded-lg outline-none transition-transform duration-200 active:scale-[0.98] hover:-translate-y-0.5 focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:hover:translate-y-0"
+      className="group relative block rounded-lg outline-none transition-transform duration-[var(--dur-2)] ease-[var(--ease-glide)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:hover:translate-y-0"
     >
       <TripCover
         trip={trip}
         dim={status?.tone === "past"}
-        className="aspect-[16/10] rounded-lg shadow-[0_1px_2px_rgba(26,15,20,0.05),0_14px_34px_-16px_rgba(26,15,20,0.28)]"
+        style={{ viewTransitionName: tripCoverTransitionName(trip.id) }}
+        className="aspect-[16/10] rounded-lg shadow-[0_2px_4px_rgb(var(--glass-ink)/0.04),0_22px_44px_-26px_rgb(var(--glass-cast)/0.4)]"
       >
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
           {status ? <StatusBadge status={status} /> : <span aria-hidden="true" />}
           <span
             aria-hidden="true"
-            className="flex size-9 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white backdrop-blur-sm transition-colors duration-200 group-hover:bg-white group-hover:text-foreground"
+            className="cover-chip flex size-9 items-center justify-center rounded-full backdrop-blur-sm transition-colors duration-[var(--dur-2)] group-hover:bg-card group-hover:text-foreground"
           >
             <ChevronRight className="size-5 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0" />
           </span>
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-4">
-          <p className="flex items-center gap-1 text-xs font-medium text-white/80">
+          <p className="cover-sub flex items-center gap-1 text-xs font-medium">
             <MapPin className="size-3.5 shrink-0" />
             <span className="truncate">{trip.destination ?? "No destination set yet"}</span>
           </p>
-          <h3 className="mt-1 line-clamp-2 text-balance text-xl font-bold leading-tight tracking-tight text-white [text-shadow:0_1px_10px_rgba(0,0,0,0.35)]">
+          <h3 className="cover-title mt-1 line-clamp-2 text-xl leading-tight font-bold tracking-tight text-balance">
             {trip.title}
           </h3>
 
@@ -127,7 +132,7 @@ function FullTripCard({ trip }: { trip: Trip }) {
               )}
               {trip.budget && (
                 <GlassChip icon={Wallet}>
-                  <span className="[font-variant-numeric:tabular-nums]">{formatAmount(trip.budget)}</span>
+                  {formatAmount(trip.budget)}
                 </GlassChip>
               )}
             </div>

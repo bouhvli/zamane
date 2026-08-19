@@ -45,7 +45,7 @@ export function ContributionSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet-dialog"
+      className="sheet-dialog glass-4"
       onCancel={(event) => {
         event.preventDefault();
         onClose();
@@ -56,7 +56,7 @@ export function ContributionSheet({
     >
       <div className="flex max-h-[92dvh] flex-col">
         <div className="shrink-0 px-5 pt-3">
-          <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+          <div aria-hidden="true" className="sheet-grabber mx-auto mb-3" />
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="text-lg font-bold tracking-tight text-foreground">

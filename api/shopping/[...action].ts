@@ -6,6 +6,7 @@ import {
 } from "../../shared/validation.js";
 
 import { sql } from "../_lib/db.js";
+import { shoppingForGroup, EMPTY_SHOPPING } from "../_lib/queries.js";
 import { methodGuard, parseBody, getCatchAllAction } from "../_lib/http.js";
 import { getUserFromRequest } from "../_lib/auth.js";
 
@@ -38,34 +39,13 @@ async function list(req: VercelRequest, res: VercelResponse) {
   }
 
   if (!user.groupId) {
-    res.status(200).json({ items: [], summary: { uncheckedCount: 0, checkedCount: 0, estimatedTotal: 0 } });
+    res.status(200).json(EMPTY_SHOPPING);
     return;
   }
 
-  const items = await sql`
-    select
-      si.id, si.name, si.quantity, si.category, si.price, si.notes,
-      si.is_checked as "isChecked",
-      si.created_by as "createdBy",
-      u.display_name as "createdByName",
-      u.email as "createdByEmail",
-      si.created_at as "createdAt"
-    from shopping_items si
-    left join users u on u.id = si.created_by
-    where si.group_id = ${user.groupId}
-    order by si.is_checked asc, si.category asc nulls last, si.created_at asc
-  `;
-
-  const [{ uncheckedCount, checkedCount, estimatedTotal }] = await sql`
-    select
-      count(*) filter (where not is_checked)::int as "uncheckedCount",
-      count(*) filter (where is_checked)::int as "checkedCount",
-      coalesce(sum(price * quantity) filter (where not is_checked and price is not null), 0) as "estimatedTotal"
-    from shopping_items
-    where group_id = ${user.groupId}
-  `;
-
-  res.status(200).json({ items, summary: { uncheckedCount, checkedCount, estimatedTotal } });
+  // The rows query and the summary aggregate run concurrently; see
+  // api/_lib/queries.ts.
+  res.status(200).json(await shoppingForGroup(user.groupId));
 }
 
 async function create(req: VercelRequest, res: VercelResponse) {

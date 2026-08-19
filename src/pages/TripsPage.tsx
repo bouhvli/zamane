@@ -23,7 +23,7 @@ export default function TripsPage() {
         ]}
       />
 
-      <div className="mx-auto max-w-md space-y-3 px-4 pb-12">
+      <div className="stagger mx-auto max-w-md space-y-3 px-4 pb-12">
         {trips.length === 0 ? (
           <EmptyState
             icon={MapPin}

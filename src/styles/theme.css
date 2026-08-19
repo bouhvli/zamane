@@ -58,6 +58,57 @@
   --sidebar-accent-foreground: #1A0F14;
   --sidebar-border: rgba(191, 99, 130, 0.15);
   --sidebar-ring: #5A27FF;
+
+  /*
+   * Ramps. Every tint in the app used to be an alpha of the brand hue
+   * (bg-primary/10, border-primary/30), which meant the "same" tint rendered
+   * as a different colour on the card, on the muted layer, and over a photo —
+   * alpha composites with whatever sits behind it. These are real, opaque
+   * steps: a badge is the same violet wherever it lands.
+   *
+   * Both hues are the logo's own circles. Small text on a light surface takes
+   * step 700 (rose 500 only clears ~4:1); steps 50-200 are backgrounds only.
+   */
+  --violet-50: #F2EEFF;
+  --violet-100: #E4DCFF;
+  --violet-200: #C9B8FF;
+  --violet-300: #A88EFF;
+  --violet-400: #8360FF;
+  --violet-500: #5A27FF;
+  --violet-600: #4A1DDB;
+  --violet-700: #3A16A8;
+  --violet-800: #2A0F78;
+
+  --rose-50: #FCF1F5;
+  --rose-100: #F8E2EA;
+  --rose-200: #EFC3D2;
+  --rose-300: #E29FB6;
+  --rose-400: #D07E9A;
+  --rose-500: #BF6382;
+  --rose-600: #A04A68;
+  --rose-700: #7A2E48;
+  --rose-800: #571F32;
+
+  /* Semantic states, deliberately outside the two brand hues: a reached goal
+     is "success", not "accent". Warm-shifted so they sit in the same rose-lit
+     world as everything else rather than reading as stock system colours. */
+  --success: #1E8A5F;
+  --success-surface: #E4F4EC;
+  --warning: #9A6212;
+  --warning-surface: #FBEFD9;
+
+  /*
+   * Motion. Four durations and one easing curve — the app's whole vocabulary.
+   * --ease-glide is the curve the bottom sheet already used; keeping one curve
+   * everywhere is what makes unrelated transitions feel like one system.
+   * All of it is collapsed by the reduced-motion net at the end of this file.
+   */
+  --ease-glide: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.44, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --dur-4: 520ms;
 }
 
 .dark {
@@ -104,6 +155,37 @@
   --sidebar-accent-foreground: #F5EFF2;
   --sidebar-border: rgba(191, 99, 130, 0.2);
   --sidebar-ring: #7B52FF;
+
+  /*
+   * The ramps invert: on a near-black ground the low steps are the dark
+   * surface tints and the high steps are the readable text colours, so a
+   * component written as "bg-violet-100 text-violet-700" keeps working in both
+   * themes without a dark: variant at every call site.
+   */
+  --violet-50: #191033;
+  --violet-100: #201545;
+  --violet-200: #2E1D66;
+  --violet-300: #4326A6;
+  --violet-400: #6A3FE0;
+  --violet-500: #7B52FF;
+  --violet-600: #9573FF;
+  --violet-700: #B79FFF;
+  --violet-800: #D6C7FF;
+
+  --rose-50: #2A161D;
+  --rose-100: #361C25;
+  --rose-200: #4C2734;
+  --rose-300: #6B3648;
+  --rose-400: #9E4E68;
+  --rose-500: #BF6382;
+  --rose-600: #D07E9A;
+  --rose-700: #E29FB6;
+  --rose-800: #EFC3D2;
+
+  --success: #4ECB93;
+  --success-surface: #12312A;
+  --warning: #E0A94B;
+  --warning-surface: #33260F;
 }
 
 @theme inline {
@@ -115,12 +197,36 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   /* Unused in-app; kept as a generic-serif fallback token only. */
   --font-serif: ui-serif, Georgia, serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  /* The display face is the same family, just heavier + tighter (see the
-     `.font-display` rule below). Applied via the opt-in `.font-display` class
-     at signature moments — the PageHero greeting/number (Home), auth-screen
-     titles, the error headline — not repeated UI chrome. */
-  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  /*
+   * Sora does two jobs: the display face, and EVERY number in the app. Its
+   * geometric, engineered forms contrast clearly with Plus Jakarta's rounder
+   * humanist ones while sharing a skeleton and x-height, so the two blend as
+   * one system rather than reading as two fonts.
+   *
+   * It is here in place of Space Grotesk, which this direction started with.
+   * Space Grotesk's numeral 1 carries a flag the full width of its tabular
+   * advance, so consecutive ones butt together: "11,100" rendered with what
+   * looked like a strike through it, and no amount of letter-spacing pulled
+   * them apart. In an app whose headline element is a sum of money, a numeral
+   * that can be misread is disqualifying — however good the rest of the face
+   * looks. Sora's figures are unambiguous at every pairing.
+   */
+  --font-mono: "Sora", ui-monospace, monospace;
+  --font-heading: "Sora", "Plus Jakarta Sans", ui-sans-serif, sans-serif;
+
+  /* 11px — the bottom-nav label, and the only step below --text-xs. It was
+     hard-coded as text-[11px] in BottomNav; naming it puts it on the scale. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.4;
+  /* Bumped from Tailwind's 1.5rem / 1.875rem. A page title is the top of the
+     hierarchy on four of the five tabs and was only 1.33x the body size —
+     not enough separation to read as a headline. */
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 1.1;
+  --text-hero: 3rem;
+  --text-hero--line-height: 1;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -148,10 +254,39 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --color-violet-50: var(--violet-50);
+  --color-violet-100: var(--violet-100);
+  --color-violet-200: var(--violet-200);
+  --color-violet-300: var(--violet-300);
+  --color-violet-400: var(--violet-400);
+  --color-violet-500: var(--violet-500);
+  --color-violet-600: var(--violet-600);
+  --color-violet-700: var(--violet-700);
+  --color-violet-800: var(--violet-800);
+  --color-rose-50: var(--rose-50);
+  --color-rose-100: var(--rose-100);
+  --color-rose-200: var(--rose-200);
+  --color-rose-300: var(--rose-300);
+  --color-rose-400: var(--rose-400);
+  --color-rose-500: var(--rose-500);
+  --color-rose-600: var(--rose-600);
+  --color-rose-700: var(--rose-700);
+  --color-rose-800: var(--rose-800);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+
+  /*
+   * Radius ramp. One value (20px) used to cover a 64px thumbnail and a
+   * full-bleed sheet alike. Nested radius is derived now rather than guessed:
+   * inner = outer - padding.
+   */
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: 1.75rem;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -186,7 +321,36 @@
     font-family: var(--font-heading);
     font-optical-sizing: auto;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+  }
+
+  /*
+   * Every figure in the app: prices, percentages, counts, countdowns, the
+   * invite code. tabular-nums keeps a figure from reflowing as it counts up,
+   * or as a revalidation swaps one value for another of different width.
+   * Applied as a class rather than baked into formatAmount so a number inside
+   * a sentence can opt out.
+   */
+  .font-numeric {
+    font-family: var(--font-heading);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.015em;
+  }
+
+  /*
+   * Icon weight, once, for the whole app. lucide ships every icon at
+   * stroke-width 2, which at 16-20px reads heavy and slightly cartoonish
+   * beside Plus Jakarta's text and Sora's figures — five of them in a row
+   * across the tab bar was the clearest case. 1.75 is calmer without going
+   * spindly at 14px.
+   *
+   * This is a default, not a lock: a Tailwind utility sits in the later
+   * `utilities` layer, so `[stroke-width:1.5]` at a call site still wins where
+   * a specific weight is meant (the big ghosted cover marks, the check on a
+   * ticked shopping row).
+   */
+  svg.lucide {
+    stroke-width: 1.75;
   }
 
   h1 {
@@ -244,40 +408,19 @@
 }
 
 /*
- * BottomNav tokens — the floating rounded pill nav (see the travel-app
- * reference). It's a frosted-glass "island" that adapts to the theme: a
- * bright translucent-white pill on light, a dark frosted-glass pill on dark
- * (so it never glares against the near-black canvas). The backdrop blur lets
- * the page tint and motion bleed through the pill for a real glass feel.
- *
- * Light mode: brand-violet active foreground, muted rose-grey inactive — no
- * background fill behind the active tab, just the text/icon colour plus the
- * gradient underline drawn inline in BottomNav.tsx. Dark mode uses the
- * lighter dark-mode violet (--primary already flips to a brighter tone
- * there), same idea as the rest of the theme. --nav-sheen is a top-edge
- * inner highlight that gives the glass its lit rim; --nav-shadow is a soft,
- * theme-tinted cast so the pill floats.
+ * BottomNav foreground colours. The pill's own surface is level 3 of the glass
+ * ramp (glass.css) — it used to carry a bespoke --nav-bg / --nav-sheen /
+ * --nav-shadow recipe, which is precisely the per-component drift the ramp
+ * exists to end. What stays here is only what names a *state* rather than
+ * describing a surface: the active tab's brand violet against the muted
+ * rose-grey of the rest.
  */
 :root {
-  --nav-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.90) 0%, rgba(255, 255, 255, 0.80) 100%);
-  --nav-border: rgba(90, 39, 255, 0.12);
-  --nav-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.95);
-  --nav-shadow:
-    0 16px 34px -12px rgba(90, 39, 255, 0.20),
-    0 5px 14px -6px rgba(90, 39, 255, 0.12);
   --nav-fg-inactive: #7A5566;
   --nav-fg-active: #5A27FF;
 }
 
 .dark {
-  --nav-bg:
-    linear-gradient(180deg, rgba(42, 30, 35, 0.82) 0%, rgba(26, 16, 21, 0.74) 100%);
-  --nav-border: rgba(123, 82, 255, 0.18);
-  --nav-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --nav-shadow:
-    0 18px 36px -12px rgba(0, 0, 0, 0.62),
-    0 5px 14px -6px rgba(0, 0, 0, 0.5);
   --nav-fg-inactive: #9B7B88;
   --nav-fg-active: #7B52FF;
 }
@@ -299,47 +442,59 @@
 }
 
 /*
- * PageHero tokens — the dark, glowing "hero card" header on Home, the app's
- * one drenched brand surface. Colours are drawn from tokens Zamane already
- * owns: a deep-violet radial deepening to near-black at the edges, a violet
- * glow top-right (the dark-mode --primary, #7B52FF), and a hot-pink glow
- * bottom-left (#FF2D78) — the two brand hues the logo's overlapping circles
- * stand for. Kept identical in both light and dark app themes (not
- * duplicated under .dark): the effect depends on a dark surface for
- * contrast, so it's a fixed brand-coloured "island" rather than a
- * page-background-following surface.
+ * PageHero accents. The hero used to be the app's one drenched dark surface —
+ * a deep-violet radial with two glows, sitting on a page whose other four tabs
+ * were light and quiet. It was the single largest inconsistency in the app:
+ * Home and Trips did not look like the same product.
  *
- * --hero-bg layers a faint top sheen (a glass-like highlight) over the
- * violet radial. --hero-shadow adds a second, violet-tinted pass so the cast
- * shadow reads as part of the same brand identity.
+ * The panel is level 3 glass now (see PageHero.tsx). What survives here is the
+ * one place the brand still gets to shout: the savings figure, filled with the
+ * violet-to-rose gradient the logo's two overlapping circles stand for. That
+ * gradient is the ONLY place in the app where colour touches type.
  */
 :root {
-  --hero-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 20%),
-    radial-gradient(150% 130% at 15% -10%, #3A1470 0%, #2A1052 42%, #1D0B38 75%, #120722 100%);
-  --hero-shadow:
-    0 28px 56px -16px rgba(18, 7, 34, 0.55),
-    0 10px 22px -6px rgba(90, 39, 255, 0.2);
-  --hero-glow-tr: radial-gradient(circle, rgba(123, 82, 255, 0.42) 0%, rgba(123, 82, 255, 0) 70%);
-  --hero-glow-bl: radial-gradient(circle, rgba(255, 45, 120, 0.35) 0%, rgba(255, 45, 120, 0) 70%);
-  --hero-dot-grid: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
-  --hero-glass: rgba(255, 255, 255, 0.06);
-  --hero-glass-border: rgba(255, 255, 255, 0.12);
+  --hero-figure: linear-gradient(96deg, #5A27FF 6%, #8B4FE8 52%, #BF6382 96%);
+  /* The figure needs a solid colour to fall back to wherever background-clip
+     text is unavailable, and it must be the readable end of the gradient. */
+  --hero-figure-solid: #4A1DDB;
+}
+
+.dark {
+  --hero-figure: linear-gradient(96deg, #9573FF 6%, #B98CF0 52%, #E29FB6 96%);
+  --hero-figure-solid: #B79FFF;
 }
 
 /*
- * Brand-radial thumbnail surface — the dark violet base every photo-less
- * cover paints first (CardThumb, FullGoalCard's banner, TripCover), so an
- * image slot is never an empty hole while a photo loads or after one fails.
- * One shared token instead of the hex string hand-copied into three
- * components, which had already drifted (CardThumb's gradient stopped at
- * 55%, the other two at 50%) before any of them changed the value on
- * purpose. Kept outside .dark, same reasoning as --hero-bg: a fixed brand
- * "island" rather than a surface that follows the page theme.
+ * The photo-less cover surface — what a goal or trip paints when it has no
+ * image yet, and what sits under one while it loads so the frame is never an
+ * empty hole.
+ *
+ * It used to be a deep violet radial pulled from the old dark PageHero. With
+ * the hero gone light, three photo-less goal cards stacked on the Goals page
+ * became the heaviest thing in the app — the exact "drenched dark" the
+ * direction set out to remove, just relocated. It is a light brand wash now:
+ * the same two hues, the same dot lattice, at a weight that belongs on this
+ * page. A cover with a real photo is unaffected; the photo covers this anyway.
+ *
+ * Because the surface is light, an overlaid title has to switch from white to
+ * ink — see `hasCover` in GoalCard / TripCover.
  */
 :root {
-  --thumb-radial-base: #120722;
-  --thumb-radial-bg: radial-gradient(150% 130% at 20% 10%, #3A1470 0%, #2A1052 50%, #120722 100%);
+  --thumb-base: #F3ECF8;
+  --thumb-wash:
+    radial-gradient(120% 110% at 82% 8%, rgba(90, 39, 255, 0.20) 0%, rgba(90, 39, 255, 0) 58%),
+    radial-gradient(110% 100% at 6% 96%, rgba(191, 99, 130, 0.22) 0%, rgba(191, 99, 130, 0) 62%),
+    radial-gradient(rgba(90, 39, 255, 0.10) 1px, transparent 1.5px);
+  --thumb-ink: #2A0F78;
+}
+
+.dark {
+  --thumb-base: #1B1226;
+  --thumb-wash:
+    radial-gradient(120% 110% at 82% 8%, rgba(123, 82, 255, 0.30) 0%, rgba(123, 82, 255, 0) 58%),
+    radial-gradient(110% 100% at 6% 96%, rgba(191, 99, 130, 0.22) 0%, rgba(191, 99, 130, 0) 62%),
+    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1.5px);
+  --thumb-ink: #E4DCFF;
 }
 
 /*

@@ -168,7 +168,7 @@ export function NoteComposerSheet({
   return (
     <dialog
       ref={ref}
-      className="sheet-dialog"
+      className="sheet-dialog glass-4"
       onCancel={(event) => {
         event.preventDefault();
         if (!submitting) onClose();
@@ -179,7 +179,7 @@ export function NoteComposerSheet({
     >
       <div className="flex max-h-[92dvh] flex-col">
         <div className="shrink-0 px-5 pt-3">
-          <div aria-hidden="true" className="mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
+          <div aria-hidden="true" className="sheet-grabber mx-auto mb-3" />
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-bold tracking-tight text-foreground">Add note</h2>
             <Button
