@@ -15,7 +15,13 @@ export default defineConfig({
         name: 'Zamane',
         short_name: 'Zamane',
         description: 'Shared trips, shopping, and goals for you and your partner.',
-        theme_color: '#5A27FF',
+        // The colour the OS paints the status/notification bar with when the
+        // PWA launches, before any JS runs. It was the brand violet, which is
+        // neither of the app's two backgrounds — so an installed launch
+        // flashed a violet bar above a cream (or near-black) page. Matching
+        // --background means the seam is invisible; ThemeColorSync takes over
+        // from here and follows the chosen theme.
+        theme_color: '#F5EFF2',
         background_color: '#F5EFF2',
         display: 'standalone',
         orientation: 'portrait',

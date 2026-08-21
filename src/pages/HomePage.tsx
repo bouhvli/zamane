@@ -11,6 +11,7 @@ import type { Trip, TripsSummary } from "@/lib/trips-api";
 import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
 import { friendlyName, formatAmount } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
+import { prefetchOn } from "@/lib/prefetch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Fab } from "@/components/layout/Fab";
@@ -369,6 +370,7 @@ function Section({
             pushing the text off the content edge. */}
         <Link
           to={viewAllTo}
+          {...prefetchOn(viewAllTo)}
           className="-mr-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-md px-2 text-sm font-semibold text-primary underline-offset-4 outline-none transition-colors hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           View all
@@ -399,6 +401,7 @@ function CtaCard({
   return (
     <Link
       to={to}
+      {...prefetchOn(to)}
       className={cn(
         "group flex items-center gap-3 rounded-lg bg-card p-4 transition-[color,background-color,border-color,transform] active:scale-[0.98] motion-reduce:active:scale-100",
         // border-violet-300 measures ~3.7:1 against the card. At /30 it was
@@ -426,6 +429,7 @@ function CtaLink({ to, label }: { to: string; label: string }) {
   return (
     <Link
       to={to}
+      {...prefetchOn(to)}
       className="inline-flex min-h-11 items-center gap-1.5 rounded-md pr-2 text-sm font-semibold text-primary underline-offset-4 outline-none transition-colors hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
     >
       <Plus aria-hidden="true" className="size-4" />

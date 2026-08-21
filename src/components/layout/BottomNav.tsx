@@ -9,6 +9,7 @@ import {
 
 import { cn } from "@/components/ui/utils";
 import { TwotoneIcon } from "@/components/TwotoneIcon";
+import { prefetchOn } from "@/lib/prefetch";
 
 type BottomNavTab = {
   id: string;
@@ -71,6 +72,11 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
               to={tab.href}
               aria-label={tab.label}
               aria-current={isActive ? "page" : undefined}
+              // Starts the destination's chunk and data on pointerdown, which
+              // lands 100-300ms before the click does on a phone — see
+              // src/lib/prefetch.ts. By the time the router asks for either,
+              // it's usually already there.
+              {...prefetchOn(tab.href)}
               onClick={() => {
                 // Tapping the tab you're already on scrolls that page back to
                 // the top rather than re-running a no-op navigation — the

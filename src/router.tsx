@@ -1,53 +1,15 @@
-import { lazy, Suspense } from "react";
-import type { ReactNode } from "react";
 import { createBrowserRouter, redirect, Navigate, Outlet } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 
 import { ApiError } from "./lib/api";
 import { getSessionUser } from "./lib/session";
-import { fetchHome } from "./lib/home-api";
-import { fetchGoals, fetchGoalDetail } from "./lib/goals-api";
-import { fetchGroup } from "./lib/groups-api";
-import { fetchTrips, fetchTripDetail } from "./lib/trips-api";
-import { fetchShoppingItems } from "./lib/shopping-api";
+import { lazyPage } from "./lib/page-modules";
+import { loadRoute, setRouteRevalidator } from "./lib/route-cache";
+import { routeKey, routeFetcher } from "./lib/route-data";
+import type { HomePayload } from "./lib/home-api";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AppBootFallback } from "./components/layout/AppBootFallback";
 import { RouteErrorBoundary } from "./components/layout/RouteErrorBoundary";
-import { HomeSkeleton } from "./components/layout/Skeleton";
-
-// Each auth screen and the home dashboard get their own chunk — on a
-// mobile connection, the first paint (usually the login screen) shouldn't
-// have to download every other page's code first.
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const SignupPage = lazy(() => import("./pages/SignupPage"));
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
-const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
-const HomePage = lazy(() => import("./pages/HomePage"));
-const OnboardingGroupPage = lazy(() => import("./pages/OnboardingGroupPage"));
-const GoalsPage = lazy(() => import("./pages/GoalsPage"));
-const GoalDetailPage = lazy(() => import("./pages/GoalDetailPage"));
-const GoalHistoryPage = lazy(() => import("./pages/GoalHistoryPage"));
-const NewGoalPage = lazy(() => import("./pages/NewGoalPage"));
-const TripsPage = lazy(() => import("./pages/TripsPage"));
-const TripDetailPage = lazy(() => import("./pages/TripDetailPage"));
-const NewTripPage = lazy(() => import("./pages/NewTripPage"));
-const ShoppingPage = lazy(() => import("./pages/ShoppingPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-
-// The gap while a route's own chunk downloads. A skeleton of the shape that's
-// coming beats a centred spinner: the layout is already settled when the code
-// lands, so nothing jumps.
-function RouteFallback() {
-  return (
-    <div className="min-h-screen">
-      <HomeSkeleton />
-    </div>
-  );
-}
-
-function withSuspense(element: ReactNode) {
-  return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
-}
 
 // `/` used to check the session and *then* redirect, which cost a full round
 // trip before the destination route could even start loading its own data —
@@ -81,34 +43,46 @@ async function requireGroupLoader() {
   return { user };
 }
 
-async function goalsListLoader() {
-  return fetchGoals();
+// Every list loader below reads through the route cache: a payload already in
+// memory is returned *synchronously*, so tapping a tab you've visited renders
+// in the same frame instead of waiting on a serverless round trip, and a
+// background refresh updates the screen only if the answer actually moved.
+// See src/lib/route-cache.ts for how writes stay correct.
+function goalsListLoader() {
+  return loadRoute(routeKey.goals, routeFetcher.goals);
 }
 
-async function goalDetailLoader({ params }: LoaderFunctionArgs) {
-  return fetchGoalDetail(params.id!);
+function goalDetailLoader({ params }: LoaderFunctionArgs) {
+  const id = params.id!;
+  return loadRoute(routeKey.goal(id), routeFetcher.goal(id));
 }
 
-async function homeLoader() {
-  // One request for the whole dashboard (see api/home.ts). This used to be
-  // four — goals and groups awaited together, trips and shopping streamed
-  // behind <Await> — which on a cold start meant four separate function
-  // invocations, any of which could draw Neon's compute wake.
-  //
-  // Trips and shopping are still handed to HomePage as promises so its
-  // <Suspense>/<Await> sections keep working unchanged; they simply resolve on
-  // the next microtask now instead of a second round trip later.
-  let data;
-  try {
-    data = await fetchHome();
-  } catch (error) {
-    // Agree with requireGroupLoader, which is resolving the same question in
-    // parallel: a 401 here means signed out, not a broken dashboard, so send
-    // the visitor to /login rather than the route error boundary.
-    if (error instanceof ApiError && error.status === 401) throw redirect("/login");
-    throw error;
-  }
+function tripsListLoader() {
+  return loadRoute(routeKey.trips, routeFetcher.trips);
+}
 
+function tripDetailLoader({ params }: LoaderFunctionArgs) {
+  const id = params.id!;
+  return loadRoute(routeKey.trip(id), routeFetcher.trip(id));
+}
+
+function shoppingListLoader() {
+  return loadRoute(routeKey.shopping, routeFetcher.shopping);
+}
+
+function profileLoader() {
+  return loadRoute(routeKey.group, routeFetcher.group);
+}
+
+// One request for the whole dashboard (see api/home.ts). This used to be
+// four — goals and groups awaited together, trips and shopping streamed
+// behind <Await> — which on a cold start meant four separate function
+// invocations, any of which could draw Neon's compute wake.
+//
+// Trips and shopping are still handed to HomePage as promises so its
+// <Suspense>/<Await> sections keep working unchanged; they simply resolve on
+// the next microtask now instead of a second round trip later.
+function toHomeRouteData(data: HomePayload) {
   if (!data.user.groupId) throw redirect("/onboarding/group");
 
   return {
@@ -120,20 +94,17 @@ async function homeLoader() {
   };
 }
 
-async function tripsListLoader() {
-  return fetchTrips();
+// Agree with requireGroupLoader, which is resolving the same question in
+// parallel: a 401 here means signed out, not a broken dashboard, so send the
+// visitor to /login rather than the route error boundary.
+function onHomeError(error: unknown): never {
+  if (error instanceof ApiError && error.status === 401) throw redirect("/login");
+  throw error;
 }
 
-async function tripDetailLoader({ params }: LoaderFunctionArgs) {
-  return fetchTripDetail(params.id!);
-}
-
-async function shoppingListLoader() {
-  return fetchShoppingItems();
-}
-
-async function profileLoader() {
-  return fetchGroup();
+function homeLoader() {
+  const result = loadRoute(routeKey.home, routeFetcher.home);
+  return result instanceof Promise ? result.then(toHomeRouteData, onHomeError) : toHomeRouteData(result);
 }
 
 export const router = createBrowserRouter([
@@ -146,37 +117,49 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     // Rendered in place of the whole tree until the first matched route's
     // loader(s) resolve — covers the blank gap on initial app load (e.g. the
-    // rootLoader's session check on a cold serverless function).
+    // session check on a cold serverless function).
     HydrateFallback: AppBootFallback,
     children: [
       { path: "/", loader: rootLoader },
-      { path: "/login", loader: guestOnlyLoader, element: withSuspense(<LoginPage />) },
-      { path: "/signup", loader: guestOnlyLoader, element: withSuspense(<SignupPage />) },
-      { path: "/forgot-password", loader: guestOnlyLoader, element: withSuspense(<ForgotPasswordPage />) },
-      { path: "/reset-password", loader: guestOnlyLoader, element: withSuspense(<ResetPasswordPage />) },
-      { path: "/onboarding/group", loader: onboardingLoader, element: withSuspense(<OnboardingGroupPage />) },
+      // Each page is its own chunk, declared with `lazy` rather than a lazy
+      // `element`. React Router runs `lazy` *concurrently* with the route's
+      // loader; a lazily rendered element could only start downloading once
+      // the loader had already resolved, so a first visit paid for the data
+      // and then the code, back to back. src/lib/prefetch.ts pulls these down
+      // ahead of time anyway, which is what removes the wait entirely.
+      { path: "/login", loader: guestOnlyLoader, lazy: lazyPage("login") },
+      { path: "/signup", loader: guestOnlyLoader, lazy: lazyPage("signup") },
+      { path: "/forgot-password", loader: guestOnlyLoader, lazy: lazyPage("forgotPassword") },
+      { path: "/reset-password", loader: guestOnlyLoader, lazy: lazyPage("resetPassword") },
+      { path: "/onboarding/group", loader: onboardingLoader, lazy: lazyPage("onboardingGroup") },
       {
         element: <AppLayout />,
         loader: requireGroupLoader,
         children: [
-          { path: "/home", loader: homeLoader, element: withSuspense(<HomePage />) },
-          { path: "/trips", loader: tripsListLoader, element: withSuspense(<TripsPage />) },
-          { path: "/trips/new", element: withSuspense(<NewTripPage />) },
+          { path: "/home", loader: homeLoader, lazy: lazyPage("home") },
+          { path: "/trips", loader: tripsListLoader, lazy: lazyPage("trips") },
+          { path: "/trips/new", lazy: lazyPage("newTrip") },
           // Same page component as /trips/new, in edit mode — the dedicated
           // route id lets the page read this loader's trip via
           // useRouteLoaderData without colliding with the create route.
-          { path: "/trips/:id/edit", id: "trip-edit", loader: tripDetailLoader, element: withSuspense(<NewTripPage />) },
-          { path: "/trips/:id", loader: tripDetailLoader, element: withSuspense(<TripDetailPage />) },
-          { path: "/shopping", loader: shoppingListLoader, element: withSuspense(<ShoppingPage />) },
-          { path: "/goals", loader: goalsListLoader, element: withSuspense(<GoalsPage />) },
-          { path: "/goals/new", element: withSuspense(<NewGoalPage />) },
-          { path: "/goals/:id/edit", id: "goal-edit", loader: goalDetailLoader, element: withSuspense(<NewGoalPage />) },
-          { path: "/goals/:id/history", loader: goalDetailLoader, element: withSuspense(<GoalHistoryPage />) },
-          { path: "/goals/:id", loader: goalDetailLoader, element: withSuspense(<GoalDetailPage />) },
-          { path: "/profile", loader: profileLoader, element: withSuspense(<ProfilePage />) },
+          { path: "/trips/:id/edit", id: "trip-edit", loader: tripDetailLoader, lazy: lazyPage("newTrip") },
+          { path: "/trips/:id", loader: tripDetailLoader, lazy: lazyPage("tripDetail") },
+          { path: "/shopping", loader: shoppingListLoader, lazy: lazyPage("shopping") },
+          { path: "/goals", loader: goalsListLoader, lazy: lazyPage("goals") },
+          { path: "/goals/new", lazy: lazyPage("newGoal") },
+          { path: "/goals/:id/edit", id: "goal-edit", loader: goalDetailLoader, lazy: lazyPage("newGoal") },
+          { path: "/goals/:id/history", loader: goalDetailLoader, lazy: lazyPage("goalHistory") },
+          { path: "/goals/:id", loader: goalDetailLoader, lazy: lazyPage("goalDetail") },
+          { path: "/profile", loader: profileLoader, lazy: lazyPage("profile") },
         ],
       },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
 ]);
+
+// Lets a background refresh push newer data onto the screen. Registered from
+// here because route-cache.ts can't import the router without closing a cycle.
+setRouteRevalidator(() => {
+  void router.revalidate();
+});

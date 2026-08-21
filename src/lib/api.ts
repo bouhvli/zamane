@@ -1,3 +1,5 @@
+import { invalidateRoutes } from "./route-cache";
+
 export class ApiError extends Error {
   status: number;
 
@@ -29,6 +31,13 @@ export function setUnauthorizedHandler(handler: () => void): void {
  */
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const { body, headers, ...rest } = options;
+
+  // Anything that isn't a plain read invalidates the route cache — see
+  // route-cache.ts. Done here rather than at each call site so a new mutation
+  // endpoint can't be added without it, and done *before* awaiting so a
+  // refresh that overlaps the write is dropped rather than written back.
+  const method = (rest.method ?? "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") invalidateRoutes();
 
   const response = await fetch(path, {
     ...rest,

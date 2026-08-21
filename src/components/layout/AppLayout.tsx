@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { Outlet, useNavigation } from "react-router";
 
 import { BottomNav } from "./BottomNav";
 import { AmbientField } from "./AmbientField";
 import { Loader } from "@/components/Loader";
+import { warmAppOnIdle } from "@/lib/prefetch";
 
 // Zamane is phone-only by deliberate choice, not oversight: every page caps
 // its content at max-w-md and there are no md:/lg: breakpoints anywhere in
@@ -16,7 +18,13 @@ export function AppLayout() {
   // sitting frozen on screen with zero feedback until the new page's data
   // arrives.
   const navigation = useNavigation();
-  const isNavigating = navigation.state === "loading";
+  const showLoader = useDelayed(navigation.state === "loading", 200);
+
+  // Chunks for the other tabs, and one dashboard request that seeds all of
+  // them, fetched in idle time — see src/lib/prefetch.ts. Runs once per app
+  // launch, from here rather than main.tsx because this layout only mounts
+  // once the visitor is known to be signed in and in a group.
+  useEffect(warmAppOnIdle, []);
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -25,7 +33,7 @@ export function AppLayout() {
           there — everywhere else backdrop-filter was blurring a flat colour. */}
       <AmbientField />
 
-      {isNavigating && (
+      {showLoader && (
         <div
           role="status"
           aria-label="Loading"
@@ -45,4 +53,29 @@ export function AppLayout() {
       <BottomNav />
     </div>
   );
+}
+
+/**
+ * True only once `active` has held for `delay` ms.
+ *
+ * Most navigations are now served from the route cache and finish inside a
+ * frame or two (see src/lib/route-cache.ts). Rendering the spinner the instant
+ * the router reports "loading" made those flash a pill on and off again, which
+ * reads as jank rather than as speed — a navigation that's already done needs
+ * no reassurance. Anything genuinely waiting on the network still crosses the
+ * threshold and gets its feedback.
+ */
+function useDelayed(active: boolean, delay: number): boolean {
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (!active) {
+      setShown(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShown(true), delay);
+    return () => window.clearTimeout(timer);
+  }, [active, delay]);
+
+  return shown;
 }

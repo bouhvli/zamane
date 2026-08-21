@@ -6,6 +6,7 @@ import type { Goal } from "@/lib/goals-api";
 import { goalImageUrl } from "@/lib/goal-image";
 import { formatAmount, formatDate } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
+import { prefetchOn } from "@/lib/prefetch";
 import { CardThumb } from "@/components/layout/CardThumb";
 import { GLASS_ROW } from "@/components/layout/glass-row";
 import { ProgressOrbit } from "@/components/ProgressOrbit";
@@ -54,6 +55,10 @@ function CompactGoalCard({ goal }: { goal: Goal }) {
     <Link
       to={`/goals/${goal.id}`}
       viewTransition
+      // Warms the detail page's chunk and data on pointerdown, so the
+      // tap that opens the card has a head start on both — see
+      // src/lib/prefetch.ts.
+      {...prefetchOn(`/goals/${goal.id}`)}
       aria-label={`Open ${goal.title}`}
       className={cn(CARD_BASE, GLASS_ROW, "rounded-md p-3")}
     >
@@ -134,6 +139,10 @@ function FullGoalCard({ goal }: { goal: Goal }) {
     <Link
       to={`/goals/${goal.id}`}
       viewTransition
+      // Warms the detail page's chunk and data on pointerdown, so the
+      // tap that opens the card has a head start on both — see
+      // src/lib/prefetch.ts.
+      {...prefetchOn(`/goals/${goal.id}`)}
       aria-label={`Open ${goal.title}`}
       className={cn(
         CARD_BASE,

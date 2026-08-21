@@ -5,6 +5,7 @@ import type { Trip } from "@/lib/trips-api";
 import { formatAmount, formatDateRange } from "@/lib/format";
 import { tripCoverUrl } from "@/lib/trip-photo";
 import { cn } from "@/components/ui/utils";
+import { prefetchOn } from "@/lib/prefetch";
 import { CardThumb } from "@/components/layout/CardThumb";
 import { GLASS_ROW } from "@/components/layout/glass-row";
 import { GlassChip, StatusBadge, TripCover, tripStatus, tripCoverTransitionName } from "./trip-visuals";
@@ -33,6 +34,10 @@ function CompactTripCard({ trip }: { trip: Trip }) {
     <Link
       to={`/trips/${trip.id}`}
       viewTransition
+      // Warms the detail page's chunk and data on pointerdown, so the
+      // tap that opens the card has a head start on both — see
+      // src/lib/prefetch.ts.
+      {...prefetchOn(`/trips/${trip.id}`)}
       aria-label={`Open ${trip.title}`}
       className={cn(GLASS_ROW, "group block rounded-md p-3 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/60")}
     >
@@ -94,6 +99,10 @@ function FullTripCard({ trip }: { trip: Trip }) {
     <Link
       to={`/trips/${trip.id}`}
       viewTransition
+      // Warms the detail page's chunk and data on pointerdown, so the
+      // tap that opens the card has a head start on both — see
+      // src/lib/prefetch.ts.
+      {...prefetchOn(`/trips/${trip.id}`)}
       aria-label={`Open ${trip.title}`}
       className="group relative block rounded-lg outline-none transition-transform duration-[var(--dur-2)] ease-[var(--ease-glide)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:ring-[3px] focus-visible:ring-ring/60 motion-reduce:hover:translate-y-0"
     >
