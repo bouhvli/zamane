@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { useLoaderData, useNavigate, useRevalidator } from "react-router";
+import { useNavigate, useRevalidator } from "react-router";
 import { Pencil, Plus, Route, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Trip, ItineraryItem } from "@/lib/trips-api";
 import { deleteTrip } from "@/lib/trips-api";
 import { ApiError } from "@/lib/api";
+import { useRouteData } from "@/lib/use-route-data";
 import { Fab } from "@/components/layout/Fab";
+import { DetailSkeleton } from "@/components/layout/Skeleton";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TripHero } from "@/components/trips/TripHero";
@@ -14,12 +16,17 @@ import { ItineraryItemSheet } from "@/components/trips/ItineraryItemSheet";
 import { ItineraryList } from "@/components/trips/ItineraryList";
 
 export default function TripDetailPage() {
-  const { trip, itineraryItems } = useLoaderData() as { trip: Trip; itineraryItems: ItineraryItem[] };
+  // `undefined` until the payload lands — see src/lib/use-route-data.ts.
+  const data = useRouteData<{ trip: Trip; itineraryItems: ItineraryItem[] }>();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [addingActivity, setAddingActivity] = useState(false);
+
+  if (!data) return <DetailSkeleton rows={3} />;
+
+  const { trip, itineraryItems } = data;
 
   async function handleDelete() {
     setDeleting(true);

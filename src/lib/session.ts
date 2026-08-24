@@ -1,4 +1,5 @@
-import { apiFetch, setUnauthorizedHandler } from "./api";
+import { setUnauthorizedHandler } from "./api";
+import { fetchDashboard } from "./dashboard";
 
 export type SessionUser = {
   id: string;
@@ -8,19 +9,21 @@ export type SessionUser = {
 };
 
 /**
- * One session request per page load, shared by everyone who asks.
+ * Who is signed in — answered once per page load and shared by everyone who
+ * asks.
  *
- * Three separate callers used to hit `/api/auth/session` on a cold launch:
- * AuthProvider's mount effect, the root loader deciding between /login and
- * /home, and the app layout's group guard after the redirect. The first two
- * fired concurrently (two identical requests) and the third fired *after* the
- * redirect, so it serialised behind them. Each one is a function invocation,
- * and whichever reaches Neon first pays the compute wake — measured at ~3s
- * against ~50ms once warm.
+ * Three callers used to hit `/api/auth/session` on a cold launch: AuthProvider's
+ * mount effect, the root loader deciding between /login and /home, and the app
+ * layout's group guard after the redirect. Each one is a function invocation,
+ * and whichever reaches Neon first pays the compute wake (~3s against ~50ms
+ * warm). `cached` holds the resolved value for the life of the page so every
+ * caller after the first is free, and `pending` de-duplicates the ones that
+ * arrive while the first request is still running.
  *
- * `cached` holds the resolved value for the life of the page, so every caller
- * after the first is free. `pending` de-duplicates callers that arrive while
- * the first request is still in flight.
+ * The answer comes from `/api/home` rather than from a session endpoint of its
+ * own, because that response *also* carries the group and all four tab
+ * payloads. The guard and the first page's data therefore cost one request
+ * between them instead of two in series — see dashboard.ts.
  *
  * Correctness: the cache is cleared whenever any API call comes back 401 (see
  * setUnauthorizedHandler below), and explicitly on login, signup and logout —
@@ -33,15 +36,15 @@ let pending: Promise<SessionUser | null> | null = null;
 export function getSessionUser(): Promise<SessionUser | null> {
   if (cached) return Promise.resolve(cached.user);
   if (!pending) {
-    pending = apiFetch<{ user: SessionUser | null }>("/api/auth/session")
+    pending = fetchDashboard()
       .then((data) => {
         cached = { user: data.user };
         return data.user;
       })
       .catch(() => {
-        // A failed session check is "not signed in" for routing purposes, but
-        // it is not a *known* answer — leave the cache empty so a transient
-        // network blip doesn't pin the app to the logged-out state.
+        // A failed bootstrap is "not signed in" for routing purposes, but it is
+        // not a *known* answer — leave the cache empty so a transient network
+        // blip doesn't pin the app to the logged-out state.
         return null;
       })
       .finally(() => {
@@ -51,7 +54,7 @@ export function getSessionUser(): Promise<SessionUser | null> {
   return pending;
 }
 
-/** Records a known-good user (from login, signup, or the /api/home payload). */
+/** Records a known-good user (from login or signup). */
 export function primeSessionUser(user: SessionUser | null): void {
   cached = { user };
 }

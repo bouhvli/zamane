@@ -53,10 +53,27 @@
     flex: none;
     width: var(--orbit-size, 40px);
     height: var(--orbit-size, 40px);
-    /* Sweeps from empty to its value on mount: the number stops being a readout
-       and becomes a moment. `both` fill means a browser without @property
-       support still settles on the correct final arc, and the global
-       reduced-motion net collapses the whole thing to instant. */
+  }
+
+  /*
+   * The sweep — from empty to its value on mount, so the number stops being a
+   * readout and becomes a moment. `both` fill means a browser without
+   * @property support still settles on the correct final arc, and the global
+   * reduced-motion net collapses the whole thing to instant.
+   *
+   * Opt-in, which it was not: this used to sit on `.orbit` itself, so every
+   * ring on a screen swept at once. Animating --orbit-p re-rasterises the
+   * conic gradient *and* its radial mask on the CPU every frame, and each ring
+   * sits under a backdrop-filter surface that has to re-blur when the paint
+   * beneath it moves. Measured on the Goals list at 6x CPU throttle with 14
+   * rings: the arrival ran at 43fps with 10 frames over 32ms, against 58fps
+   * and 1 frame with the sweep off.
+   *
+   * Fourteen rings sweeping in unison was never the point anyway — for a list,
+   * .stagger is what says "arriving". A moment is singular, so the sweep
+   * belongs to the one ring that is the subject of its own page.
+   */
+  .orbit-sweep {
     animation: orbit-sweep var(--dur-4) var(--ease-glide) both;
   }
 

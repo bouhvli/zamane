@@ -20,6 +20,7 @@ export function ProgressOrbit({
   size = 40,
   stroke,
   label,
+  animate = false,
   children,
   className,
 }: {
@@ -28,6 +29,12 @@ export function ProgressOrbit({
   size?: number;
   /** Ring thickness in px. Defaults to a tenth of the diameter, floored at 4. */
   stroke?: number;
+  /**
+   * Sweep the arc into place on mount. Off by default, and deliberately so —
+   * see .orbit-sweep in orbit.css for what a screenful of these costs. Reserve
+   * it for the one ring that is the subject of its page.
+   */
+  animate?: boolean;
   /**
    * Accessible name, so a screen reader announces "Apartment deposit 73%"
    * rather than a bare number floating in the row.
@@ -47,7 +54,7 @@ export function ProgressOrbit({
       aria-valuemin={0}
       aria-valuemax={100}
       aria-label={label ? `${label} progress` : "Progress"}
-      className={cn("orbit", className)}
+      className={cn("orbit", animate && "orbit-sweep", className)}
       style={
         {
           "--orbit-target": clamped / 100,

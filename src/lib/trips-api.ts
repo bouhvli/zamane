@@ -41,9 +41,11 @@ export type ItineraryItem = {
   createdAt: string;
 };
 
-export function fetchTrips() {
-  return apiFetch<{ trips: Trip[]; summary: TripsSummary }>("/api/trips/list");
-}
+// List reads for this resource come from `/api/home` via dashboard.ts, not from
+// a fetcher here: the Neon instance suspends when idle and the first query after
+// that pays the compute wake, so the app takes one request for everything rather
+// than one per tab. The server's list endpoint still exists and still works —
+// nothing on the client calls it.
 
 export function fetchTripDetail(id: string) {
   return apiFetch<{ trip: Trip; itineraryItems: ItineraryItem[] }>(`/api/trips/detail?id=${encodeURIComponent(id)}`);

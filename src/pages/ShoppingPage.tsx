@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { useLoaderData, useRevalidator } from "react-router";
+import { useRevalidator } from "react-router";
 import { ChevronDown, ShoppingCart } from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
 import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
 import { deleteShoppingItem } from "@/lib/shopping-api";
 import { formatAmount } from "@/lib/format";
+import { useRouteData } from "@/lib/use-route-data";
 import { useUndoableDelete } from "@/lib/use-undoable-delete";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageSkeleton } from "@/components/layout/Skeleton";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Fab } from "@/components/layout/Fab";
 import { ShoppingItemSheet } from "@/components/shopping/ShoppingItemSheet";
@@ -37,7 +39,10 @@ function groupByCategory(items: ShoppingItem[]): Array<[string, ShoppingItem[]]>
 
 export default function ShoppingPage() {
   const { user } = useAuth();
-  const { items, summary } = useLoaderData() as { items: ShoppingItem[]; summary: ShoppingSummary };
+  // `undefined` until the payload lands — see src/lib/use-route-data.ts. Read
+  // before the other hooks but unwrapped after them, so the skeleton's early
+  // return can't sit between two hook calls.
+  const data = useRouteData<{ items: ShoppingItem[]; summary: ShoppingSummary }>();
   const revalidator = useRevalidator();
   // Adding is now a deliberate step off the FAB rather than an always-open
   // card at the top of the page — the list itself gets the first viewport.
@@ -47,6 +52,10 @@ export default function ShoppingPage() {
     onCommitted: () => revalidator.revalidate(),
     errorMessage: "Couldn't delete the item. Please try again.",
   });
+
+  if (!data) return <PageSkeleton cards={6} cardHeight="h-[68px]" />;
+
+  const { items, summary } = data;
 
   // Optimistically hide items awaiting their undo window so the list reads as
   // deleted immediately, while the actual delete is still reversible.

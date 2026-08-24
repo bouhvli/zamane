@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigation } from "react-router";
 import {
   Home09Icon,
   MapsGlobal01Icon,
@@ -49,6 +49,17 @@ export const DEFAULT_BOTTOM_NAV_TABS: BottomNavTab[] = [
 
 export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNavTab[] }) {
   const { pathname } = useLocation();
+  const navigation = useNavigation();
+
+  // The tab the visitor is heading *to*, not the one they are still on.
+  //
+  // The pill used to wait for the navigation to commit, which meant that on any
+  // switch that wasn't instant the whole bar sat unchanged — nothing anywhere on
+  // screen acknowledged the tap. That is what made a slow switch read as a dead
+  // button rather than as a wait, and it's why the fix belongs here as well as
+  // in the loaders: the pill now moves on the tap and the destination catches
+  // up, instead of the other way round.
+  const target = navigation.location?.pathname ?? pathname;
 
   return (
     // A floating rounded-rectangle bar, inset from the screen edges and lifted
@@ -64,7 +75,10 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
         {tabs.map((tab) => {
           // Match nested routes too, so /goals/123 and /goals/123/edit keep the
           // Goals tab lit — exact-match left detail pages with no active tab.
-          const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+          const isActive = target === tab.href || target.startsWith(`${tab.href}/`);
+          // Where the visitor actually *is* — the scroll-to-top shortcut below
+          // is about the page under their thumb, not the one being navigated to.
+          const isCurrent = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 
           return (
             <Link
@@ -82,13 +96,13 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 // the top rather than re-running a no-op navigation — the
                 // convention every native tab bar follows (Jakob's Law), and
                 // the only way back up a long list without a manual swipe.
-                if (isActive) window.scrollTo({ top: 0, behavior: "smooth" });
+                if (isCurrent) window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               className={cn(
                 // min-h-11 holds the app's 44px tap floor. Dropping the label
                 // from four of the five tabs took ~11px of height out of them,
                 // which quietly put every inactive target under it.
-                "relative flex min-h-11 items-center justify-center gap-1.5 outline-none",
+                "group/tab relative flex min-h-11 items-center justify-center gap-1.5 outline-none",
                 // Nested radius derived rather than guessed: the bar is
                 // --radius-lg and carries 6px of padding, so its children are
                 // 6px tighter.
@@ -120,7 +134,11 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 className={cn(
                   "absolute inset-0 rounded-[calc(var(--radius-lg)-0.375rem)] bg-violet-100",
                   "transition-opacity duration-[var(--dur-1)] ease-[var(--ease-glide)]",
-                  isActive ? "opacity-100" : "opacity-0",
+                  // The pressed state is the earliest acknowledgement available:
+                  // :active lands on pointerdown, ahead of the click, ahead of
+                  // the router. It is deliberately fainter than the committed
+                  // pill so the two never read as the same thing.
+                  isActive ? "opacity-100" : "opacity-0 group-active/tab:opacity-55",
                 )}
               />
 
@@ -133,7 +151,10 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 // little stronger than a pure decorative dim would.
                 secondaryOpacity={isActive ? 0.4 : 0.45}
                 strokeWidth={1.6}
-                className="relative"
+                // Sinks a little under the finger. Transform only, so it runs
+                // on the compositor and can't be delayed by whatever the tap
+                // has just set in motion on the main thread.
+                className="relative transition-transform duration-[var(--dur-1)] ease-[var(--ease-glide)] group-active/tab:scale-90 motion-reduce:transition-none"
               />
 
               {/*

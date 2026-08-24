@@ -1,51 +1,34 @@
 /**
- * The cache keys and fetchers behind each route, shared by the loaders in
- * router.tsx and the link prefetcher in prefetch.ts so both warm and read the
- * exact same entry.
- */
-import { fetchHome, type HomePayload } from "./home-api";
-import { fetchGoals, fetchGoalDetail } from "./goals-api";
-import { fetchGroup } from "./groups-api";
-import { fetchTrips, fetchTripDetail } from "./trips-api";
-import { fetchShoppingItems } from "./shopping-api";
-import { primeRoute } from "./route-cache";
-
-export const routeKey = {
-  home: "home",
-  goals: "goals",
-  trips: "trips",
-  shopping: "shopping",
-  group: "group",
-  goal: (id: string) => `goal:${id}`,
-  trip: (id: string) => `trip:${id}`,
-} as const;
-
-/**
- * `/api/home` already returns everything the four other tabs ask their own
- * endpoints for — goals, trips, shopping and the group with its members. It
- * was being thrown away after the dashboard rendered, so the first tap on
- * Trips fetched trips that were sitting in memory already.
+ * The fetcher behind each route, shared by the loaders in router.tsx and the
+ * link prefetcher in prefetch.ts so both warm and read the exact same entry.
  *
- * Seeding their caches from this one response is what makes the first tab
- * switch after a launch cost no network at all.
+ * The four tab fetchers all resolve from one `/api/home` request rather than
+ * from `/api/goals/list`, `/api/trips/list` and friends — see dashboard.ts for
+ * why one request is worth this much. The per-tab endpoints still exist on the
+ * server; nothing on the client asks for them any more.
  */
-export async function fetchHomeAndSeed(): Promise<HomePayload> {
-  const data = await fetchHome();
+import { fetchDashboard } from "./dashboard";
+import { fetchGoalDetail } from "./goals-api";
+import { fetchTripDetail } from "./trips-api";
+import { requestRoute, setRouteResync } from "./route-cache";
+import { routeKey } from "./route-keys";
 
-  primeRoute(routeKey.goals, data.goals);
-  primeRoute(routeKey.trips, data.trips);
-  primeRoute(routeKey.shopping, data.shopping);
-  primeRoute(routeKey.group, { group: data.group });
-
-  return data;
-}
+export { routeKey };
 
 export const routeFetcher = {
-  home: fetchHomeAndSeed,
-  goals: fetchGoals,
-  trips: fetchTrips,
-  shopping: fetchShoppingItems,
-  group: fetchGroup,
+  home: fetchDashboard,
+  goals: () => fetchDashboard().then((data) => data.goals),
+  trips: () => fetchDashboard().then((data) => data.trips),
+  shopping: () => fetchDashboard().then((data) => data.shopping),
+  group: () => fetchDashboard().then((data) => ({ group: data.group })),
   goal: (id: string) => () => fetchGoalDetail(id),
   trip: (id: string) => () => fetchTripDetail(id),
 } as const;
+
+// How the store catches up after a write. Registered from here because the
+// store can't import these fetchers without closing an import cycle, and it is
+// `/api/home` on purpose: one request puts goals, trips, shopping and the group
+// all back in hand, so a mutation costs one refresh rather than one per tab.
+setRouteResync(() => {
+  requestRoute(routeKey.home, routeFetcher.home);
+});

@@ -310,6 +310,33 @@
     font-size: var(--font-size);
   }
 
+  /*
+   * Removes the ~300ms a mobile browser holds a tap for, waiting to find out
+   * whether a second one is coming and a double-tap zoom is meant. Nothing in
+   * this app is double-tappable — every surface caps at max-w-md and the text
+   * is already at reading size — so that delay bought nothing and cost every
+   * single tap the clearest part of its own latency. It is the difference
+   * between a button that answers and one that seems not to have noticed.
+   */
+  html,
+  body {
+    touch-action: manipulation;
+  }
+
+  /*
+   * The platform's own grey tap flash, suppressed *because* the app now draws
+   * its own press states (see the nav pill and .glass-tap): two overlapping
+   * acknowledgements of one tap read as a glitch, and the platform's arrives
+   * on a rectangle that ignores the rounded shape underneath it.
+   */
+  a,
+  button,
+  [role="button"],
+  summary,
+  label {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* The display treatment is opt-in via `.font-display`, reserved for
      one-per-page signature moments — the Home hero greeting/number,
      auth-screen titles, the error headline — never repeated UI chrome like

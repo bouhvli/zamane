@@ -13,7 +13,7 @@
  * the real navigation will surface the error properly a moment later.
  */
 import { pageModules, type PageKey } from "./page-modules";
-import { warmRoute, hasRoute } from "./route-cache";
+import { requestRoute, hasRoute } from "./route-cache";
 import { routeKey, routeFetcher } from "./route-data";
 
 type Target = { page: PageKey; warm?: () => void };
@@ -24,27 +24,27 @@ function resolve(pathname: string): Target | null {
 
   switch (section) {
     case "home":
-      return { page: "home", warm: () => warmRoute(routeKey.home, routeFetcher.home) };
+      return { page: "home", warm: () => requestRoute(routeKey.home, routeFetcher.home) };
 
     case "shopping":
-      return { page: "shopping", warm: () => warmRoute(routeKey.shopping, routeFetcher.shopping) };
+      return { page: "shopping", warm: () => requestRoute(routeKey.shopping, routeFetcher.shopping) };
 
     case "profile":
-      return { page: "profile", warm: () => warmRoute(routeKey.group, routeFetcher.group) };
+      return { page: "profile", warm: () => requestRoute(routeKey.group, routeFetcher.group) };
 
     case "goals": {
-      if (!second) return { page: "goals", warm: () => warmRoute(routeKey.goals, routeFetcher.goals) };
+      if (!second) return { page: "goals", warm: () => requestRoute(routeKey.goals, routeFetcher.goals) };
       if (second === "new") return { page: "newGoal" };
-      const warm = () => warmRoute(routeKey.goal(second), routeFetcher.goal(second));
+      const warm = () => requestRoute(routeKey.goal(second), routeFetcher.goal(second));
       if (third === "history") return { page: "goalHistory", warm };
       if (third === "edit") return { page: "newGoal", warm };
       return { page: "goalDetail", warm };
     }
 
     case "trips": {
-      if (!second) return { page: "trips", warm: () => warmRoute(routeKey.trips, routeFetcher.trips) };
+      if (!second) return { page: "trips", warm: () => requestRoute(routeKey.trips, routeFetcher.trips) };
       if (second === "new") return { page: "newTrip" };
-      const warm = () => warmRoute(routeKey.trip(second), routeFetcher.trip(second));
+      const warm = () => requestRoute(routeKey.trip(second), routeFetcher.trip(second));
       if (third === "edit") return { page: "newTrip", warm };
       return { page: "tripDetail", warm };
     }
@@ -82,11 +82,10 @@ let warmed = false;
  *  - Pull down every page chunk. All of them together are smaller than the
  *    shared vendor bundle the app has already downloaded, and it means no tab
  *    switch for the rest of the session ever waits on a chunk.
- *  - If the dashboard payload isn't cached yet — a visitor who deep-linked
- *    straight to /shopping, or reloaded on a detail page — fetch it once.
- *    That single request seeds goals, trips, shopping and the group (see
- *    fetchHomeAndSeed), so all five tabs become instant off one round trip
- *    instead of four separate ones taken one tap at a time.
+ *  - If the dashboard payload isn't cached yet, fetch it once. It normally
+ *    already is — every signed-in entry point resolves through the same
+ *    `/api/home` request (see dashboard.ts) — so this is the safety net for
+ *    the case where that bootstrap failed, not the usual path.
  */
 export function warmAppOnIdle(): void {
   if (warmed) return;
@@ -94,7 +93,7 @@ export function warmAppOnIdle(): void {
 
   // Data first — it's what a tap actually blocks on.
   afterIdle(800, () => {
-    if (!hasRoute(routeKey.home)) warmRoute(routeKey.home, routeFetcher.home);
+    if (!hasRoute(routeKey.home)) requestRoute(routeKey.home, routeFetcher.home);
   });
 
   afterIdle(2000, () => {

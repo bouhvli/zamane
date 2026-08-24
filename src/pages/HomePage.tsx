@@ -1,14 +1,14 @@
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Await, Link, useLoaderData, useRevalidator } from "react-router";
+import { Link, useRevalidator } from "react-router";
 import { Check, ChevronRight, CircleDot, Copy, Heart, Map, Plus, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/lib/auth-context";
-import type { Goal, GoalsSummary } from "@/lib/goals-api";
-import type { Group } from "@/lib/groups-api";
-import type { Trip, TripsSummary } from "@/lib/trips-api";
-import type { ShoppingItem, ShoppingSummary } from "@/lib/shopping-api";
+import type { Goal } from "@/lib/goals-api";
+import type { Trip } from "@/lib/trips-api";
+import type { HomePayload } from "@/lib/home-api";
+import { useRouteData } from "@/lib/use-route-data";
 import { friendlyName, formatAmount } from "@/lib/format";
 import { cn } from "@/components/ui/utils";
 import { prefetchOn } from "@/lib/prefetch";
@@ -23,24 +23,36 @@ import { TripCard } from "@/components/trips/TripCard";
 import { tripStatus } from "@/components/trips/trip-visuals";
 import { ShoppingPreviewCard } from "@/components/shopping/ShoppingPreviewCard";
 import { InstrumentTile } from "@/components/layout/InstrumentTile";
-import { Skeleton, SkeletonRow } from "@/components/layout/Skeleton";
-
-type HomeData = {
-  goals: Goal[];
-  goalsSummary: GoalsSummary;
-  group: Group | null;
-  /** Streamed behind <Await> — see homeLoader in router.tsx. */
-  trips: Promise<{ trips: Trip[]; summary: TripsSummary }>;
-  shopping: Promise<{ items: ShoppingItem[]; summary: ShoppingSummary }>;
-};
+import { HomeSkeleton } from "@/components/layout/Skeleton";
 
 /** localStorage key for a dismissed invite prompt, scoped per group so a new
  *  pairing starts fresh. */
 const inviteDismissKey = (groupId: string) => `zamane:invite-dismissed:${groupId}`;
 
+/**
+ * The dashboard used to arrive in pieces: goals awaited by the loader, trips
+ * and shopping streamed in behind <Await>. All three come from the same
+ * `/api/home` response now (see dashboard.ts), so there is nothing left to
+ * stream — the sections render together or not at all, and the Suspense
+ * boundaries that used to hold their places are gone.
+ *
+ * The wait moved out here instead. The route commits before the payload lands
+ * (see route-cache.ts), so this shell stands in for it — and mounting the real
+ * dashboard only once the data exists is what lets everything below read its
+ * initial state at mount, the count-up and the dismissed-invite flag included.
+ */
 export default function HomePage() {
+  const data = useRouteData<HomePayload>();
+  if (!data) return <HomeSkeleton />;
+  return <Dashboard data={data} />;
+}
+
+function Dashboard({ data }: { data: HomePayload }) {
   const { user } = useAuth();
-  const { goals, goalsSummary: summary, group, trips, shopping } = useLoaderData() as HomeData;
+  const { goals, summary } = data.goals;
+  const { group } = data;
+  const { trips: allTrips } = data.trips;
+  const { items: shoppingItems, summary: shoppingSummary } = data.shopping;
   const [copied, setCopied] = useState(false);
   const [inviteDismissed, setInviteDismissed] = useState(() =>
     Boolean(group && localStorage.getItem(inviteDismissKey(group.id))),
@@ -197,24 +209,12 @@ export default function HomePage() {
             feed and answer, without opening a tab, the only two questions that
             change day to day: how much is left to buy, and how soon is the
             next trip. */}
-        <Suspense fallback={<TileSkeleton />}>
-          <Await resolve={shopping} errorElement={null}>
-            {({ items: shoppingItems, summary: shoppingSummary }) => (
-              <Suspense fallback={<TileSkeleton />}>
-                <Await resolve={trips} errorElement={null}>
-                  {({ trips: allTrips }) => (
-                    <BentoRow
-                      uncheckedCount={shoppingSummary.uncheckedCount}
-                      estimatedTotal={Number(shoppingSummary.estimatedTotal)}
-                      itemCount={shoppingItems.length}
-                      trips={allTrips}
-                    />
-                  )}
-                </Await>
-              </Suspense>
-            )}
-          </Await>
-        </Suspense>
+        <BentoRow
+          uncheckedCount={shoppingSummary.uncheckedCount}
+          estimatedTotal={Number(shoppingSummary.estimatedTotal)}
+          itemCount={shoppingItems.length}
+          trips={allTrips}
+        />
 
         {/* Reordered for daily use rather than narrative order: of the three,
             Shopping is the only one that's genuinely a recurring TASK — a
@@ -224,17 +224,11 @@ export default function HomePage() {
             hero-to-detail adjacency (the savings figure's own section used to
             sit right under it). */}
         <Section title="Shopping" icon={ShoppingCart} viewAllTo="/shopping">
-          <Suspense fallback={<SkeletonRow />}>
-            <Await resolve={shopping} errorElement={<SectionError>Couldn't load the shopping list.</SectionError>}>
-              {({ items, summary: shoppingSummary }) =>
-                items.length === 0 ? (
-                  <CtaLink to="/shopping" label="Start your shared list" />
-                ) : (
-                  <ShoppingPreviewCard items={items} summary={shoppingSummary} />
-                )
-              }
-            </Await>
-          </Suspense>
+          {shoppingItems.length === 0 ? (
+            <CtaLink to="/shopping" label="Start your shared list" />
+          ) : (
+            <ShoppingPreviewCard items={shoppingItems} summary={shoppingSummary} />
+          )}
         </Section>
 
         {/* Second, not first: still the app's premise and what the hero above
@@ -264,33 +258,7 @@ export default function HomePage() {
             (not folded away) so a live or soon trip is never more than one
             scroll from the top. */}
         <Section title="Trips" icon={Map} viewAllTo="/trips">
-          <Suspense fallback={<SkeletonRow count={2} />}>
-            <Await resolve={trips} errorElement={<SectionError>Couldn't load trips.</SectionError>}>
-              {/* Param types are inferred from `resolve` — annotating them here
-                  makes TS infer Await's generic from the callback instead. */}
-              {({ trips: allTrips }) => {
-                // "What's next": everything except trips already in the past
-                // (undated trips still count — they just aren't scheduled yet).
-                const upcoming = allTrips.filter((trip) => tripStatus(trip)?.tone !== "past").slice(0, 2);
-                if (upcoming.length > 0) {
-                  return (
-                    <div className="stagger space-y-2">
-                      {upcoming.map((trip) => (
-                        <TripCard key={trip.id} trip={trip} variant="compact" />
-                      ))}
-                    </div>
-                  );
-                }
-                // An empty *upcoming* list is not an empty history — a couple
-                // with five finished trips was being told to plan their first.
-                return allTrips.length === 0 ? (
-                  <CtaLink to="/trips/new" label="Plan your first trip together" />
-                ) : (
-                  <CtaLink to="/trips/new" label="Nothing planned — start the next trip" />
-                );
-              }}
-            </Await>
-          </Suspense>
+          <UpcomingTrips trips={allTrips} />
         </Section>
       </div>
 
@@ -438,12 +406,27 @@ function CtaLink({ to, label }: { to: string; label: string }) {
   );
 }
 
-function TileSkeleton() {
-  return (
-    <div className="grid grid-cols-2 gap-2.5">
-      <Skeleton className="h-[92px] rounded-md" />
-      <Skeleton className="h-[92px] rounded-md" />
-    </div>
+// "What's next": everything except trips already in the past (undated trips
+// still count — they just aren't scheduled yet). An empty *upcoming* list is
+// not an empty history, so a couple with five finished trips isn't told to plan
+// their first.
+function UpcomingTrips({ trips: allTrips }: { trips: Trip[] }) {
+  const upcoming = allTrips.filter((trip) => tripStatus(trip)?.tone !== "past").slice(0, 2);
+
+  if (upcoming.length > 0) {
+    return (
+      <div className="stagger space-y-2">
+        {upcoming.map((trip) => (
+          <TripCard key={trip.id} trip={trip} variant="compact" />
+        ))}
+      </div>
+    );
+  }
+
+  return allTrips.length === 0 ? (
+    <CtaLink to="/trips/new" label="Plan your first trip together" />
+  ) : (
+    <CtaLink to="/trips/new" label="Nothing planned — start the next trip" />
   );
 }
 
@@ -497,14 +480,5 @@ function BentoRow({
         <InstrumentTile to="/trips/new" label="Next trip" value="—" caption="Nothing planned yet" />
       )}
     </div>
-  );
-}
-
-// One section failing to load no longer takes the whole dashboard down with it.
-function SectionError({ children }: { children: React.ReactNode }) {
-  return (
-    <p role="alert" className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-      {children}
-    </p>
   );
 }

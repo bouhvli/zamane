@@ -1,15 +1,23 @@
-import { useLoaderData } from "react-router";
 import { CircleDot } from "lucide-react";
 
 import type { Goal, GoalsSummary } from "@/lib/goals-api";
+import { useRouteData } from "@/lib/use-route-data";
 import { formatAmount } from "@/lib/format";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageSkeleton } from "@/components/layout/Skeleton";
 import { Fab } from "@/components/layout/Fab";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { GoalCard } from "@/components/goals/GoalCard";
 
 export default function GoalsPage() {
-  const { goals, summary } = useLoaderData() as { goals: Goal[]; summary: GoalsSummary };
+  // `undefined` until the payload lands — the route committed without waiting
+  // for it, which is what makes the tab switch itself instant. See
+  // src/lib/use-route-data.ts.
+  const data = useRouteData<{ goals: Goal[]; summary: GoalsSummary }>();
+
+  if (!data) return <PageSkeleton cards={3} />;
+
+  const { goals, summary } = data;
 
   return (
     <div>

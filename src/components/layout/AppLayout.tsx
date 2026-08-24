@@ -5,6 +5,7 @@ import { BottomNav } from "./BottomNav";
 import { AmbientField } from "./AmbientField";
 import { Loader } from "@/components/Loader";
 import { warmAppOnIdle } from "@/lib/prefetch";
+import { useRouteSyncing } from "@/lib/use-route-data";
 
 // Zamane is phone-only by deliberate choice, not oversight: every page caps
 // its content at max-w-md and there are no md:/lg: breakpoints anywhere in
@@ -13,12 +14,17 @@ import { warmAppOnIdle } from "@/lib/prefetch";
 // this comment before adding responsive layout work rather than assuming
 // the narrow width is a bug.
 export function AppLayout() {
-  // createBrowserRouter blocks a navigation on its loader promise — without
-  // this, tapping a nav tab on a slow connection leaves the previous page
-  // sitting frozen on screen with zero feedback until the new page's data
-  // arrives.
+  // Two different waits, one indicator.
+  //
+  // `navigation.state` is now only ever "loading" while a page's *chunk* is
+  // still downloading — the data loaders stopped awaiting anything, so the
+  // router commits a tab before its payload exists (see route-cache.ts).
+  // `useRouteSyncing` is the other half: a request actually in flight, which is
+  // the case with no other feedback on screen, because the page is busy
+  // rendering perfectly good stale data while it happens.
   const navigation = useNavigation();
-  const showLoader = useDelayed(navigation.state === "loading", 200);
+  const syncing = useRouteSyncing();
+  const showLoader = useDelayed(navigation.state === "loading" || syncing, 500);
 
   // Chunks for the other tabs, and one dashboard request that seeds all of
   // them, fetched in idle time — see src/lib/prefetch.ts. Runs once per app
@@ -58,12 +64,11 @@ export function AppLayout() {
 /**
  * True only once `active` has held for `delay` ms.
  *
- * Most navigations are now served from the route cache and finish inside a
- * frame or two (see src/lib/route-cache.ts). Rendering the spinner the instant
- * the router reports "loading" made those flash a pill on and off again, which
- * reads as jank rather than as speed — a navigation that's already done needs
- * no reassurance. Anything genuinely waiting on the network still crosses the
- * threshold and gets its feedback.
+ * Most navigations resolve inside a frame or two and most refreshes answer in
+ * ~50ms once Neon is warm. Rendering the pill the instant either starts made
+ * those flash on and off again, which reads as jank rather than as speed — work
+ * that is already done needs no reassurance. Anything genuinely waiting still
+ * crosses the threshold and gets its feedback.
  */
 function useDelayed(active: boolean, delay: number): boolean {
   const [shown, setShown] = useState(false);

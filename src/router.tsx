@@ -1,12 +1,10 @@
 import { createBrowserRouter, redirect, Navigate, Outlet } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 
-import { ApiError } from "./lib/api";
 import { getSessionUser } from "./lib/session";
 import { lazyPage } from "./lib/page-modules";
-import { loadRoute, setRouteRevalidator } from "./lib/route-cache";
+import { routeHandle } from "./lib/route-cache";
 import { routeKey, routeFetcher } from "./lib/route-data";
-import type { HomePayload } from "./lib/home-api";
 import { AppLayout } from "./components/layout/AppLayout";
 import { AppBootFallback } from "./components/layout/AppBootFallback";
 import { RouteErrorBoundary } from "./components/layout/RouteErrorBoundary";
@@ -36,6 +34,10 @@ async function onboardingLoader() {
   return { user };
 }
 
+// The one loader in the app that still awaits the network, and it has to: the
+// answer decides whether this visitor may see the shell at all. It resolves
+// from the same `/api/home` request the page's own data comes from, so waiting
+// on it costs no extra round trip — see dashboard.ts.
 async function requireGroupLoader() {
   const user = await getSessionUser();
   if (!user) throw redirect("/login");
@@ -43,68 +45,41 @@ async function requireGroupLoader() {
   return { user };
 }
 
-// Every list loader below reads through the route cache: a payload already in
-// memory is returned *synchronously*, so tapping a tab you've visited renders
-// in the same frame instead of waiting on a serverless round trip, and a
-// background refresh updates the screen only if the answer actually moved.
-// See src/lib/route-cache.ts for how writes stay correct.
+// Every data loader below returns *immediately*, with a key rather than a
+// payload (see route-cache.ts). React Router blocks a navigation on its
+// loaders, so awaiting the data here is what used to freeze the previous page
+// on screen for the length of a serverless round trip — 3.2s measured on a
+// cold cache, which is any tap after a write. The page reads the entry with
+// `useRouteData`, renders it the moment it exists, and shows a skeleton until
+// then; the navigation itself is never waiting on the network.
 function goalsListLoader() {
-  return loadRoute(routeKey.goals, routeFetcher.goals);
+  return routeHandle(routeKey.goals, routeFetcher.goals);
 }
 
 function goalDetailLoader({ params }: LoaderFunctionArgs) {
   const id = params.id!;
-  return loadRoute(routeKey.goal(id), routeFetcher.goal(id));
+  return routeHandle(routeKey.goal(id), routeFetcher.goal(id));
 }
 
 function tripsListLoader() {
-  return loadRoute(routeKey.trips, routeFetcher.trips);
+  return routeHandle(routeKey.trips, routeFetcher.trips);
 }
 
 function tripDetailLoader({ params }: LoaderFunctionArgs) {
   const id = params.id!;
-  return loadRoute(routeKey.trip(id), routeFetcher.trip(id));
+  return routeHandle(routeKey.trip(id), routeFetcher.trip(id));
 }
 
 function shoppingListLoader() {
-  return loadRoute(routeKey.shopping, routeFetcher.shopping);
+  return routeHandle(routeKey.shopping, routeFetcher.shopping);
 }
 
 function profileLoader() {
-  return loadRoute(routeKey.group, routeFetcher.group);
-}
-
-// One request for the whole dashboard (see api/home.ts). This used to be
-// four — goals and groups awaited together, trips and shopping streamed
-// behind <Await> — which on a cold start meant four separate function
-// invocations, any of which could draw Neon's compute wake.
-//
-// Trips and shopping are still handed to HomePage as promises so its
-// <Suspense>/<Await> sections keep working unchanged; they simply resolve on
-// the next microtask now instead of a second round trip later.
-function toHomeRouteData(data: HomePayload) {
-  if (!data.user.groupId) throw redirect("/onboarding/group");
-
-  return {
-    goals: data.goals.goals,
-    goalsSummary: data.goals.summary,
-    group: data.group,
-    trips: Promise.resolve(data.trips),
-    shopping: Promise.resolve(data.shopping),
-  };
-}
-
-// Agree with requireGroupLoader, which is resolving the same question in
-// parallel: a 401 here means signed out, not a broken dashboard, so send the
-// visitor to /login rather than the route error boundary.
-function onHomeError(error: unknown): never {
-  if (error instanceof ApiError && error.status === 401) throw redirect("/login");
-  throw error;
+  return routeHandle(routeKey.group, routeFetcher.group);
 }
 
 function homeLoader() {
-  const result = loadRoute(routeKey.home, routeFetcher.home);
-  return result instanceof Promise ? result.then(toHomeRouteData, onHomeError) : toHomeRouteData(result);
+  return routeHandle(routeKey.home, routeFetcher.home);
 }
 
 export const router = createBrowserRouter([
@@ -141,7 +116,7 @@ export const router = createBrowserRouter([
           { path: "/trips/new", lazy: lazyPage("newTrip") },
           // Same page component as /trips/new, in edit mode — the dedicated
           // route id lets the page read this loader's trip via
-          // useRouteLoaderData without colliding with the create route.
+          // useRouteDataFor without colliding with the create route.
           { path: "/trips/:id/edit", id: "trip-edit", loader: tripDetailLoader, lazy: lazyPage("newTrip") },
           { path: "/trips/:id", loader: tripDetailLoader, lazy: lazyPage("tripDetail") },
           { path: "/shopping", loader: shoppingListLoader, lazy: lazyPage("shopping") },
@@ -157,9 +132,3 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-
-// Lets a background refresh push newer data onto the screen. Registered from
-// here because route-cache.ts can't import the router without closing a cycle.
-setRouteRevalidator(() => {
-  void router.revalidate();
-});

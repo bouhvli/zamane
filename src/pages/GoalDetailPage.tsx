@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLoaderData, useNavigate, useRevalidator } from "react-router";
+import { useNavigate, useRevalidator } from "react-router";
 import { Coins, History, PenLine, Pencil, Trash2, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +9,9 @@ import { deleteGoal } from "@/lib/goals-api";
 import { goalImageUrl } from "@/lib/goal-image";
 import { ApiError } from "@/lib/api";
 import { formatAmount, formatDate } from "@/lib/format";
+import { useRouteData } from "@/lib/use-route-data";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { DetailSkeleton } from "@/components/layout/Skeleton";
 import { Fab } from "@/components/layout/Fab";
 import { DetailMenu } from "@/components/layout/DetailMenu";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -22,12 +24,19 @@ import { NoteComposerSheet } from "@/components/goals/NoteComposerSheet";
 type Sheet = null | "choose" | "contribute" | "note";
 
 export default function GoalDetailPage() {
-  const { goal, notes } = useLoaderData() as { goal: Goal; notes: GoalNote[] };
+  // `undefined` until the payload lands — see src/lib/use-route-data.ts. Read
+  // before the other hooks, unwrapped after them, so the skeleton's early
+  // return never sits between two hook calls.
+  const data = useRouteData<{ goal: Goal; notes: GoalNote[] }>();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
+
+  if (!data) return <DetailSkeleton rows={2} />;
+
+  const { goal, notes } = data;
 
   async function handleDelete() {
     setDeleting(true);
@@ -101,7 +110,7 @@ export default function GoalDetailPage() {
             margin — the ring makes the answer the first thing on the screen,
             with the money reading beside it rather than under it. */}
         <div className="glass-2 flex items-center gap-5 p-5">
-          <ProgressOrbit percent={percent} size={104} stroke={10} label={goal.title}>
+          <ProgressOrbit percent={percent} size={104} stroke={10} label={goal.title} animate>
             <span className="orbit-value text-2xl">
               {Math.round(percent)}
               <span className="text-[0.5em] font-semibold">%</span>

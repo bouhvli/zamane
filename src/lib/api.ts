@@ -1,4 +1,4 @@
-import { invalidateRoutes } from "./route-cache";
+import { invalidateRoutes, resetRoutes } from "./route-cache";
 
 export class ApiError extends Error {
   status: number;
@@ -32,12 +32,20 @@ export function setUnauthorizedHandler(handler: () => void): void {
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const { body, headers, ...rest } = options;
 
-  // Anything that isn't a plain read invalidates the route cache — see
+  // Anything that isn't a plain read invalidates the route store — see
   // route-cache.ts. Done here rather than at each call site so a new mutation
   // endpoint can't be added without it, and done *before* awaiting so a
   // refresh that overlaps the write is dropped rather than written back.
+  //
+  // Signing in or out is the one write that must *forget* rather than refresh:
+  // every other mutation changes the couple's data, but this one changes whose
+  // data it is, and a stale entry served across that boundary is the previous
+  // account's.
   const method = (rest.method ?? "GET").toUpperCase();
-  if (method !== "GET" && method !== "HEAD") invalidateRoutes();
+  if (method !== "GET" && method !== "HEAD") {
+    if (path.startsWith("/api/auth/")) resetRoutes();
+    else invalidateRoutes();
+  }
 
   const response = await fetch(path, {
     ...rest,

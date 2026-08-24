@@ -1,10 +1,15 @@
-import { apiFetch } from "./api";
-import { primeSessionUser, type SessionUser } from "./session";
+import type { SessionUser } from "./session";
 import type { Goal, GoalsSummary } from "./goals-api";
 import type { Group } from "./groups-api";
 import type { Trip, TripsSummary } from "./trips-api";
 import type { ShoppingItem, ShoppingSummary } from "./shopping-api";
 
+/**
+ * What `/api/home` answers with: the whole signed-in app in one response.
+ *
+ * The request itself lives in dashboard.ts, which de-duplicates it and files
+ * the pieces into each tab's cache entry. This module is the shape only.
+ */
 export type HomePayload = {
   user: SessionUser;
   group: Group | null;
@@ -12,15 +17,3 @@ export type HomePayload = {
   trips: { trips: Trip[]; summary: TripsSummary };
   shopping: { items: ShoppingItem[]; summary: ShoppingSummary };
 };
-
-/**
- * The whole dashboard in one round trip — see api/home.ts for why. The session
- * cache is primed from the response so the layout's group guard and
- * AuthProvider never issue their own `/api/auth/session` request on a cold
- * launch.
- */
-export async function fetchHome(): Promise<HomePayload> {
-  const data = await apiFetch<HomePayload>("/api/home");
-  primeSessionUser(data.user);
-  return data;
-}

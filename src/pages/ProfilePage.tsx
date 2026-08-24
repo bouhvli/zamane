@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLoaderData, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useTheme } from "next-themes";
 import { Check, ChevronDown, Copy, Loader2, LogOut, Monitor, Moon, ShieldCheck, Sun, SunMoon, User, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -13,7 +13,9 @@ import { useAuth } from "@/lib/auth-context";
 import type { Group } from "@/lib/groups-api";
 import { updateProfile, changePassword } from "@/lib/profile-api";
 import { ApiError } from "@/lib/api";
+import { useRouteData } from "@/lib/use-route-data";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageSkeleton } from "@/components/layout/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -108,7 +110,9 @@ function ThemeSwitch() {
 export default function ProfilePage() {
   const { user, logout, refreshSession } = useAuth();
   const navigate = useNavigate();
-  const { group } = useLoaderData() as { group: Group | null };
+  // `undefined` until the payload lands; `group: null` is a real answer (no
+  // group yet) and must stay distinguishable from it. See use-route-data.ts.
+  const data = useRouteData<{ group: Group | null }>();
   const [copied, setCopied] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -124,7 +128,9 @@ export default function ProfilePage() {
   });
 
   if (!user) return null;
+  if (!data) return <PageSkeleton cards={3} cardHeight="h-[140px]" stats={0} />;
 
+  const { group } = data;
   const members = group?.members ?? [];
   const partner = members.find((member) => member.id !== user.id);
   const displayName = user.displayName || user.email.split("@")[0];

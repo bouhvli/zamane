@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate, useRouteLoaderData } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { MAX_MONEY_AMOUNT, type CreateTripRequest, type UpdateTripRequest } from "@shared/validation";
 import { createTrip, updateTrip, type Trip } from "@/lib/trips-api";
 import { ApiError } from "@/lib/api";
+import { useRouteDataFor } from "@/lib/use-route-data";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { DetailSkeleton } from "@/components/layout/Skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,10 +46,23 @@ const tripFormSchema = z
 type TripFormValues = z.infer<typeof tripFormSchema>;
 
 export default function NewTripPage() {
+  // Present only on the edit route (see router.tsx). Its absence used to mean
+  // "create mode" and nothing else; now it can also mean "not here yet",
+  // because the loader no longer waits for the payload. Every initial value in
+  // the form below is read once at mount — useForm's defaultValues, the cover
+  // state — so mounting before the record is in hand would produce an empty
+  // form that silently ignores the data when it lands. `params.id` is what
+  // tells the two cases apart.
+  const { id } = useParams();
+  const editData = useRouteDataFor<{ trip: Trip }>("trip-edit");
+
+  if (id && !editData) return <DetailSkeleton cover={false} rows={4} />;
+
+  return <TripForm existing={editData?.trip} />;
+}
+
+function TripForm({ existing }: { existing?: Trip }) {
   const navigate = useNavigate();
-  // Present only on /trips/:id/edit (see router). Its absence means create mode.
-  const editData = useRouteLoaderData("trip-edit") as { trip: Trip } | undefined;
-  const existing = editData?.trip;
   const isEdit = Boolean(existing);
 
   const [serverError, setServerError] = useState<string | null>(null);

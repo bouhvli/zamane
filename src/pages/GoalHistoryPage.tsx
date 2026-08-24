@@ -1,16 +1,23 @@
-import { useLoaderData, useRevalidator } from "react-router";
+import { useRevalidator } from "react-router";
 import { TrendingUp } from "lucide-react";
 
 import type { Goal, Contribution } from "@/lib/goals-api";
 import { formatAmount, formatRelativeDate, initials } from "@/lib/format";
+import { useRouteData } from "@/lib/use-route-data";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { DetailSkeleton } from "@/components/layout/Skeleton";
 import { ProgressBar } from "@/components/goals/ProgressBar";
 import { ContributionHistoryList } from "@/components/goals/ContributionHistoryList";
 import { EmptyState } from "@/components/layout/EmptyState";
 
 export default function GoalHistoryPage() {
-  const { goal, contributions } = useLoaderData() as { goal: Goal; contributions: Contribution[] };
+  // `undefined` until the payload lands — see src/lib/use-route-data.ts.
+  const data = useRouteData<{ goal: Goal; contributions: Contribution[] }>();
   const revalidator = useRevalidator();
+
+  if (!data) return <DetailSkeleton cover={false} rows={4} />;
+
+  const { goal, contributions } = data;
   const isFinancial = goal.goalType === "financial";
 
   const percent = isFinancial

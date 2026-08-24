@@ -1,15 +1,21 @@
-import { useLoaderData } from "react-router";
 import { MapPin } from "lucide-react";
 
 import type { Trip, TripsSummary } from "@/lib/trips-api";
+import { useRouteData } from "@/lib/use-route-data";
 import { formatAmount } from "@/lib/format";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageSkeleton } from "@/components/layout/Skeleton";
 import { Fab } from "@/components/layout/Fab";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { TripCard } from "@/components/trips/TripCard";
 
 export default function TripsPage() {
-  const { trips, summary } = useLoaderData() as { trips: Trip[]; summary: TripsSummary };
+  // `undefined` until the payload lands — see src/lib/use-route-data.ts.
+  const data = useRouteData<{ trips: Trip[]; summary: TripsSummary }>();
+
+  if (!data) return <PageSkeleton cards={3} cardHeight="h-[196px]" />;
+
+  const { trips, summary } = data;
 
   return (
     <div>
