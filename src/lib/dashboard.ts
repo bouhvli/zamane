@@ -59,11 +59,38 @@ export function fetchDashboard(): Promise<HomePayload> {
  *
  * Without this the payload was thrown away after the dashboard rendered, so
  * the first tap on Trips fetched trips that were already sitting in memory.
+ *
+ * The shape is checked before *anything* is written, because this function
+ * writes five entries in sequence and a throw partway through used to leave the
+ * store in a state no code path could produce deliberately: the dashboard entry
+ * already overwritten with `undefined`, the other four still holding good data.
+ * The page then read `undefined`, and the TypeError from the aborted seed was
+ * sitting on the entry as its error, so the visitor got the full-screen error
+ * boundary instead of the screen they already had.
  */
 function seed(data: HomePayload): void {
+  if (!isDashboard(data)) {
+    throw new Error("Malformed /api/home response — not seeding the route store");
+  }
   primeRoute(routeKey.home, data);
   primeRoute(routeKey.goals, data.goals);
   primeRoute(routeKey.trips, data.trips);
   primeRoute(routeKey.shopping, data.shopping);
   primeRoute(routeKey.group, { group: data.group });
+}
+
+/** The four sections every tab reads out of one response, plus the user. */
+function isDashboard(data: unknown): data is HomePayload {
+  if (typeof data !== "object" || data === null) return false;
+  const payload = data as Partial<HomePayload>;
+  return (
+    typeof payload.user === "object" &&
+    payload.user !== null &&
+    typeof payload.goals === "object" &&
+    payload.goals !== null &&
+    typeof payload.trips === "object" &&
+    payload.trips !== null &&
+    typeof payload.shopping === "object" &&
+    payload.shopping !== null
+  );
 }

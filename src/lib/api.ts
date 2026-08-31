@@ -58,7 +58,8 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   });
 
   const contentType = response.headers.get("content-type") ?? "";
-  const data = contentType.includes("application/json") ? await response.json() : undefined;
+  const isJson = contentType.includes("application/json");
+  const data = isJson ? await response.json() : undefined;
 
   if (!response.ok) {
     if (response.status === 401) unauthorizedHandler?.();
@@ -67,6 +68,24 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
         ? String((data as { error: unknown }).error)
         : `Request failed (${response.status})`;
     throw new ApiError(message, response.status);
+  }
+
+  // A 2xx that isn't JSON used to be returned as `undefined` while still typed
+  // as T, and every caller believed it. That is not a hypothetical: a service
+  // worker's navigation fallback, a CDN or platform error page, a captive
+  // portal, or an auth redirect all answer 200 with HTML. The `undefined` then
+  // travelled all the way into the route store, where seeding dereferenced it,
+  // wiped the dashboard entry and threw a TypeError — so a stray HTML response
+  // surfaced as "Something went wrong" with the cache left broken behind it.
+  //
+  // Failing here instead keeps the lie from spreading: the caller gets an
+  // ApiError like any other transport failure, the store keeps the data it
+  // already had, and the page carries on.
+  if (!isJson) {
+    throw new ApiError(
+      `Expected JSON from ${path} but got ${contentType || "no content type"}`,
+      response.status,
+    );
   }
 
   return data as T;

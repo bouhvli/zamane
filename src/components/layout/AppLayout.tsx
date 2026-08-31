@@ -5,7 +5,6 @@ import { BottomNav } from "./BottomNav";
 import { AmbientField } from "./AmbientField";
 import { Loader } from "@/components/Loader";
 import { warmAppOnIdle } from "@/lib/prefetch";
-import { useRouteSyncing } from "@/lib/use-route-data";
 
 // Zamane is phone-only by deliberate choice, not oversight: every page caps
 // its content at max-w-md and there are no md:/lg: breakpoints anywhere in
@@ -14,17 +13,20 @@ import { useRouteSyncing } from "@/lib/use-route-data";
 // this comment before adding responsive layout work rather than assuming
 // the narrow width is a bug.
 export function AppLayout() {
-  // Two different waits, one indicator.
+  // Only ever "loading" while a page's *chunk* is still downloading: the data
+  // loaders don't await anything, so the router commits a tab before its
+  // payload exists (see route-cache.ts).
   //
-  // `navigation.state` is now only ever "loading" while a page's *chunk* is
-  // still downloading — the data loaders stopped awaiting anything, so the
-  // router commits a tab before its payload exists (see route-cache.ts).
-  // `useRouteSyncing` is the other half: a request actually in flight, which is
-  // the case with no other feedback on screen, because the page is busy
-  // rendering perfectly good stale data while it happens.
+  // This deliberately does NOT reflect data requests. It used to, and that
+  // undid the point of the cache it was reporting on: entries go stale after
+  // 20s, so a refresh fires behind most tab taps, and against a suspended
+  // database that refresh takes ~3s. The page was rendering real content the
+  // whole time with a spinner parked over it insisting otherwise, which reads
+  // as a slow app rather than a fresh one. A background refresh has nothing to
+  // say to the visitor; when there is genuinely nothing to show, the page's own
+  // skeleton says it, in the shape of the thing being loaded.
   const navigation = useNavigation();
-  const syncing = useRouteSyncing();
-  const showLoader = useDelayed(navigation.state === "loading" || syncing, 500);
+  const showLoader = useDelayed(navigation.state === "loading", 500);
 
   // Chunks for the other tabs, and one dashboard request that seeds all of
   // them, fetched in idle time — see src/lib/prefetch.ts. Runs once per app

@@ -14,14 +14,7 @@
 import { useSyncExternalStore } from "react";
 import { useLoaderData, useRouteLoaderData } from "react-router";
 
-import {
-  readRoute,
-  routeActivity,
-  subscribeRouteActivity,
-  subscribeRoutes,
-  type RouteHandle,
-  type RouteState,
-} from "./route-cache";
+import { readRoute, subscribeRoutes, type RouteHandle, type RouteState } from "./route-cache";
 
 const NOTHING: RouteState = Object.freeze({ data: undefined, error: null });
 
@@ -49,18 +42,4 @@ function useHandle<T>(handle: RouteHandle<T> | undefined): T | undefined {
   if (state.data === undefined && state.error != null) throw state.error;
 
   return state.data;
-}
-
-/**
- * How many route fetches are in flight.
- *
- * The shell used to take this from `navigation.state`, which no longer means
- * what it used to: the loaders don't await their data, so the router reports
- * "idle" the instant a tab commits and says nothing about the request still
- * running behind it. This is the honest signal — and it covers the one case
- * with no other feedback on screen, where a page is rendering perfectly good
- * data while a refresh quietly disagrees with it.
- */
-export function useRouteSyncing(): boolean {
-  return useSyncExternalStore(subscribeRouteActivity, routeActivity) > 0;
 }

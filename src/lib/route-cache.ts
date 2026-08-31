@@ -57,10 +57,6 @@ const listeners = new Set<() => void>();
 /** Bumped by every invalidation — see property 2 above. */
 let generation = 0;
 
-/** How many route fetches are in flight, for the shell's sync indicator. */
-let active = 0;
-const activityListeners = new Set<() => void>();
-
 let resync: (() => void) | null = null;
 let resyncTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -84,18 +80,6 @@ export function readRoute<T>(key: string): RouteState<T> {
 /** True if `key` can be rendered without waiting for the network. */
 export function hasRoute(key: string): boolean {
   return cache.get(key)?.data !== undefined;
-}
-
-export function subscribeRouteActivity(listener: () => void): () => void {
-  activityListeners.add(listener);
-  return () => {
-    activityListeners.delete(listener);
-  };
-}
-
-/** Non-zero while any route fetch is in flight. */
-export function routeActivity(): number {
-  return active;
 }
 
 /**
@@ -173,7 +157,6 @@ function refresh<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
   if (existing) return existing;
 
   const startedAt = generation;
-  beginActivity();
 
   const promise = fetcher()
     .then((data) => {
@@ -192,7 +175,6 @@ function refresh<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
     })
     .finally(() => {
       if (inFlight.get(key) === promise) inFlight.delete(key);
-      endActivity();
     });
 
   inFlight.set(key, promise);
@@ -259,16 +241,6 @@ function scheduleResync(): void {
 }
 
 /* ---------------------------------------------------------------- internals */
-
-function beginActivity(): void {
-  active += 1;
-  for (const listener of activityListeners) listener();
-}
-
-function endActivity(): void {
-  active -= 1;
-  for (const listener of activityListeners) listener();
-}
 
 // These payloads are small JSON lists, so stringify is both cheap and exact —
 // there is no shared identity between two responses to compare structurally.

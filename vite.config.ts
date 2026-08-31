@@ -37,10 +37,24 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
-          {
-            urlPattern: /^\/api\//,
-            handler: 'NetworkOnly',
-          },
+          // There is deliberately no /api rule here.
+          //
+          // There used to be one — `urlPattern: /^\/api\//, handler:
+          // 'NetworkOnly'` — and it never matched anything: Workbox tests a
+          // RegExp urlPattern against the FULL href ("https://host/api/home"),
+          // which a pattern anchored to a leading slash cannot match. Replacing
+          // it with a pathname callback made it match, and that turned out to
+          // be worse than the bug: a matched route means Workbox answers the
+          // fetch event itself, so every API call is issued from the service
+          // worker instead of the page. That adds a hop, ties API traffic to
+          // the worker's lifecycle, and on iOS the worker is the least reliable
+          // part of the stack.
+          //
+          // An unmatched request is not handled by Workbox at all — the browser
+          // performs it directly, which is exactly what API calls should do. So
+          // the rule is gone rather than fixed. navigateFallbackDenylist below
+          // still needs its /^\/api\// form: that one IS tested against
+          // pathname + search, so it works as written.
           {
             urlPattern: ({ request }) => request.destination === 'document',
             handler: 'NetworkFirst',
