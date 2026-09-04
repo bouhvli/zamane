@@ -1,8 +1,38 @@
+import { useEffect, useState } from "react";
 import { Outlet, useNavigation } from "react-router";
+import { ThinkingOrb } from "thinking-orbs";
 
 import { BottomNav } from "./BottomNav";
 import { AmbientField } from "./AmbientField";
-import { Loader } from "@/components/Loader";
+
+// thinking-orbs ships strictly monochrome ink (dark dots for `theme="light"`,
+// light dots for `theme="dark"`) — this filter recolors the pinned dark ink
+// to the app's --primary purple (#7B52FF) regardless of the active theme.
+// Values solved for black -> #7B52FF via the standard CSS filter technique
+// (https://codepen.io/sosuke/pen/Pjoqqp).
+const ORB_PURPLE_FILTER =
+  "brightness(0) saturate(100%) invert(37%) sepia(62%) saturate(529%) hue-rotate(210deg) brightness(1.09) contrast(2)";
+
+// A warm Neon query resolves in ~50ms; only a cold compute wake (~3s) or a
+// genuinely slow connection should ever show this. Without the delay, every
+// tab switch — even a warm one — flashes the full-screen loader for a single
+// frame, which reads as the app stuttering rather than the tap registering.
+const LOADER_DELAY_MS = 300;
+
+function useDelayedFlag(active: boolean, delay: number) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (!active) {
+      setShow(false);
+      return;
+    }
+    const id = window.setTimeout(() => setShow(true), delay);
+    return () => window.clearTimeout(id);
+  }, [active, delay]);
+
+  return show;
+}
 
 // Zamane is phone-only by deliberate choice, not oversight: every page caps
 // its content at max-w-md and there are no md:/lg: breakpoints anywhere in
@@ -17,6 +47,7 @@ export function AppLayout() {
   // arrives.
   const navigation = useNavigation();
   const isNavigating = navigation.state === "loading";
+  const showLoader = useDelayedFlag(isNavigating, LOADER_DELAY_MS);
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -25,15 +56,13 @@ export function AppLayout() {
           there — everywhere else backdrop-filter was blurring a flat colour. */}
       <AmbientField />
 
-      {isNavigating && (
+      {showLoader && (
         <div
           role="status"
           aria-label="Loading"
-          className="fixed inset-x-0 top-0 z-[var(--z-toast)] flex justify-center pt-3"
+          className="pointer-events-none fixed inset-0 z-[var(--z-toast)] flex items-center justify-center bg-white"
         >
-          <div className="glass-3 rounded-full px-3 py-2">
-            <Loader size={20} />
-          </div>
+          <ThinkingOrb state="searching" size={64} theme="light" style={{ filter: ORB_PURPLE_FILTER }} />
         </div>
       )}
       <main className="ambient-content pb-bottom-nav">

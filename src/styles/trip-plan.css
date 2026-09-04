@@ -1,0 +1,388 @@
+/*
+ * The trip organizer's own material: the timeline spine, the "you are here"
+ * marker, the day rail, the segmented control, and the two motions that carry
+ * state changes (a stop expanding, a box being ticked).
+ *
+ * Layered for the same reason every other file here is: unlayered CSS beats
+ * layered CSS regardless of source order, so without @layer a Tailwind utility
+ * at a call site would silently lose to a class declared in this file.
+ *
+ * Durations and easing come from theme.css. Nothing here invents a curve.
+ */
+@layer components {
+  /* -----------------------------------------------------------------------
+   * The spine
+   *
+   * A trip's timeline is a line you are somewhere on, so the line itself is
+   * the progress bar: violet and solid behind everything that has already
+   * happened, a pale hairline ahead of it. That's why the rail is drawn per
+   * row rather than as one absolutely-positioned element — each row knows its
+   * own phase, so "how far along are we" needs no measurement pass and stays
+   * exact when a stop is added, ticked, or deleted mid-render.
+   * ----------------------------------------------------------------------- */
+
+  .tl {
+    --tl-gutter: 2.75rem; /* node column width; the rail runs down its centre */
+    --tl-rail-w: 2px;
+    --tl-ahead: rgb(var(--glass-cast) / 0.16);
+    --tl-behind: var(--primary);
+    /* The brand violet as raw channels, so the marker's glow, dashed line and
+       split gradient can each pick their own alpha off ONE hue that flips with
+       the theme. They used to hardcode 90 39 255 — the light-mode violet —
+       which on the near-black dark surface reads as a smudge. */
+    --tl-glow: 90 39 255;
+  }
+
+  .dark .tl {
+    --tl-ahead: rgba(255, 255, 255, 0.14);
+    --tl-glow: 123 82 255;
+  }
+
+  .tl-row {
+    position: relative;
+  }
+
+  /* The rail segment behind this row. Rows are flush, so consecutive segments
+     join into one unbroken line without any per-row length arithmetic. */
+  .tl-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--tl-gutter) / 2 - var(--tl-rail-w) / 2);
+    width: var(--tl-rail-w);
+    border-radius: 999px;
+    background: var(--tl-ahead);
+  }
+
+  /* First and last segments taper into nothing rather than butting against the
+     section edge — a line that starts and ends abruptly reads as a clipped
+     element, not a drawn spine. */
+  .tl-row:first-child::before {
+    top: 1.35rem;
+  }
+
+  .tl-row:last-child::before {
+    bottom: auto;
+    height: 1.35rem;
+  }
+
+  /* A day with exactly one entry has nothing to connect — both taper rules
+     would apply at once and leave a stub floating below the node. */
+  .tl-row:first-child:last-child::before {
+    display: none;
+  }
+
+  .tl-row[data-rail="behind"]::before {
+    background: var(--tl-behind);
+    opacity: 0.55;
+  }
+
+  /* The row the now-line sits on: solid up to the line, hairline after it. */
+  .tl-row[data-rail="split"]::before {
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--tl-glow) / 0.55) 0%,
+      rgb(var(--tl-glow) / 0.55) 50%,
+      var(--tl-ahead) 50%,
+      var(--tl-ahead) 100%
+    );
+  }
+
+  /*
+   * The one signature motion on the page: on mount the completed part of the
+   * spine draws itself downward, so the first thing the eye follows is the
+   * shape of how far along the trip is.
+   *
+   * Only the 2px rail animates. Content is never gated behind it — a reveal
+   * that hides the plan until an animation finishes is a plan you can't read
+   * in a headless render, a hidden tab, or with animations off.
+   */
+  .tl-row[data-rail="behind"]::before,
+  .tl-row[data-rail="split"]::before {
+    transform-origin: top center;
+    animation: tl-draw var(--dur-4) var(--ease-glide) both;
+    animation-delay: calc(60ms * var(--i, 0));
+  }
+
+  @keyframes tl-draw {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  /* The node: the dot or icon tile the rail threads through. */
+  .tl-node {
+    position: relative;
+    z-index: 1;
+    width: var(--tl-gutter);
+    display: flex;
+    justify-content: center;
+    flex: none;
+  }
+
+  /* -----------------------------------------------------------------------
+   * The "you are here" marker
+   * ----------------------------------------------------------------------- */
+
+  .tl-now-dot {
+    position: relative;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 0 4px rgb(var(--tl-glow) / 0.16);
+  }
+
+  /* A slow single ring rather than a blinking dot: it says "live" at the edge
+     of vision without pulling the eye off whatever is being read. */
+  .tl-now-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    border: 2px solid var(--primary);
+    animation: tl-now-ring 2.6s var(--ease-glide) infinite;
+  }
+
+  @keyframes tl-now-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    70%,
+    100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+
+  .tl-now-line {
+    height: 0;
+    flex: 1;
+    border-top: 1px dashed rgb(var(--tl-glow) / 0.45);
+  }
+
+  /* -----------------------------------------------------------------------
+   * Expand in place
+   *
+   * grid-template-rows 0fr -> 1fr animates a reflow without animating
+   * `height`, so there's no measurement, no max-height guess that clips long
+   * notes, and no layout thrash on every frame.
+   * ----------------------------------------------------------------------- */
+
+  .reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur-3) var(--ease-glide);
+  }
+
+  .reveal > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .reveal[data-open="true"] {
+    grid-template-rows: 1fr;
+  }
+
+  /* -----------------------------------------------------------------------
+   * The tick
+   *
+   * The checkmark draws rather than appears. It's the app's most-repeated
+   * confirmation — on the timeline and again on the prep list — and a stroke
+   * that draws in 180ms is the difference between "registered" and "flickered".
+   * ----------------------------------------------------------------------- */
+
+  .tick-path {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    transition: stroke-dashoffset var(--dur-2) var(--ease-glide);
+  }
+
+  [data-checked="true"] .tick-path {
+    stroke-dashoffset: 0;
+  }
+
+  /* The strike on a completed line, wiped in from the left rather than a
+     `line-through` that would blink on in one frame. */
+  /*
+   * Always put this on a span that wraps ONLY the text — never on the row.
+   * The rule below stretches edge to edge of whatever box it lands on, so on a
+   * flex child it draws a line clean across the empty half of the row and
+   * reads as a divider rather than as "done". inline-block is what keeps the
+   * box the width of the words; max-width lets long titles still wrap.
+   */
+  .strike {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: top;
+    transition: color var(--dur-2) var(--ease-glide);
+  }
+
+  .strike::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 55%;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur-2) var(--ease-glide);
+  }
+
+  [data-checked="true"] .strike::after {
+    transform: scaleX(1);
+  }
+
+  /* -----------------------------------------------------------------------
+   * Segmented control
+   *
+   * The indicator is one element sliding on `transform`, not a border moving
+   * between three buttons — so the movement is continuous and composited, and
+   * the tab you land on is visibly the one you came from.
+   * ----------------------------------------------------------------------- */
+
+  .seg {
+    position: relative;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 0.25rem;
+    border-radius: 999px;
+    isolation: isolate;
+  }
+
+  .seg-thumb {
+    position: absolute;
+    z-index: -1;
+    top: 0.25rem;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    width: calc((100% - 0.5rem) / var(--seg-count, 3));
+    border-radius: 999px;
+    background: var(--card);
+    box-shadow:
+      inset 0 1px 0 var(--glass-sheen),
+      0 1px 2px rgb(var(--glass-ink) / 0.08),
+      0 8px 18px -12px rgb(var(--glass-cast) / 0.4);
+    transform: translateX(calc(var(--seg-index, 0) * 100%));
+    transition: transform var(--dur-3) var(--ease-glide);
+  }
+
+  .dark .seg-thumb {
+    background: rgba(255, 255, 255, 0.09);
+  }
+
+  /*
+   * Panel swap. A short, small slide in the direction of travel — enough to
+   * say "this replaced that", not enough to make anyone wait. Product motion:
+   * the tab is already interactive while it settles.
+   */
+  .seg-panel {
+    animation: seg-in var(--dur-2) var(--ease-glide) both;
+  }
+
+  @keyframes seg-in {
+    from {
+      opacity: 0;
+      transform: translateX(var(--seg-from, 8px));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* -----------------------------------------------------------------------
+   * Day rail — the horizontal strip of day chips under the hero. It is both a
+   * progress read (today is filled, past days are quiet) and a jump-to-day
+   * control, which is why it earns the space a decorative countdown wouldn't.
+   * ----------------------------------------------------------------------- */
+
+  .day-rail {
+    display: flex;
+    gap: 0.375rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    /* Bleed to the screen edges so the strip reads as scrollable, while the
+       first and last chips still line up with the page's 1rem gutter. */
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    padding-block: 0.125rem;
+  }
+
+  .day-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .day-chip {
+    scroll-snap-align: center;
+    flex: none;
+    /* A surface, faint but present. Without one the chips read as loose text
+       floating on the page rather than as the control they are. */
+    background-color: rgb(255 255 255 / 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.25rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    outline: none;
+    transition:
+      background-color var(--dur-2) var(--ease-glide),
+      border-color var(--dur-2) var(--ease-glide),
+      color var(--dur-2) var(--ease-glide),
+      transform var(--dur-1) var(--ease-glide);
+  }
+
+  .dark .day-chip {
+    background-color: rgb(255 255 255 / 0.045);
+  }
+
+  .day-chip:active {
+    transform: scale(0.96);
+  }
+
+  .day-chip:focus-visible {
+    /* --ring, not --glass-cast: the cast is `0 0 0` on dark, so a ring built
+       on it is a black halo on a near-black page. */
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+
+  /* -----------------------------------------------------------------------
+   * Reduced motion
+   *
+   * The global net in theme.css collapses durations, which handles the
+   * transitions. These two need their end state stated explicitly, because a
+   * near-zero duration on an `infinite` ring still repaints forever, and a
+   * scaleY draw collapsed to 0.01ms can land mid-frame.
+   * ----------------------------------------------------------------------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl-now-dot::after {
+      animation: none;
+      opacity: 0;
+    }
+
+    .tl-row[data-rail="behind"]::before,
+    .tl-row[data-rail="split"]::before {
+      animation: none;
+      transform: none;
+    }
+
+    .seg-panel {
+      animation: none;
+    }
+  }
+}

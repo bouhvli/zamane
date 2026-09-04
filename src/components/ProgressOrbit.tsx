@@ -72,10 +72,15 @@ export function ProgressOrbit({
 export function ProgressTrack({
   percent,
   label,
+  tone = "brand",
   className,
 }: {
   percent: number;
   label?: string;
+  /** "danger" recolours the fill for a bar that has run past what it measures
+   *  (an over-budget trip). Adding it here rather than hand-rolling a red bar
+   *  at the call site is what keeps this the app's only horizontal instrument. */
+  tone?: "brand" | "danger";
   className?: string;
 }) {
   const clamped = Math.max(0, Math.min(100, percent));
@@ -89,7 +94,13 @@ export function ProgressTrack({
       aria-label={label ? `${label} progress` : "Progress"}
       className={cn("orbit-bar h-2 w-full overflow-hidden rounded-full", className)}
     >
-      <div className="orbit-bar-fill h-full rounded-full motion-reduce:transition-none" style={{ width: `${clamped}%` }} />
+      <div
+        className={cn(
+          "orbit-bar-fill h-full rounded-full motion-reduce:transition-none",
+          tone === "danger" && "bg-destructive bg-none",
+        )}
+        style={{ width: `${clamped}%` }}
+      />
     </div>
   );
 }

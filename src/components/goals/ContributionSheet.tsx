@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ContributionForm } from "./ContributionForm";
 
 // The contribution flow as a slide-up sheet (same native <dialog> primitive as
-// ItineraryItemSheet: focus trap + Escape + backdrop for free). The goal page
+// trips/SheetShell: focus trap + Escape + backdrop for free). The goal page
 // no longer carries an always-open form — adding is now a deliberate step from
 // the bottom action button. The form is mounted only while open, so every
 // open starts clean.

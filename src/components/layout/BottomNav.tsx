@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import {
   Home09Icon,
@@ -48,6 +49,11 @@ export const DEFAULT_BOTTOM_NAV_TABS: BottomNavTab[] = [
 
 export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNavTab[] }) {
   const { pathname } = useLocation();
+  // useLocation() only commits once the destination's loader resolves, so a
+  // tap gives no feedback at all until that data lands — this tracks the
+  // press itself instead, via pointer events rather than :active, which iOS
+  // Safari won't apply on tap without a touch listener already present.
+  const [pressedId, setPressedId] = useState<string | null>(null);
 
   return (
     // A floating rounded-rectangle bar, inset from the screen edges and lifted
@@ -78,6 +84,10 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 // the only way back up a long list without a manual swipe.
                 if (isActive) window.scrollTo({ top: 0, behavior: "smooth" });
               }}
+              onPointerDown={() => setPressedId(tab.id)}
+              onPointerUp={() => setPressedId(null)}
+              onPointerLeave={() => setPressedId(null)}
+              onPointerCancel={() => setPressedId(null)}
               className={cn(
                 // min-h-11 holds the app's 44px tap floor. Dropping the label
                 // from four of the five tabs took ~11px of height out of them,
@@ -96,7 +106,15 @@ export function BottomNav({ tabs = DEFAULT_BOTTOM_NAV_TABS }: { tabs?: BottomNav
                 // padding left the four inactive tabs 43px each, just under
                 // the same floor. Measured 44.7px at 320 and 63px at 390.
                 isActive ? "flex-none px-2.5" : "min-w-0 flex-1 px-1",
-                "transition-colors duration-[var(--dur-2)] ease-[var(--ease-glide)]",
+                // color and scale share one transition-property list — each
+                // Tailwind transition-* utility sets that property outright
+                // rather than merging, so a separate transition-colors class
+                // here would silently drop the press animation below. Tailwind
+                // v4's scale-* utilities animate the native CSS `scale`
+                // property, not `transform` — listing the wrong one means the
+                // press snaps instead of easing.
+                "transition-[color,scale] duration-[var(--dur-1)] ease-[var(--ease-glide)]",
+                pressedId === tab.id ? "scale-90" : "scale-100",
                 "focus-visible:ring-[3px] focus-visible:ring-[var(--nav-fg-active)]/50",
                 isActive ? "text-[var(--nav-fg-active)]" : "text-[var(--nav-fg-inactive)]",
               )}

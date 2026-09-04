@@ -347,13 +347,74 @@ const itineraryTimeSchema = z
   .optional()
   .or(z.literal("").transform(() => undefined));
 
+// ---- Trip organizer ----
+// An itinerary item grew from "a title on a date" into a plan entry with a
+// kind, a span, a cost and an optional link back to a saved place; a trip also
+// carries a board of places to visit and a shared prep checklist. The three
+// share these leaf schemas so a category or a cost means the same thing
+// wherever it's typed.
+
+/** The kinds a stop or a place can be. Drives the timeline icon, the tint and
+ *  the budget breakdown. Kept as a plain enum (no DB check constraint) so a
+ *  new kind is a one-line change here, not a migration. */
+export const tripCategorySchema = z.enum([
+  "flight",
+  "transport",
+  "stay",
+  "food",
+  "sight",
+  "activity",
+  "other",
+]);
+export type TripCategory = z.infer<typeof tripCategorySchema>;
+
+const optionalTripCategorySchema = tripCategorySchema
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+/**
+ * Money as it actually arrives from a form.
+ *
+ * NOT `z.coerce.number()`: coerce declares its input as `number`, so every
+ * caller sending the string an `<input type="number">` produced has to cast —
+ * and a cast is exactly where a real mismatch would hide. It also reads an
+ * untouched empty field as 0, which is a lie: 0 is a real cost, "" is a blank.
+ *
+ * A union input plus an explicit transform states the truth on both sides: a
+ * string or a number goes in, a number or nothing comes out.
+ */
+const tripCostSchema = z
+  .union([z.string(), z.number()])
+  .optional()
+  .transform((v) => (v === undefined || (typeof v === "string" && v.trim() === "") ? undefined : Number(v)))
+  .refine((n) => n === undefined || (Number.isFinite(n) && n >= 0), "Enter a cost of 0 or more")
+  .refine((n) => n === undefined || n <= MAX_MONEY_AMOUNT, "Amount is too large");
+
+const tripUrlSchema = z
+  .string()
+  .trim()
+  .url("Enter a full link, starting with https://")
+  .max(600)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+
 export const createItineraryItemRequestSchema = z.object({
   tripId: z.string().uuid(),
   title: itineraryTitleSchema,
+  // Every field below the title is optional on purpose: the fastest way to
+  // capture "we should do X" is a name and nothing else, and a plan that
+  // demands a time before it will accept an idea stops being used.
+  category: optionalTripCategorySchema,
   itemDate: itineraryDateSchema,
   itemTime: itineraryTimeSchema,
+  endTime: itineraryTimeSchema,
   location: itineraryLocationSchema,
   notes: itineraryNotesSchema,
+  cost: tripCostSchema,
+  url: tripUrlSchema,
+  /** Set when the stop was scheduled straight from a saved place. */
+  placeId: z.string().uuid().optional().or(z.literal("").transform(() => undefined)),
 });
 export type CreateItineraryItemRequest = z.infer<typeof createItineraryItemRequestSchema>;
 
@@ -361,6 +422,113 @@ export const itineraryItemIdSchema = z.object({
   id: z.string().uuid("Invalid item id"),
 });
 export type ItineraryItemIdQuery = z.infer<typeof itineraryItemIdSchema>;
+
+export const updateItineraryItemRequestSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+  title: itineraryTitleSchema,
+  category: optionalTripCategorySchema,
+  itemDate: itineraryDateSchema,
+  itemTime: itineraryTimeSchema,
+  endTime: itineraryTimeSchema,
+  location: itineraryLocationSchema,
+  notes: itineraryNotesSchema,
+  cost: tripCostSchema,
+  url: tripUrlSchema,
+  placeId: z.string().uuid().optional().or(z.literal("").transform(() => undefined)),
+});
+export type UpdateItineraryItemRequest = z.infer<typeof updateItineraryItemRequestSchema>;
+
+/** Ticking a stop off as the trip happens. Split from the full update so a
+ *  one-tap toggle doesn't have to round-trip every other field (and can't
+ *  clobber an edit made on the other phone in between). */
+export const setItineraryItemDoneRequestSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+  isDone: z.boolean(),
+});
+export type SetItineraryItemDoneRequest = z.infer<typeof setItineraryItemDoneRequestSchema>;
+
+// ---- Places ----
+
+const placeNameSchema = z.string().trim().min(1, "Give the place a name").max(120);
+const placeAreaSchema = z
+  .string()
+  .trim()
+  .max(160)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+const placeNotesSchema = z
+  .string()
+  .trim()
+  .max(1000)
+  .optional()
+  .or(z.literal("").transform(() => undefined));
+
+export const createTripPlaceRequestSchema = z.object({
+  tripId: z.string().uuid(),
+  name: placeNameSchema,
+  category: optionalTripCategorySchema,
+  area: placeAreaSchema,
+  notes: placeNotesSchema,
+  url: tripUrlSchema,
+  estCost: tripCostSchema,
+  isPriority: z.boolean().optional(),
+});
+export type CreateTripPlaceRequest = z.infer<typeof createTripPlaceRequestSchema>;
+
+export const updateTripPlaceRequestSchema = createTripPlaceRequestSchema
+  .omit({ tripId: true })
+  .extend({ id: z.string().uuid("Invalid place id") });
+export type UpdateTripPlaceRequest = z.infer<typeof updateTripPlaceRequestSchema>;
+
+/** Marking a place seen — the same one-tap-toggle rationale as
+ *  setItineraryItemDoneRequestSchema. */
+export const setTripPlaceVisitedRequestSchema = z.object({
+  id: z.string().uuid("Invalid place id"),
+  isVisited: z.boolean(),
+});
+export type SetTripPlaceVisitedRequest = z.infer<typeof setTripPlaceVisitedRequestSchema>;
+
+export const tripPlaceIdSchema = z.object({
+  id: z.string().uuid("Invalid place id"),
+});
+export type TripPlaceIdQuery = z.infer<typeof tripPlaceIdSchema>;
+
+// ---- Prep checklist ----
+
+/** Buckets rather than free text: two people typing their own category names
+ *  produces a list that groups into nothing. */
+export const checklistCategorySchema = z.enum(["packing", "documents", "bookings", "todo"]);
+export type ChecklistCategory = z.infer<typeof checklistCategorySchema>;
+
+export const createChecklistItemRequestSchema = z.object({
+  tripId: z.string().uuid(),
+  title: z.string().trim().min(1, "Write what needs doing").max(160),
+  category: checklistCategorySchema.optional().or(z.literal("").transform(() => undefined)),
+});
+export type CreateChecklistItemRequest = z.infer<typeof createChecklistItemRequestSchema>;
+
+export const setChecklistItemDoneRequestSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+  isDone: z.boolean(),
+});
+export type SetChecklistItemDoneRequest = z.infer<typeof setChecklistItemDoneRequestSchema>;
+
+export const checklistItemIdSchema = z.object({
+  id: z.string().uuid("Invalid item id"),
+});
+export type ChecklistItemIdQuery = z.infer<typeof checklistItemIdSchema>;
+
+// ---- Request INPUT types ----
+// `z.infer` is the OUTPUT of a schema: what a handler holds after parsing, with
+// every `coerce` and `transform` already applied. A client sends the INPUT —
+// a cost is still the string an <input type="number"> produced, and a cleared
+// select is still "". Typing the fetch wrappers with the output type made every
+// call site cast, which is exactly the place a real mismatch would hide.
+export type CreateItineraryItemInput = z.input<typeof createItineraryItemRequestSchema>;
+export type UpdateItineraryItemInput = z.input<typeof updateItineraryItemRequestSchema>;
+export type CreateTripPlaceInput = z.input<typeof createTripPlaceRequestSchema>;
+export type UpdateTripPlaceInput = z.input<typeof updateTripPlaceRequestSchema>;
+export type CreateChecklistItemInput = z.input<typeof createChecklistItemRequestSchema>;
 
 // ---- Shopping ----
 // A single shared list per group, not per-user and not multiple named

@@ -197,3 +197,81 @@ create table if not exists shopping_items (
 
 create index if not exists shopping_items_group_id_idx on shopping_items (group_id);
 create index if not exists shopping_items_is_checked_idx on shopping_items (is_checked);
+
+-- ---------------------------------------------------------------------------
+-- Trip organizer (added after the flat-itinerary launch)
+-- ---------------------------------------------------------------------------
+
+-- Places the couple wants to see on a trip, kept separately from the itinerary
+-- because a place and a plan are different things: a place is a *candidate*
+-- ("the fjord viewpoint, somewhere this week"), an itinerary item is a
+-- *commitment* ("Tuesday 09:00"). Collapsing the two into one undated
+-- itinerary row is what the old model did, and it meant a wishlist entry and a
+-- scheduled stop were indistinguishable in the list.
+--
+-- A place carries its own category, area, cost estimate and map link; an
+-- itinerary item points back at it via trip_itinerary_items.place_id, so
+-- scheduling a place is a link rather than a copy and "visited" can be
+-- derived. group_id is intentionally NOT denormalized here — every read is
+-- already scoped by trip_id, and the trip carries the group.
+create table if not exists trip_places (
+  id            uuid primary key default gen_random_uuid(),
+  trip_id       uuid not null references trips(id) on delete cascade,
+  name          text not null,
+  category      text,
+  area          text,
+  notes         text,
+  url           text,
+  est_cost      numeric(12,2),
+  -- A place someone has starred as a must-do rather than a maybe. Sorts to the
+  -- top of the board; deliberately a boolean rather than a 1-5 priority, which
+  -- two people would rank inconsistently.
+  is_priority   boolean not null default false,
+  is_visited    boolean not null default false,
+  created_by    uuid not null references users(id) on delete cascade,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists trip_places_trip_id_idx on trip_places (trip_id);
+
+-- The shared prep list: packing, documents, bookings, anything to settle
+-- before leaving. Separate from the itinerary for the same reason as places —
+-- "renew passport" has no place on a timeline of the trip itself.
+create table if not exists trip_checklist_items (
+  id            uuid primary key default gen_random_uuid(),
+  trip_id       uuid not null references trips(id) on delete cascade,
+  title         text not null,
+  category      text,
+  is_done       boolean not null default false,
+  created_by    uuid not null references users(id) on delete cascade,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists trip_checklist_items_trip_id_idx on trip_checklist_items (trip_id);
+
+-- Itinerary items grow from "a title on a date" into a real plan entry.
+-- `create table if not exists` above is a no-op against the existing table, so
+-- these land as explicit idempotent alters (same pattern as users.group_id).
+--
+--   category    — flight / stay / food / sight / activity / transport / other.
+--                 Drives the icon and tint on the timeline, and the budget
+--                 breakdown. Left as free text + an app-layer union rather
+--                 than a check constraint so adding a kind later doesn't need
+--                 a migration.
+--   end_time    — lets a stop occupy a span, which is what makes "happening
+--                 now" answerable instead of guessed.
+--   cost        — planned spend, rolled up against trips.budget.
+--   url         — booking link, map pin, reservation page.
+--   is_done     — ticked off as the trip actually happens.
+--   place_id    — the place this stop realizes, if any.
+alter table trip_itinerary_items add column if not exists category text;
+alter table trip_itinerary_items add column if not exists end_time time;
+alter table trip_itinerary_items add column if not exists cost numeric(12,2);
+alter table trip_itinerary_items add column if not exists url text;
+alter table trip_itinerary_items add column if not exists is_done boolean not null default false;
+alter table trip_itinerary_items add column if not exists place_id uuid references trip_places(id) on delete set null;
+alter table trip_itinerary_items add column if not exists updated_at timestamptz not null default now();
+
+create index if not exists trip_itinerary_items_place_id_idx on trip_itinerary_items (place_id);

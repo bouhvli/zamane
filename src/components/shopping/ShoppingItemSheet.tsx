@@ -22,7 +22,7 @@ type ShoppingFormValues = z.infer<typeof shoppingFormSchema>;
 const DEFAULT_VALUES: ShoppingFormValues = { name: "", quantity: 1, category: "", price: "" };
 
 // The add-item flow as a slide-up sheet (same native <dialog> primitive as
-// ItineraryItemSheet/ContributionSheet: focus trap + Escape + backdrop for
+// trips/SheetShell and ContributionSheet: focus trap + Escape + backdrop for
 // free). Unlike those, submitting does NOT close the sheet — a shopping list
 // is usually filled in with several items in one sitting, so it clears and
 // refocuses the name field instead, the same rapid-re-add behaviour the old
